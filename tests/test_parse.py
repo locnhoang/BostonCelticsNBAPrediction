@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -44,6 +45,17 @@ def test_schedule_to_games_skips_tbd_and_non_regular_season():
     games = schedule_to_games(raw, 2026)
     assert games["game_id"].tolist() == ["0022600001"]
     assert games["home_pts"].isna().all() and games["poss"].isna().all()
+
+
+def test_schedule_to_games_skips_nan_tricodes():
+    raw = schedule_payload(
+        "2026-27",
+        [("0022600001", "2026-10-22", "BOS", "PHI"), ("0022600900", "2026-12-10", "", "")],
+    )
+    raw["homeTeam_teamTricode"] = raw["homeTeam_teamTricode"].astype(object)
+    raw.loc[1, ["homeTeam_teamTricode", "awayTeam_teamTricode"]] = np.nan
+    games = schedule_to_games(raw, 2026)
+    assert games["game_id"].tolist() == ["0022600001"]
 
 
 def test_schedule_to_games_rejects_wrong_season():

@@ -37,7 +37,7 @@ def refresh(
     raw_dir: Path,
     today: date,
     fetch_gamelog: Callable[[int], pd.DataFrame] = fetch_season_gamelog,
-    fetch_schedule: Callable[[], dict] = _fetch_schedule,
+    fetch_schedule: Callable[[int], pd.DataFrame] = _fetch_schedule,
     pause: float = 1.5,
 ) -> pd.DataFrame:
     raw_dir = Path(raw_dir)
@@ -49,6 +49,6 @@ def refresh(
             gamelog_to_games(fetch_gamelog(past), past).to_parquet(path, index=False)
             time.sleep(pause)
     results = gamelog_to_games(fetch_gamelog(season), season)
-    schedule = schedule_to_games(fetch_schedule(), season)
+    schedule = schedule_to_games(fetch_schedule(season), season)
     merge_schedule_results(schedule, results).to_parquet(season_path(raw_dir, season), index=False)
     return load_all(raw_dir)

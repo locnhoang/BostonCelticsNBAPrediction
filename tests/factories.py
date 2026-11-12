@@ -16,24 +16,25 @@ def gamelog_rows(game_id, date, home, away, home_pts, away_pts):
 
 
 def schedule_payload(season_label, games):
-    """Minimal scheduleLeagueV2.json. games: (game_id, 'YYYY-MM-DD', home, away)."""
-    days: dict[str, list] = {}
-    for game_id, date, home, away in games:
-        days.setdefault(date, []).append(
-            {
-                "gameId": game_id,
-                "gameDateEst": f"{date}T00:00:00Z",
-                "gameStatus": 1,
-                "homeTeam": {"teamTricode": home, "score": 0},
-                "awayTeam": {"teamTricode": away, "score": 0},
-            }
-        )
-    return {
-        "leagueSchedule": {
-            "seasonYear": season_label,
-            "gameDates": [{"gameDate": d, "games": g} for d, g in days.items()],
-        }
-    }
+    """Minimal ScheduleLeagueV2 frame. games: (game_id, 'YYYY-MM-DD', home, away)."""
+    return pd.DataFrame(
+        {
+            "seasonYear": [season_label] * len(games),
+            "gameId": [g[0] for g in games],
+            "gameDateEst": [f"{g[1]}T00:00:00Z" for g in games],
+            "gameStatus": [1] * len(games),
+            "homeTeam_teamTricode": [g[2] for g in games],
+            "awayTeam_teamTricode": [g[3] for g in games],
+        },
+        columns=[
+            "seasonYear",
+            "gameId",
+            "gameDateEst",
+            "gameStatus",
+            "homeTeam_teamTricode",
+            "awayTeam_teamTricode",
+        ],
+    )
 
 
 def make_games(rows):

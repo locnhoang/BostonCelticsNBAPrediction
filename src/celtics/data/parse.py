@@ -54,35 +54,37 @@ def gamelog_to_games(raw: pd.DataFrame, season: int) -> pd.DataFrame:
     return _sorted(games)
 
 
-def schedule_to_games(raw: dict, season: int) -> pd.DataFrame:
-    sched = raw["leagueSchedule"]
-    if sched.get("seasonYear") != season_label(season):
-        raise ValueError(
-            f"schedule is for {sched.get('seasonYear')}, expected {season_label(season)}"
-        )
-    rows = []
-    for day in sched["gameDates"]:
-        for g in day["games"]:
-            game_id = str(g["gameId"])
-            home = g["homeTeam"].get("teamTricode") or ""
-            away = g["awayTeam"].get("teamTricode") or ""
-            if not game_id.startswith("002") or not home or not away:
-                continue
-            rows.append(
-                {
-                    "game_id": game_id,
-                    "season": season,
-                    "date": pd.Timestamp(g["gameDateEst"][:10]),
-                    "home_team": home,
-                    "away_team": away,
-                    "home_pts": np.nan,
-                    "away_pts": np.nan,
-                    "poss": np.nan,
-                }
-            )
-    if not rows:
+def schedule_to_games(raw: pd.DataFrame, season: int) -> pd.DataFrame:
+    if raw.empty:
         return empty_games()
-    return _sorted(pd.DataFrame(rows).drop_duplicates("game_id"))
+    found = set(raw["seasonYear"].astype(str))
+    if found != {season_label(season)}:
+        raise ValueError(f"schedule is for {sorted(found)}, expected {season_label(season)}")
+    df = pd.DataFrame(
+        {
+            "game_id": raw["gameId"].astype(str).to_numpy(),
+            "home_team": raw["homeTeam_teamTricode"].fillna("").astype(str).to_numpy(),
+            "away_team": raw["awayTeam_teamTricode"].fillna("").astype(str).to_numpy(),
+            "date_str": raw["gameDateEst"].astype(str).str[:10].to_numpy(),
+        }
+    )
+    keep = df["game_id"].str.startswith("002") & (df["home_team"] != "") & (df["away_team"] != "")
+    df = df[keep]
+    if df.empty:
+        return empty_games()
+    games = pd.DataFrame(
+        {
+            "game_id": df["game_id"].to_numpy(),
+            "season": season,
+            "date": pd.to_datetime(df["date_str"]).to_numpy(),
+            "home_team": df["home_team"].to_numpy(),
+            "away_team": df["away_team"].to_numpy(),
+            "home_pts": np.nan,
+            "away_pts": np.nan,
+            "poss": np.nan,
+        }
+    )
+    return _sorted(games.drop_duplicates("game_id"))
 
 
 def merge_schedule_results(schedule: pd.DataFrame, results: pd.DataFrame) -> pd.DataFrame:

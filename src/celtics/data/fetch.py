@@ -4,11 +4,8 @@ import time
 from collections.abc import Callable
 
 import pandas as pd
-import requests
 
 from celtics.config import season_label
-
-SCHEDULE_URL = "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
 
 
 class FetchBlockedError(RuntimeError):
@@ -47,10 +44,11 @@ def fetch_season_gamelog(season: int) -> pd.DataFrame:
     return with_retries(call)
 
 
-def fetch_schedule() -> dict:
-    def call() -> dict:
-        resp = requests.get(SCHEDULE_URL, timeout=30)
-        resp.raise_for_status()
-        return resp.json()
+def fetch_schedule(season: int) -> pd.DataFrame:
+    from nba_api.stats.endpoints import scheduleleaguev2
+
+    def call() -> pd.DataFrame:
+        endpoint = scheduleleaguev2.ScheduleLeagueV2(season=season_label(season), timeout=30)
+        return endpoint.get_data_frames()[0]
 
     return with_retries(call)

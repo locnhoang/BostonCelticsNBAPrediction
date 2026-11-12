@@ -51,7 +51,7 @@ Each stage is a separate module with one responsibility and a DataFrame-based in
 
 ## Data
 
-- **Source:** `nba_api` (stats.nba.com).
+- **Source:** `nba_api` (stats.nba.com), including the current-season schedule via `ScheduleLeagueV2`. The NBA CDN schedule JSON was the original source but returned HTTP 403, so it is not used.
 - **Coverage:** all NBA regular-season games, 2014-15 through the current season, plus the current season's full schedule.
 - **Caching:** completed past seasons are fetched once and stored as parquet. Daily runs fetch only new games and the current schedule.
 - **Rate limiting:** requests are spaced out; failed requests retry with exponential backoff.

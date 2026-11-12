@@ -4,7 +4,7 @@
 
 **Goal:** Build a daily-updating NBA model that predicts the Boston Celtics' remaining 2026-27 games, final win total, seed, and playoff/play-in odds, published as a static website.
 
-**Architecture:** A Python package (`src/celtics`) fetches NBA data with `nba_api` and the NBA CDN schedule, caches it as parquet, builds point-in-time features (Elo, decayed net rating, rest), fits a point-margin regression, and runs a 10,000-run Monte Carlo of the full league's remaining schedule (standings, tiebreakers, play-in). It writes validated JSON to `site/data/`; a static HTML/JS page on GitHub Pages renders it. GitHub Actions runs the update daily, and a macOS `launchd` job is the fallback.
+**Architecture:** A Python package (`src/celtics`) fetches NBA data with `nba_api` and the stats.nba.com `ScheduleLeagueV2` schedule, caches it as parquet, builds point-in-time features (Elo, decayed net rating, rest), fits a point-margin regression, and runs a 10,000-run Monte Carlo of the full league's remaining schedule (standings, tiebreakers, play-in). It writes validated JSON to `site/data/`; a static HTML/JS page on GitHub Pages renders it. GitHub Actions runs the update daily, and a macOS `launchd` job is the fallback.
 
 **Tech Stack:** Python 3.12, uv, pandas, pyarrow, numpy, scipy, scikit-learn (incl. HistGradientBoosting), joblib, pydantic v2, requests, nba_api, pytest, ruff. Frontend: plain HTML/CSS/JS, d3 7.9.0 and Observable Plot 0.6.16 from jsDelivr.
 
@@ -35,7 +35,7 @@ src/celtics/__init__.py
 src/celtics/config.py               # constants, Paths, season helpers
 src/celtics/teams.py                # team / division / conference metadata
 src/celtics/data/__init__.py
-src/celtics/data/parse.py           # raw nba_api / CDN payloads → canonical games frame
+src/celtics/data/parse.py           # raw nba_api frames → canonical games frame
 src/celtics/data/fetch.py           # network calls + retries
 src/celtics/data/cache.py           # parquet cache, refresh orchestration
 src/celtics/data/validate.py        # data integrity checks
@@ -335,7 +335,7 @@ git commit -m "chore: scaffold celtics package, config, team metadata, CI"
 - Produces:
   - `GAME_COLUMNS: list[str]`, `empty_games() -> pd.DataFrame`
   - `gamelog_to_games(raw: pd.DataFrame, season: int) -> pd.DataFrame`. `raw` is the `LeagueGameLog` team-level frame (one row per team per game; columns `GAME_ID, GAME_DATE, MATCHUP, TEAM_ABBREVIATION, PTS, FGA, OREB, TOV, FTA`).
-  - `schedule_to_games(raw: dict, season: int) -> pd.DataFrame`. `raw` is the CDN `scheduleLeagueV2.json`; returns unplayed rows (NaN pts/poss); raises `ValueError` if `leagueSchedule.seasonYear != season_label(season)`.
+  - `schedule_to_games(raw: pd.DataFrame, season: int) -> pd.DataFrame`. `raw` is the flat `ScheduleLeagueV2` frame (`seasonYear`, `gameId`, `gameDateEst`, `homeTeam_teamTricode`, `awayTeam_teamTricode`); returns unplayed rows (NaN pts/poss); raises `ValueError` if `seasonYear` values are not all `season_label(season)`.
   - `merge_schedule_results(schedule, results) -> pd.DataFrame`. Results win on conflicts; schedule supplies the unplayed games.
   - `tests/factories.py`: `gamelog_rows(game_id, date, home, away, home_pts, away_pts) -> list[dict]`, `schedule_payload(season_label, games: list[tuple[game_id, date, home, away]]) -> dict`, `make_games(rows: list[tuple]) -> pd.DataFrame`
 
@@ -586,7 +586,7 @@ Expected: 5 passed
 
 ```bash
 git add src/celtics/data tests/factories.py tests/test_parse.py
-git commit -m "feat: parse nba_api game logs and CDN schedule into canonical games frame"
+git commit -m "feat: parse nba_api game logs and schedule into canonical games frame"
 ```
 
 ---
@@ -690,11 +690,8 @@ import time
 from collections.abc import Callable
 
 import pandas as pd
-import requests
 
 from celtics.config import season_label
-
-SCHEDULE_URL = "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
 
 
 class FetchBlockedError(RuntimeError):
@@ -733,11 +730,12 @@ def fetch_season_gamelog(season: int) -> pd.DataFrame:
     return with_retries(call)
 
 
-def fetch_schedule() -> dict:
-    def call() -> dict:
-        resp = requests.get(SCHEDULE_URL, timeout=30)
-        resp.raise_for_status()
-        return resp.json()
+def fetch_schedule(season: int) -> pd.DataFrame:
+    from nba_api.stats.endpoints import scheduleleaguev2
+
+    def call() -> pd.DataFrame:
+        endpoint = scheduleleaguev2.ScheduleLeagueV2(season=season_label(season), timeout=30)
+        return endpoint.get_data_frames()[0]
 
     return with_retries(call)
 ```
@@ -784,7 +782,7 @@ def refresh(
     raw_dir: Path,
     today: date,
     fetch_gamelog: Callable[[int], pd.DataFrame] = fetch_season_gamelog,
-    fetch_schedule: Callable[[], dict] = _fetch_schedule,
+    fetch_schedule: Callable[[int], pd.DataFrame] = _fetch_schedule,
     pause: float = 1.5,
 ) -> pd.DataFrame:
     raw_dir = Path(raw_dir)
@@ -796,7 +794,7 @@ def refresh(
             gamelog_to_games(fetch_gamelog(past), past).to_parquet(path, index=False)
             time.sleep(pause)
     results = gamelog_to_games(fetch_gamelog(season), season)
-    schedule = schedule_to_games(fetch_schedule(), season)
+    schedule = schedule_to_games(fetch_schedule(season), season)
     merge_schedule_results(schedule, results).to_parquet(season_path(raw_dir, season), index=False)
     return load_all(raw_dir)
 ```
@@ -4158,7 +4156,7 @@ Daily-updated projections for the Boston Celtics: win probability for every rema
 
 ## How it works
 
-1. **Data:** every regular-season game since 2014-15 from NBA.com (`nba_api`) plus the NBA CDN schedule, cached locally as parquet.
+1. **Data:** every regular-season game since 2014-15 from NBA.com (`nba_api`) plus the stats.nba.com `ScheduleLeagueV2` schedule, cached locally as parquet.
 2. **Features** (all point-in-time, so there's no leakage): margin-of-victory Elo, recency-weighted net rating per 100 possessions with a preseason prior, home court, rest days, back-to-backs, three-in-four.
 3. **Model:** ridge regression predicts the point margin; win probability = Φ(margin / σ). It's compared against Elo-only, home-court-only, and gradient boosting in a walk-forward backtest (2018-19 → 2025-26).
 4. **Simulation:** 10,000 runs of the full league's remaining schedule, with correlated team-strength uncertainty (tuned so 80% intervals cover about 80% of outcomes), simplified tiebreakers, and the play-in.

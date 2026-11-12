@@ -43,7 +43,7 @@ def test_refresh_fetches_past_seasons_once_and_current_always(tmp_path, monkeypa
         fetched.append(season)
         return _fake_gamelog(season)
 
-    def fake_schedule():
+    def fake_schedule(season):
         return schedule_payload(
             "2026-27",
             [("0022600001", "2026-11-01", "BOS", "NYK"), ("0022600002", "2026-11-20", "MIA", "BOS")],
