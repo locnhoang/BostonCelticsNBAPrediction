@@ -34,14 +34,20 @@ def gamelog_to_games(raw: pd.DataFrame, season: int) -> pd.DataFrame:
     df["GAME_ID"] = df["GAME_ID"].astype(str)
     df = df[df["GAME_ID"].str.startswith("002")].copy()
     df["poss"] = df["FGA"] - df["OREB"] + df["TOV"] + 0.44 * df["FTA"]
-    is_home = df["MATCHUP"].str.contains(" vs. ", regex=False)
-    home = df[is_home].set_index("GAME_ID")
-    away = df[~is_home].set_index("GAME_ID")
-    ids = home.index.intersection(away.index)
-    home, away = home.loc[ids], away.loc[ids]
+    counts = df["GAME_ID"].value_counts()
+    bad = sorted(counts[counts != 2].index)
+    if bad:
+        raise ValueError(f"games without exactly 2 log rows: {bad[:5]}")
+    df["is_home"] = df["MATCHUP"].str.contains(" vs. ", regex=False)
+    # Neutral-site games have "@" on both rows. Pick home as the team whose abbreviation
+    # sorts second; merge_schedule_results corrects this from the schedule when available.
+    df = df.sort_values(["GAME_ID", "is_home", "TEAM_ABBREVIATION"], ascending=[True, True, True])
+    pairs = df.groupby("GAME_ID", sort=True)
+    away = pairs.nth(0).set_index("GAME_ID")
+    home = pairs.nth(1).set_index("GAME_ID")
     games = pd.DataFrame(
         {
-            "game_id": ids.astype(str),
+            "game_id": home.index.astype(str),
             "season": season,
             "date": pd.to_datetime(home["GAME_DATE"]).dt.normalize().to_numpy(),
             "home_team": home["TEAM_ABBREVIATION"].to_numpy(),
@@ -87,7 +93,31 @@ def schedule_to_games(raw: pd.DataFrame, season: int) -> pd.DataFrame:
     return _sorted(games.drop_duplicates("game_id"))
 
 
+def _align_results_to_schedule(schedule: pd.DataFrame, results: pd.DataFrame) -> pd.DataFrame:
+    """Take home/away from the schedule; swap points if the results had them reversed."""
+    if results.empty:
+        return results
+    sched = schedule.set_index("game_id")[["home_team", "away_team"]]
+    res = results.set_index("game_id", drop=False)
+    common = res.index.intersection(sched.index)
+    if common.empty:
+        return results
+    r, sc = res.loc[common], sched.loc[common]
+    same = (r["home_team"] == sc["home_team"]) & (r["away_team"] == sc["away_team"])
+    swapped = (r["home_team"] == sc["away_team"]) & (r["away_team"] == sc["home_team"])
+    mismatch = common[~(same | swapped).to_numpy()]
+    if len(mismatch):
+        raise ValueError(f"result teams do not match schedule for games: {list(mismatch[:5])}")
+    out = res.copy()
+    flip = common[swapped.to_numpy()]
+    out.loc[flip, ["home_pts", "away_pts"]] = res.loc[flip, ["away_pts", "home_pts"]].to_numpy()
+    out.loc[common, "home_team"] = sc["home_team"]
+    out.loc[common, "away_team"] = sc["away_team"]
+    return out.reset_index(drop=True)
+
+
 def merge_schedule_results(schedule: pd.DataFrame, results: pd.DataFrame) -> pd.DataFrame:
+    results = _align_results_to_schedule(schedule, results)
     unplayed = schedule[~schedule["game_id"].isin(results["game_id"])]
     frames = [f for f in (results, unplayed) if not f.empty]
     if not frames:

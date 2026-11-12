@@ -6,11 +6,15 @@ import pandas as pd
 from celtics.data.parse import GAME_COLUMNS
 
 
-def gamelog_rows(game_id, date, home, away, home_pts, away_pts):
-    """Two LeagueGameLog rows (home + away) with stats that give 100 possessions each."""
+def gamelog_rows(game_id, date, home, away, home_pts, away_pts, neutral=False):
+    """Two LeagueGameLog rows (home + away) with stats that give 100 possessions each.
+
+    neutral=True mimics a neutral-site game: both MATCHUPs use "@".
+    """
     base = {"GAME_ID": game_id, "GAME_DATE": date, "FGA": 90, "OREB": 10, "TOV": 15, "FTA": 11.363636}
+    home_matchup = f"{home} @ {away}" if neutral else f"{home} vs. {away}"
     return [
-        {**base, "TEAM_ABBREVIATION": home, "MATCHUP": f"{home} vs. {away}", "PTS": home_pts},
+        {**base, "TEAM_ABBREVIATION": home, "MATCHUP": home_matchup, "PTS": home_pts},
         {**base, "TEAM_ABBREVIATION": away, "MATCHUP": f"{away} @ {home}", "PTS": away_pts},
     ]
 
