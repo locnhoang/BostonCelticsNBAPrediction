@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, TypeAdapter, model_validator
 
 Prob = Annotated[float, Field(ge=0.0, le=1.0)]
 TOL = 5e-3  # values are rounded to 4 decimals, so sums drift slightly
@@ -128,3 +128,12 @@ class BacktestReport(BaseModel):
     calibration: list[CalibrationBin]
     coverage: dict[str, Prob]
     chosen_team_sd: float
+
+
+class PregameEntry(BaseModel):
+    win_prob: Prob | None
+    pred_margin: float | None
+    logged_at: str
+
+
+PregameLog = TypeAdapter(dict[str, PregameEntry])

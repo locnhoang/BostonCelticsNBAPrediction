@@ -3,6 +3,7 @@ from datetime import date, datetime
 
 import pandas as pd
 import pytest
+from pydantic import ValidationError
 
 from celtics.cli import main
 from celtics.config import DEFAULT_TEAM_SD, Paths
@@ -138,3 +139,11 @@ def test_run_update_rejects_completed_games_going_backwards(repo):
     with pytest.raises(DataValidationError, match="completed games went backwards"):
         run_update(repo, TODAY, offline=True, n_sims=50)
     assert (repo.site_data / "predictions.json").read_text() == before
+
+
+def test_run_update_rejects_corrupt_pregame_log(repo):
+    repo.site_data.mkdir(parents=True)
+    bad = {"g1": {"win_prob": 3.0, "pred_margin": 1.0, "logged_at": "2024-11-19T14:00:00"}}
+    (repo.site_data / "pregame_log.json").write_text(json.dumps(bad))
+    with pytest.raises(ValidationError):
+        run_update(repo, TODAY, offline=True, n_sims=50)

@@ -33,7 +33,7 @@ from celtics.export.build import (
     upsert_history,
     write_json_atomic,
 )
-from celtics.export.schema import BacktestReport, HistoryEntry, Predictions
+from celtics.export.schema import BacktestReport, HistoryEntry, Predictions, PregameLog
 from celtics.features.build import FEATURES, build_features, current_team_state
 from celtics.models.margin import MODELS, MarginModel, load_model, make_model, save_model
 from celtics.simulate.inputs import prepare_sim_inputs
@@ -129,6 +129,7 @@ def run_update(
         "metrics": {"live": live_metrics(rows)},
     }
     Predictions.model_validate(predictions)
+    PregameLog.validate_python(log)
     entry = history_entry(today, summary)
     HistoryEntry.model_validate(entry)
     history = upsert_history(read_json(paths.site_data / "history.json", []), entry)

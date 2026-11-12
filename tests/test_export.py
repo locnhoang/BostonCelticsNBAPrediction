@@ -16,7 +16,7 @@ from celtics.export.build import (
     upsert_history,
     write_json_atomic,
 )
-from celtics.export.schema import HistoryEntry, TeamSummary
+from celtics.export.schema import HistoryEntry, PregameLog, TeamSummary
 from celtics.features.build import FEATURES, build_features
 from celtics.models.margin import make_model
 from celtics.simulate.season import SimResult
@@ -120,3 +120,9 @@ def test_pregame_log_never_overwrites_earlier_days():
     assert same_day["g2"]["logged_at"] == "2026-11-12T20:00:00"
     today = {"g1": {"win_prob": 0.55, "pred_margin": 1.0, "logged_at": "2026-11-12T08:00:00"}}
     assert update_pregame_log(today, [row], "2026-11-12T14:00:00")["g1"]["win_prob"] == 0.7
+
+
+def test_pregame_log_schema_rejects_bad_entry():
+    PregameLog.validate_python({"g1": {"win_prob": 0.5, "pred_margin": None, "logged_at": "x"}})
+    with pytest.raises(ValidationError):
+        PregameLog.validate_python({"g1": {"win_prob": 1.5, "pred_margin": 1.0, "logged_at": "x"}})
