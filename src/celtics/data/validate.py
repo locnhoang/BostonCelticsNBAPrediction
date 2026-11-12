@@ -10,7 +10,11 @@ class DataValidationError(ValueError):
 
 
 def validate_games(
-    games: pd.DataFrame, season: int, min_games: int = 80, max_games: int = 82
+    games: pd.DataFrame,
+    season: int,
+    min_games: int = 80,
+    max_games: int = 82,
+    max_stale_days: int = 1,
 ) -> None:
     problems: list[str] = []
 
@@ -36,6 +40,16 @@ def validate_games(
     bad = counts[(counts < min_games) | (counts > max_games)]
     if len(bad):
         problems.append(f"games per team out of [{min_games}, {max_games}]: {bad.to_dict()}")
+
+    # A postponed game is normally re-dated in the schedule, so an unplayed game dated well
+    # before the latest result means its result is missing.
+    cur_played = cur["home_pts"].notna() | cur["away_pts"].notna()
+    if cur_played.any():
+        cutoff = cur.loc[cur_played, "date"].max() - pd.Timedelta(days=max_stale_days)
+        stale = cur[~cur_played & (cur["date"] < cutoff)]
+        if len(stale):
+            ids = stale["game_id"].tolist()
+            problems.append(f"{len(ids)} past-dated games have no result: {ids[:5]}")
 
     if problems:
         raise DataValidationError("; ".join(problems))

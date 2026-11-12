@@ -1,5 +1,6 @@
 """Local parquet cache: one file per season."""
 
+import os
 import time
 from collections.abc import Callable
 from datetime import date
@@ -8,8 +9,8 @@ from pathlib import Path
 import pandas as pd
 
 from celtics.config import FIRST_SEASON, current_season
+from celtics.data.fetch import FetchBlockedError, fetch_season_gamelog
 from celtics.data.fetch import fetch_schedule as _fetch_schedule
-from celtics.data.fetch import fetch_season_gamelog
 from celtics.data.parse import (
     GAME_COLUMNS,
     empty_games,
@@ -17,6 +18,15 @@ from celtics.data.parse import (
     merge_schedule_results,
     schedule_to_games,
 )
+
+MIN_PAST_TEAMS = 30
+MIN_PAST_GAMES = 900  # covers the shortened 2019-20 (971) and 2020-21 (1080) seasons
+
+
+def _write_parquet_atomic(frame: pd.DataFrame, path: Path) -> None:
+    tmp = path.with_suffix(".tmp")
+    frame.to_parquet(tmp, index=False)
+    os.replace(tmp, path)
 
 
 def season_path(raw_dir: Path, season: int) -> Path:
@@ -46,9 +56,13 @@ def refresh(
     for past in range(FIRST_SEASON, season):
         path = season_path(raw_dir, past)
         if not path.exists():
-            gamelog_to_games(fetch_gamelog(past), past).to_parquet(path, index=False)
+            games = gamelog_to_games(fetch_gamelog(past), past)
+            teams = len(set(games["home_team"]) | set(games["away_team"]))
+            if teams < MIN_PAST_TEAMS or len(games) < MIN_PAST_GAMES:
+                raise FetchBlockedError(f"season {past} looks incomplete: {len(games)} games")
+            _write_parquet_atomic(games, path)
             time.sleep(pause)
     results = gamelog_to_games(fetch_gamelog(season), season)
     schedule = schedule_to_games(fetch_schedule(season), season)
-    merge_schedule_results(schedule, results).to_parquet(season_path(raw_dir, season), index=False)
+    _write_parquet_atomic(merge_schedule_results(schedule, results), season_path(raw_dir, season))
     return load_all(raw_dir)

@@ -112,8 +112,13 @@ def game_rows(
 
 def update_pregame_log(log: dict, rows: list[dict], now_iso: str) -> dict:
     updated = dict(log)
+    today = now_iso[:10]
     for r in rows:
-        if not r["completed"]:
+        if r["completed"]:
+            continue
+        existing = updated.get(r["game_id"])
+        # entries from earlier days are frozen pre-game records; only today's may be refreshed
+        if existing is None or existing["logged_at"][:10] >= today:
             updated[r["game_id"]] = {
                 "win_prob": r["win_prob"],
                 "pred_margin": r["pred_margin"],

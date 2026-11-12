@@ -107,3 +107,16 @@ def test_atomic_write_roundtrip(tmp_path):
     write_json_atomic(path, {"a": 1})
     assert read_json(path, None) == {"a": 1}
     assert read_json(tmp_path / "missing.json", []) == []
+
+
+def test_pregame_log_never_overwrites_earlier_days():
+    row = {"game_id": "g1", "completed": False, "win_prob": 0.7, "pred_margin": 4.0}
+    new = {"game_id": "g2", "completed": False, "win_prob": 0.4, "pred_margin": -2.0}
+    old = {"g1": {"win_prob": 0.55, "pred_margin": 1.0, "logged_at": "2026-11-11T14:00:00"}}
+    out = update_pregame_log(old, [row, new], "2026-11-12T14:00:00")
+    assert out["g1"]["win_prob"] == 0.55  # earlier-day entry is frozen
+    assert out["g2"]["win_prob"] == 0.4  # new games are added
+    same_day = update_pregame_log(out, [{**row, "win_prob": 0.6}, new], "2026-11-12T20:00:00")
+    assert same_day["g2"]["logged_at"] == "2026-11-12T20:00:00"
+    today = {"g1": {"win_prob": 0.55, "pred_margin": 1.0, "logged_at": "2026-11-12T08:00:00"}}
+    assert update_pregame_log(today, [row], "2026-11-12T14:00:00")["g1"]["win_prob"] == 0.7

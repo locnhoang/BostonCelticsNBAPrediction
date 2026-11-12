@@ -62,3 +62,23 @@ def test_too_few_games_fails():
 
 def test_eighty_games_allowed_before_cup_games_are_scheduled():
     validate_games(league_season(games_per_team=80), 2026)
+
+
+def test_past_dated_unplayed_game_fails():
+    g = league_season(played=10)
+    g.loc[0, ["home_pts", "away_pts", "poss"]] = np.nan  # day 0 game, but day 9 is played
+    with pytest.raises(DataValidationError, match=r"1 past-dated games have no result: \['"):
+        validate_games(g, 2026)
+
+
+def test_recent_unplayed_game_is_allowed():
+    g = league_season(played=10)
+    last_day = g[g["home_pts"].notna()]["date"].max()
+    g.loc[g["date"] == last_day, ["home_pts", "away_pts", "poss"]] = np.nan
+    validate_games(g, 2026)  # games on the last played date minus nothing: within the window
+
+
+def test_stale_threshold_is_configurable():
+    g = league_season(played=10)
+    g.loc[g["date"] == g["date"].min(), ["home_pts", "away_pts", "poss"]] = np.nan
+    validate_games(g, 2026, max_stale_days=30)

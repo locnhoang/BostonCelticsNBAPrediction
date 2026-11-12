@@ -125,3 +125,16 @@ def test_read_team_sd(repo):
     repo.site_data.mkdir(parents=True)
     (repo.site_data / "backtest.json").write_text(json.dumps({"chosen_team_sd": 3.0}))
     assert read_team_sd(repo) == 3.0
+
+
+def test_run_update_rejects_completed_games_going_backwards(repo):
+    run_update(repo, TODAY, offline=True, n_sims=50)
+    path = season_path(repo.raw_dir, 2024)
+    df = pd.read_parquet(path)
+    last_day = df.loc[df["home_pts"].notna(), "date"].max()
+    df.loc[df["date"] == last_day, ["home_pts", "away_pts", "poss"]] = float("nan")  # results vanish
+    df.to_parquet(path, index=False)
+    before = (repo.site_data / "predictions.json").read_text()
+    with pytest.raises(DataValidationError, match="completed games went backwards"):
+        run_update(repo, TODAY, offline=True, n_sims=50)
+    assert (repo.site_data / "predictions.json").read_text() == before

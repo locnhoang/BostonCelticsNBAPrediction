@@ -37,6 +37,8 @@ def _fake_gamelog(season):
 
 def test_refresh_fetches_past_seasons_once_and_current_always(tmp_path, monkeypatch):
     monkeypatch.setattr("celtics.data.cache.FIRST_SEASON", 2024)
+    monkeypatch.setattr("celtics.data.cache.MIN_PAST_GAMES", 1)
+    monkeypatch.setattr("celtics.data.cache.MIN_PAST_TEAMS", 2)
     fetched = []
 
     def fake_gamelog(season):
@@ -63,3 +65,17 @@ def test_refresh_fetches_past_seasons_once_and_current_always(tmp_path, monkeypa
 
 def test_load_all_empty_dir(tmp_path):
     assert load_all(tmp_path).empty
+
+
+def test_refresh_refuses_incomplete_past_season(tmp_path, monkeypatch):
+    monkeypatch.setattr("celtics.data.cache.FIRST_SEASON", 2025)
+    with pytest.raises(FetchBlockedError, match="season 2025 looks incomplete: 1 games"):
+        refresh(
+            tmp_path,
+            date(2026, 11, 12),
+            fetch_gamelog=_fake_gamelog,
+            fetch_schedule=lambda s: schedule_payload("2026-27", []),
+            pause=0,
+        )
+    assert not season_path(tmp_path, 2025).exists()
+    assert list(tmp_path.glob("*.tmp")) == []

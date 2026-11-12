@@ -18,7 +18,7 @@ from celtics.config import (
     season_label,
 )
 from celtics.data.cache import load_all, refresh
-from celtics.data.validate import validate_games
+from celtics.data.validate import DataValidationError, validate_games
 from celtics.evaluate.backtest import season_coverage, walk_forward
 from celtics.evaluate.metrics import calibration_table, summarize
 from celtics.export.build import (
@@ -79,6 +79,20 @@ def read_team_sd(paths: Paths) -> float:
     return float(report["chosen_team_sd"]) if report else DEFAULT_TEAM_SD
 
 
+def _check_not_backwards(games, season: int, existing: dict | None) -> None:
+    """Refuse to publish if the data has fewer completed games than the last published run."""
+    if not existing or existing.get("season") != season_label(season):
+        return
+    cur = games[(games["season"] == season) & ((games["home_team"] == TEAM) | (games["away_team"] == TEAM))]
+    done = int(cur["home_pts"].notna().sum())
+    summary = existing["team_summary"]
+    published = summary["wins"] + summary["losses"]
+    if done < published:
+        raise DataValidationError(
+            f"completed games went backwards: {TEAM} has {done} now, {published} in last published run"
+        )
+
+
 def run_update(
     paths: Paths,
     today: date,
@@ -90,6 +104,7 @@ def run_update(
     season = current_season(today)
     games = _load_games(paths, today, offline)
     validate_games(games, season)
+    _check_not_backwards(games, season, read_json(paths.site_data / "predictions.json", None))
     feats = build_features(games)
     model = load_or_train(feats, paths, today, force=force_train)
     inputs = prepare_sim_inputs(feats, model, current_team_state(games), season, GAMES_PER_TEAM)
