@@ -38,8 +38,10 @@ uv run pytest               # tests (offline)
 ## Automation
 
 - `.github/workflows/daily.yml` runs `celtics update` at 14:00 UTC and deploys the site.
+- GitHub Pages must be set to Source "GitHub Actions" (repo Settings → Pages), or the deploy step will fail.
 - NBA.com sometimes blocks cloud IPs. If the daily job fails with "fetch blocked", install the local fallback with `scripts/install_launchd.sh` (runs daily at 10:30 from your Mac).
-- The local fallback only runs on `main`, skips if CI already updated today, and supports `--force`.
+- The local fallback only runs when this clone is on `main`; if you develop on branches, use a separate clone for launchd.
+- The local fallback skips if CI already updated today, and supports `--force`.
 - On macOS, the launchd job may need Full Disk Access for `/bin/bash`, or the repo moved out of Desktop, to read the folder.
 
 ## Limitations

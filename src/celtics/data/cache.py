@@ -63,6 +63,9 @@ def refresh(
             _write_parquet_atomic(games, path)
             time.sleep(pause)
     results = gamelog_to_games(fetch_gamelog(season), season)
-    schedule = schedule_to_games(fetch_schedule(season), season)
+    try:
+        schedule = schedule_to_games(fetch_schedule(season), season)
+    except ValueError as exc:
+        raise FetchBlockedError(f"schedule for season {season} not published yet: {exc}") from exc
     _write_parquet_atomic(merge_schedule_results(schedule, results), season_path(raw_dir, season))
     return load_all(raw_dir)

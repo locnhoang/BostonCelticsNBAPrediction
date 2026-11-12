@@ -79,3 +79,15 @@ def test_refresh_refuses_incomplete_past_season(tmp_path, monkeypatch):
         )
     assert not season_path(tmp_path, 2025).exists()
     assert list(tmp_path.glob("*.tmp")) == []
+
+
+def test_refresh_reports_unpublished_schedule_as_blocked(tmp_path, monkeypatch):
+    monkeypatch.setattr("celtics.data.cache.FIRST_SEASON", 2026)
+    with pytest.raises(FetchBlockedError, match="schedule for season 2026 not published yet"):
+        refresh(
+            tmp_path,
+            date(2026, 11, 12),
+            fetch_gamelog=_fake_gamelog,
+            fetch_schedule=lambda s: schedule_payload("2025-26", [("0022500001", "2025-10-21", "BOS", "PHI")]),
+            pause=0,
+        )

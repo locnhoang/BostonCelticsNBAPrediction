@@ -14,6 +14,13 @@ from celtics.teams import CONFERENCE_MEMBERS
 
 @dataclass
 class SimResult:
+    """Per-simulation outcomes, one row per simulation and one column per team (TEAMS order).
+
+    `seed` is the regular-season seed (1-15) before the play-in; `made_playoffs` accounts for
+    the play-in. Placeholder (extra) games for unscheduled Cup games add to wins/losses but do
+    not count toward conference record.
+    """
+
     teams: list[str]
     wins: np.ndarray
     seed: np.ndarray
