@@ -127,9 +127,11 @@ Single static page (HTML/JS, no build step) on GitHub Pages. Charts use Observab
 
 **JSON contract:**
 
-- `predictions.json`: current snapshot with keys `generated_at`, `model_version`, `team_summary`, `games`, `seed_probabilities`, `conference_table`, `metrics`.
+- `predictions.json`: current snapshot with keys `generated_at`, `model_version`, `season`, `team_summary`, `games`, `seed_probabilities`, `conference_table`, `metrics` (`metrics.live` = this season's accuracy on logged pre-game predictions).
 - `history.json`: array of daily entries `{date, record, projected_wins_median, p10, p90, playoff_prob, top6_prob, seed1_prob}`.
-- Both are validated against a schema before writing. Invalid output stops the run, and the previous files remain.
+- `backtest.json`: written by `celtics backtest`. Holds per-model scores, the calibration table, interval coverage per team-uncertainty value, and the chosen value.
+- `pregame_log.json`: the latest prediction for each Celtics game, frozen once the game is played, so completed games show a real pre-game prediction.
+- All files are validated against a schema before writing. Invalid output stops the run, and the previous files remain.
 
 ## Operations
 
@@ -145,7 +147,7 @@ Single static page (HTML/JS, no build step) on GitHub Pages. Charts use Observab
 ## Error Handling
 
 - **Fetching:** retries with exponential backoff; fails loudly after the retry limit.
-- **Data checks before modeling:** no duplicate game IDs; every completed game has scores; exactly 30 teams; schedule game counts consistent (82 per team, excluding the NBA Cup final). Any failure aborts the run before publishing.
+- **Data checks before modeling:** no duplicate game IDs; every completed game has scores; exactly 30 teams; 80–82 scheduled games per team in the current season. Until mid-December the NBA lists only 80; the last 2 depend on NBA Cup results. Missing games are simulated against a league-average opponent at a neutral site. Any failure aborts the run before publishing.
 - **Output checks:** probabilities in [0, 1]; each team's seed probabilities sum to 1; league-wide simulated wins equal losses.
 - **Postponed games:** remain in the remaining schedule using the NBA-listed date.
 
