@@ -115,7 +115,7 @@ def run_update(
     generated_at = _now(now)
     log = read_json(paths.site_data / "pregame_log.json", {})
     rows = game_rows(feats, model, season, TEAM, log)
-    log = update_pregame_log(log, rows, generated_at)
+    log = update_pregame_log(log, rows, generated_at, today=today.isoformat())
     i = TEAM_INDEX[TEAM]
     summary = team_summary(result, TEAM, inputs.current_wins[i], inputs.current_losses[i])
     predictions = {

@@ -110,9 +110,10 @@ def game_rows(
     return rows
 
 
-def update_pregame_log(log: dict, rows: list[dict], now_iso: str) -> dict:
+def update_pregame_log(log: dict, rows: list[dict], now_iso: str, today: str | None = None) -> dict:
+    """`today` is the Eastern game date (ISO); defaults to the UTC date of `now_iso`."""
     updated = dict(log)
-    today = now_iso[:10]
+    today = today or now_iso[:10]
     for r in rows:
         # Keep the latest pre-game prediction for each game. Once a game's date has passed
         # its entry is frozen, even if a short game log makes it look unplayed again.

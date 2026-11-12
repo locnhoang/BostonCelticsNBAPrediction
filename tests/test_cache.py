@@ -5,6 +5,7 @@ import pytest
 
 from celtics.data.cache import load_all, refresh, season_path
 from celtics.data.fetch import FetchBlockedError, with_retries
+from celtics.data.validate import DataValidationError
 from tests.factories import gamelog_rows, schedule_payload
 
 
@@ -89,5 +90,32 @@ def test_refresh_reports_unpublished_schedule_as_blocked(tmp_path, monkeypatch):
             date(2026, 11, 12),
             fetch_gamelog=_fake_gamelog,
             fetch_schedule=lambda s: schedule_payload("2025-26", [("0022500001", "2025-10-21", "BOS", "PHI")]),
+            pause=0,
+        )
+
+
+def test_refresh_maps_parse_errors_to_validation_error(tmp_path, monkeypatch):
+    monkeypatch.setattr("celtics.data.cache.FIRST_SEASON", 2026)
+    def broken(s):
+        return _fake_gamelog(s).iloc[:1]  # a GAME_ID with a single log row
+
+    with pytest.raises(DataValidationError, match="exactly 2 log rows"):
+        refresh(
+            tmp_path,
+            date(2026, 11, 12),
+            fetch_gamelog=broken,
+            fetch_schedule=lambda s: schedule_payload("2026-27", []),
+            pause=0,
+        )
+
+
+def test_refresh_maps_schedule_result_mismatch_to_validation_error(tmp_path, monkeypatch):
+    monkeypatch.setattr("celtics.data.cache.FIRST_SEASON", 2026)
+    with pytest.raises(DataValidationError, match="do not match schedule"):
+        refresh(
+            tmp_path,
+            date(2026, 11, 12),
+            fetch_gamelog=_fake_gamelog,  # 0022600001 BOS vs NYK
+            fetch_schedule=lambda s: schedule_payload("2026-27", [("0022600001", "2026-11-01", "MIA", "BOS")]),
             pause=0,
         )

@@ -134,3 +134,11 @@ def test_pregame_log_schema_rejects_bad_entry():
     PregameLog.validate_python({"g1": {"win_prob": 0.5, "pred_margin": None, "logged_at": "x"}})
     with pytest.raises(ValidationError):
         PregameLog.validate_python({"g1": {"win_prob": 1.5, "pred_margin": 1.0, "logged_at": "x"}})
+
+
+def test_update_pregame_log_freeze_uses_given_today_not_utc_clock():
+    rows = [{"game_id": "g", "date": "2026-11-11", "completed": False, "win_prob": 0.7, "pred_margin": 4.0}]
+    # UTC clock already says Nov 12 but the Eastern game day is still Nov 11: not frozen
+    out = update_pregame_log({}, rows, "2026-11-12T02:00:00", today="2026-11-11")
+    assert out["g"]["win_prob"] == 0.7
+    assert update_pregame_log({}, rows, "2026-11-12T02:00:00") == {}  # default: UTC date

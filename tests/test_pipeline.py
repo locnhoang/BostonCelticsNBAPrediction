@@ -38,7 +38,8 @@ def test_run_update_writes_valid_outputs(repo):
     assert len(history) == 1
     HistoryEntry.model_validate(history[0])
     log = json.loads((repo.site_data / "pregame_log.json").read_text())
-    assert len(log) == 67
+    # the Nov 19 round is dated before today (Nov 20) and unplayed: frozen, never back-filled
+    assert len(log) == 66
     assert (repo.model_dir / "ridge.joblib").exists()
 
 

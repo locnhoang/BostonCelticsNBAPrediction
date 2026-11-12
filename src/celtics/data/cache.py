@@ -18,9 +18,18 @@ from celtics.data.parse import (
     merge_schedule_results,
     schedule_to_games,
 )
+from celtics.data.validate import DataValidationError
 
 MIN_PAST_TEAMS = 30
-MIN_PAST_GAMES = 900  # covers the shortened 2019-20 (971) and 2020-21 (1080) seasons
+MIN_PAST_GAMES = 900  # covers the shortened 2019-20 (1059) and 2020-21 (1080) seasons
+
+
+def _parse(fn, *args):
+    """Run a parser; inconsistent fetched data is a validation failure, not a crash."""
+    try:
+        return fn(*args)
+    except ValueError as exc:
+        raise DataValidationError(str(exc)) from exc
 
 
 def _write_parquet_atomic(frame: pd.DataFrame, path: Path) -> None:
@@ -56,16 +65,17 @@ def refresh(
     for past in range(FIRST_SEASON, season):
         path = season_path(raw_dir, past)
         if not path.exists():
-            games = gamelog_to_games(fetch_gamelog(past), past)
+            games = _parse(gamelog_to_games, fetch_gamelog(past), past)
             teams = len(set(games["home_team"]) | set(games["away_team"]))
             if teams < MIN_PAST_TEAMS or len(games) < MIN_PAST_GAMES:
                 raise FetchBlockedError(f"season {past} looks incomplete: {len(games)} games")
             _write_parquet_atomic(games, path)
             time.sleep(pause)
-    results = gamelog_to_games(fetch_gamelog(season), season)
+    results = _parse(gamelog_to_games, fetch_gamelog(season), season)
     try:
         schedule = schedule_to_games(fetch_schedule(season), season)
     except ValueError as exc:
         raise FetchBlockedError(f"schedule for season {season} not published yet: {exc}") from exc
-    _write_parquet_atomic(merge_schedule_results(schedule, results), season_path(raw_dir, season))
+    merged = _parse(merge_schedule_results, schedule, results)
+    _write_parquet_atomic(merged, season_path(raw_dir, season))
     return load_all(raw_dir)
