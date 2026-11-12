@@ -40,7 +40,7 @@ Computed from the current season's completed games only.
 | `net_rating` | `off_rating − def_rating` |
 | `off_rank`, `def_rank`, `net_rank` | League rank 1–30, where 1 is best (lowest `def_rating` ranks 1) |
 
-Teams with no completed games get 0–0, rank by abbreviation, ratings 0.0, and ranks by abbreviation.
+Teams with no completed games get 0–0, ratings 0.0, last10 `"0-0"` and streak `""`. They rank after every team that has played (in the conference and in each league rank), ordered by abbreviation. A 0–0 team has a win % of 0 for conference ordering.
 
 ### Prediction breakdown on each upcoming game row: `drivers`
 
