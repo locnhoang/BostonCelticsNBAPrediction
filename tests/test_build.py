@@ -59,3 +59,17 @@ def test_team_state_and_matchup_matrix():
     b, n = TEAM_INDEX["BOS"], TEAM_INDEX["NYK"]
     assert m.shape == (30, 30) and np.all(np.diag(m) == 0)
     assert m[b, n] == (state.elo["BOS"] - state.elo["NYK"]) / 28 + 3
+
+
+def test_result_change_only_affects_later_dates():
+    games = make_league([2022, 2023])
+    base = build_features(games).set_index("game_id")
+    changed = games.copy()
+    mid = len(changed) // 2
+    changed.loc[mid, ["home_pts", "away_pts"]] = [200.0, 50.0]
+    cutoff = changed.loc[mid, "date"]
+    after = build_features(changed).set_index("game_id")
+    on_or_before = base.index[base["date"] <= cutoff]
+    pd.testing.assert_frame_equal(base.loc[on_or_before, FEATURES], after.loc[on_or_before, FEATURES])
+    later = base.index[base["date"] > cutoff]
+    assert not base.loc[later, FEATURES].equals(after.loc[later, FEATURES])

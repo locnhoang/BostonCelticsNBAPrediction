@@ -47,3 +47,17 @@ def test_no_extra_games_when_target_is_none(setup):
     trimmed = feats.drop(index=feats[~feats["completed"]].index[0])
     inp = prepare_sim_inputs(trimmed, model, current_team_state(games), 2023, target_games=None)
     assert inp.extra_games.sum() == 0
+
+
+def test_h2h_orientation_winner_is_row(setup):
+    _, _, model = setup
+    games = make_league([2022, 2023], current=2023, completed_rounds=1)  # each pair meets at most once
+    feats = build_features(games)
+    done = feats[(feats["season"] == 2023) & feats["completed"]].iloc[0]
+    home_won = done["home_pts"] > done["away_pts"]
+    winner, loser = (
+        (done["home_team"], done["away_team"]) if home_won else (done["away_team"], done["home_team"])
+    )
+    inp = prepare_sim_inputs(feats, model, current_team_state(games), 2023)
+    assert inp.h2h_wins[TEAM_INDEX[winner], TEAM_INDEX[loser]] == 1
+    assert inp.h2h_wins[TEAM_INDEX[loser], TEAM_INDEX[winner]] == 0
