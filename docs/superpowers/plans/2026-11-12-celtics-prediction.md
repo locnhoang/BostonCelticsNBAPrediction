@@ -6,7 +6,7 @@
 
 **Architecture:** A Python package (`src/celtics`) fetches NBA data with `nba_api` and the NBA CDN schedule, caches it as parquet, builds point-in-time features (Elo, decayed net rating, rest), fits a point-margin regression, and runs a 10,000-run Monte Carlo of the full league's remaining schedule (standings, tiebreakers, play-in). It writes validated JSON to `site/data/`; a static HTML/JS page on GitHub Pages renders it. GitHub Actions runs the update daily, and a macOS `launchd` job is the fallback.
 
-**Tech Stack:** Python 3.12, uv, pandas, pyarrow, numpy, scipy, scikit-learn, LightGBM, joblib, pydantic v2, requests, nba_api, pytest, ruff. Frontend: plain HTML/CSS/JS, d3 7.9.0 and Observable Plot 0.6.16 from jsDelivr.
+**Tech Stack:** Python 3.12, uv, pandas, pyarrow, numpy, scipy, scikit-learn (incl. HistGradientBoosting), joblib, pydantic v2, requests, nba_api, pytest, ruff. Frontend: plain HTML/CSS/JS, d3 7.9.0 and Observable Plot 0.6.16 from jsDelivr.
 
 **Spec:** `docs/superpowers/specs/2026-11-12-celtics-prediction-design.md`
 
@@ -44,7 +44,7 @@ src/celtics/features/elo.py         # margin-of-victory Elo
 src/celtics/features/ratings.py     # decayed net rating with prior; rest features
 src/celtics/features/build.py       # feature matrix, as_of view, team state, matchup matrix
 src/celtics/models/__init__.py
-src/celtics/models/margin.py        # HomeCourt / Elo / Ridge / LGBM margin models
+src/celtics/models/margin.py        # HomeCourt / Elo / Ridge / GBM margin models
 src/celtics/evaluate/__init__.py
 src/celtics/evaluate/metrics.py     # log loss, Brier, accuracy, calibration
 src/celtics/evaluate/backtest.py    # walk-forward backtest, season coverage
@@ -86,7 +86,6 @@ README.md
 Run:
 ```bash
 command -v uv || curl -LsSf https://astral.sh/uv/install.sh | sh
-brew list libomp >/dev/null 2>&1 || brew install libomp   # LightGBM needs OpenMP on macOS
 uv python install 3.12
 ```
 Expected: `uv --version` prints a version.
@@ -106,7 +105,6 @@ dependencies = [
     "numpy>=2.0",
     "scipy>=1.14",
     "scikit-learn>=1.5",
-    "lightgbm>=4.5",
     "joblib>=1.4",
     "pydantic>=2.9",
     "requests>=2.32",
@@ -146,7 +144,7 @@ __pycache__/
 .venv/
 .pytest_cache/
 .ruff_cache/
-data/
+/data/
 .DS_Store
 ```
 
@@ -213,7 +211,7 @@ FIRST_SEASON = 2014  # warm-up season for Elo / ratings
 FIRST_TRAIN_SEASON = 2015
 BACKTEST_SEASONS = list(range(2018, 2026))
 
-MODEL_NAME = "ridge"  # switch to "lgbm" only if it clearly wins the backtest
+MODEL_NAME = "ridge"  # switch to "gbm" only if it clearly wins the backtest
 RETRAIN_DAYS = 7
 GAMES_PER_TEAM = 82
 
@@ -1490,7 +1488,7 @@ git commit -m "feat: feature matrix, as-of view, team state, matchup matrix"
 
 ---
 
-### Task 8: Margin models (home court, Elo, ridge, LightGBM)
+### Task 8: Margin models (home court, Elo, ridge, gradient boosting)
 
 **Files:**
 - Create: `src/celtics/models/__init__.py` (empty), `src/celtics/models/margin.py`, `tests/test_models.py`
@@ -1500,7 +1498,7 @@ git commit -m "feat: feature matrix, as-of view, team state, matchup matrix"
 - Produces:
   - `win_prob(margin: np.ndarray | float, sigma: float) -> np.ndarray`
   - `class MarginModel` with `name: str`, `sigma: float`, `fit(X: pd.DataFrame, y: pd.Series) -> self` (sets `sigma` to the residual std, ddof=1), `predict_margin(X) -> np.ndarray`, `win_prob(X) -> np.ndarray`
-  - Subclasses `HomeCourtModel` (`"homecourt"`), `EloModel` (`"elo"`), `RidgeModel` (`"ridge"`), `LGBMModel` (`"lgbm"`)
+  - Subclasses `HomeCourtModel` (`"homecourt"`), `EloModel` (`"elo"`), `RidgeModel` (`"ridge"`), `GBMModel` (`"gbm"`, scikit-learn HistGradientBoostingRegressor)
   - `MODELS: dict[str, type[MarginModel]]`, `make_model(name) -> MarginModel`, `save_model(model, path)`, `load_model(path) -> MarginModel`
 
 - [ ] **Step 1: Write the failing tests `tests/test_models.py`**
@@ -1544,7 +1542,7 @@ def test_elo_model_formula():
     assert m.sigma == pytest.approx(12, rel=0.05)
 
 
-@pytest.mark.parametrize("name", ["ridge", "lgbm"])
+@pytest.mark.parametrize("name", ["ridge", "gbm"])
 def test_learned_models_recover_signal(name):
     X, y = synthetic_xy()
     m = make_model(name).fit(X, y)
@@ -1556,7 +1554,7 @@ def test_learned_models_recover_signal(name):
 
 
 def test_registry_and_roundtrip(tmp_path):
-    assert set(MODELS) == {"homecourt", "elo", "ridge", "lgbm"}
+    assert set(MODELS) == {"homecourt", "elo", "ridge", "gbm"}
     X, y = synthetic_xy(500)
     m = make_model("ridge").fit(X, y)
     path = tmp_path / "ridge.joblib"
@@ -1581,8 +1579,8 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-from lightgbm import LGBMRegressor
 from scipy.stats import norm
+from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.linear_model import Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -1647,20 +1645,18 @@ class RidgeModel(MarginModel):
         return self.pipe_.predict(X[FEATURES])
 
 
-class LGBMModel(MarginModel):
-    name = "lgbm"
+class GBMModel(MarginModel):
+    name = "gbm"
 
     def _fit(self, X, y):
-        self.model_ = LGBMRegressor(
-            n_estimators=300,
+        self.model_ = HistGradientBoostingRegressor(
+            max_iter=300,
             learning_rate=0.03,
-            num_leaves=15,
-            min_child_samples=50,
-            subsample=0.8,
-            subsample_freq=1,
-            colsample_bytree=0.8,
+            max_leaf_nodes=15,
+            min_samples_leaf=50,
+            l2_regularization=1.0,
+            early_stopping=False,
             random_state=0,
-            verbose=-1,
         ).fit(X, y)
 
     def predict_margin(self, X):
@@ -1671,7 +1667,7 @@ MODELS: dict[str, type[MarginModel]] = {
     "homecourt": HomeCourtModel,
     "elo": EloModel,
     "ridge": RidgeModel,
-    "lgbm": LGBMModel,
+    "gbm": GBMModel,
 }
 
 
@@ -1697,7 +1693,7 @@ Expected: 6 passed
 
 ```bash
 git add src/celtics/models tests/test_models.py
-git commit -m "feat: home-court, Elo, ridge and LightGBM margin models"
+git commit -m "feat: home-court, Elo, ridge and gradient-boosting margin models"
 ```
 
 ---
@@ -3134,7 +3130,7 @@ def test_run_update_twice_same_day_keeps_one_history_entry(repo):
 def test_run_backtest_writes_report(repo):
     report = run_backtest(repo, TODAY, offline=True, test_seasons=[2022, 2023], n_sims=100)
     BacktestReport.model_validate(report)
-    assert set(report["models"]) == {"homecourt", "elo", "ridge", "lgbm"}
+    assert set(report["models"]) == {"homecourt", "elo", "ridge", "gbm"}
     assert report["chosen_team_sd"] in [0.0, 1.0, 2.0, 2.5, 3.0, 4.0]
     assert (repo.site_data / "backtest.json").exists()
 
@@ -3800,7 +3796,7 @@ function renderEast(pred) {
   );
 }
 
-const MODEL_NAMES = { homecourt: "Home court only", elo: "Elo only", ridge: "Ridge regression", lgbm: "LightGBM" };
+const MODEL_NAMES = { homecourt: "Home court only", elo: "Elo only", ridge: "Ridge regression", gbm: "Gradient boosting" };
 
 function renderReportCard(pred, backtest, t) {
   const live = pred.metrics.live;
@@ -4121,7 +4117,7 @@ git commit -m "ci: daily update workflow, Pages deploy, launchd fallback"
 ### Task 18: First real run, model choice, README
 
 **Files:**
-- Modify: `README.md`, `src/celtics/config.py` (only if LightGBM wins), `docs/superpowers/specs/2026-11-12-celtics-prediction-design.md` (record the results)
+- Modify: `README.md`, `src/celtics/config.py` (only if gradient boosting wins), `docs/superpowers/specs/2026-11-12-celtics-prediction-design.md` (record the results)
 - Create: `site/data/backtest.json`, `site/data/predictions.json`, `site/data/history.json`, `site/data/pregame_log.json` (generated)
 
 - [ ] **Step 1: Fetch real data (from your Mac, not the cloud)**
@@ -4141,7 +4137,7 @@ If ridge doesn't beat elo, stop and investigate (likely a leakage or feature bug
 
 - [ ] **Step 3: Choose the live model**
 
-If `lgbm` log loss is lower than `ridge` by at least 0.002, set `MODEL_NAME = "lgbm"` in `src/celtics/config.py` and rerun `uv run celtics backtest --offline`. Otherwise keep `ridge`.
+If `gbm` log loss is lower than `ridge` by at least 0.002, set `MODEL_NAME = "gbm"` in `src/celtics/config.py` and rerun `uv run celtics backtest --offline`. Otherwise keep `ridge`.
 
 - [ ] **Step 4: First real update**
 
@@ -4164,7 +4160,7 @@ Daily-updated projections for the Boston Celtics: win probability for every rema
 
 1. **Data:** every regular-season game since 2014-15 from NBA.com (`nba_api`) plus the NBA CDN schedule, cached locally as parquet.
 2. **Features** (all point-in-time, so there's no leakage): margin-of-victory Elo, recency-weighted net rating per 100 possessions with a preseason prior, home court, rest days, back-to-backs, three-in-four.
-3. **Model:** ridge regression predicts the point margin; win probability = Φ(margin / σ). It's compared against Elo-only, home-court-only, and LightGBM in a walk-forward backtest (2018-19 → 2025-26).
+3. **Model:** ridge regression predicts the point margin; win probability = Φ(margin / σ). It's compared against Elo-only, home-court-only, and gradient boosting in a walk-forward backtest (2018-19 → 2025-26).
 4. **Simulation:** 10,000 runs of the full league's remaining schedule, with correlated team-strength uncertainty (tuned so 80% intervals cover about 80% of outcomes), simplified tiebreakers, and the play-in.
 5. **Site:** static HTML/JS on GitHub Pages reading JSON written by the pipeline.
 
@@ -4175,7 +4171,7 @@ Daily-updated projections for the Boston Celtics: win probability for every rema
 | Home court only | FROM_BACKTEST | | |
 | Elo only | | | |
 | Ridge (live) | | | |
-| LightGBM | | | |
+| Gradient boosting | | | |
 
 ## Usage
 

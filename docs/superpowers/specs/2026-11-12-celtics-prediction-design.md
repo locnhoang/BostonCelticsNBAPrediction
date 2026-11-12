@@ -29,7 +29,7 @@ BostonCeltics/
 ├── src/celtics/
 │   ├── data/          # nba_api fetching + local parquet cache
 │   ├── features/      # raw games → point-in-time model features
-│   ├── models/        # Elo baseline, ridge (main), LightGBM (challenger)
+│   ├── models/        # Elo baseline, ridge (main), gradient boosting (challenger)
 │   ├── simulate/      # Monte Carlo season + standings + tiebreakers + play-in
 │   ├── evaluate/      # walk-forward backtest, metrics, calibration
 │   ├── export/        # JSON writers + schema validation
@@ -74,7 +74,7 @@ Each stage is a separate module with one responsibility and a DataFrame-based in
 |---|---|---|
 | Baseline | Elo only | Benchmark |
 | Main | Ridge regression on all features | Default production model |
-| Challenger | LightGBM on all features | Replaces ridge only if it clearly wins the backtest on log loss |
+| Challenger | scikit-learn HistGradientBoostingRegressor on all features | Replaces ridge only if it clearly wins the backtest on log loss |
 
 **Retraining cadence:** model coefficients are refit weekly. Daily runs update Elo and rolling features with new results, without refitting.
 
@@ -160,4 +160,4 @@ Single static page (HTML/JS, no build step) on GitHub Pages. Charts use Observab
 
 ## Tooling
 
-Python 3.12, `uv`, pandas, pyarrow, scikit-learn, LightGBM, `nba_api`, pytest, ruff. Frontend: plain HTML/CSS/JS + Observable Plot (pinned CDN version).
+Python 3.12, `uv`, pandas, pyarrow, scikit-learn, `nba_api`, pytest, ruff. Frontend: plain HTML/CSS/JS + Observable Plot (pinned CDN version).
