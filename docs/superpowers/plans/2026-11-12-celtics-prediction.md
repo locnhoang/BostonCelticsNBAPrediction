@@ -2187,7 +2187,7 @@ def division_winners(pct: np.ndarray, h2h: np.ndarray, tiebreak: np.ndarray) -> 
         best = max(pct[t] for t in members)
         tied = [t for t in members if pct[t] == best]
         if len(tied) > 1:
-            tied.sort(key=lambda t, g=tied: (-h2h_pct(t, g, h2h), tiebreak[t]))
+            tied = sorted(tied, key=lambda t, g=tied: (-h2h_pct(t, g, h2h), tiebreak[t]))
         winners[tied[0]] = True
     return winners
 
