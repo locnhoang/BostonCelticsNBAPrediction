@@ -73,7 +73,7 @@ def test_game_rows_perspective_and_pregame_log(season_rows):
     away = next(r for r in upcoming if not r["home"])
     assert (away["win_prob"] > 0.5) == (away["pred_margin"] > 0)
 
-    log = update_pregame_log({}, rows, "2023-11-20T14:00:00")
+    log = update_pregame_log({}, rows, "2023-11-19T14:00:00")  # day of the next round
     assert set(log) == {r["game_id"] for r in upcoming}
     first = upcoming[0]["game_id"]
     log[first]["win_prob"] = 0.42
@@ -109,17 +109,25 @@ def test_atomic_write_roundtrip(tmp_path):
     assert read_json(tmp_path / "missing.json", []) == []
 
 
-def test_pregame_log_never_overwrites_earlier_days():
-    row = {"game_id": "g1", "completed": False, "win_prob": 0.7, "pred_margin": 4.0}
-    new = {"game_id": "g2", "completed": False, "win_prob": 0.4, "pred_margin": -2.0}
-    old = {"g1": {"win_prob": 0.55, "pred_margin": 1.0, "logged_at": "2026-11-11T14:00:00"}}
-    out = update_pregame_log(old, [row, new], "2026-11-12T14:00:00")
-    assert out["g1"]["win_prob"] == 0.55  # earlier-day entry is frozen
-    assert out["g2"]["win_prob"] == 0.4  # new games are added
-    same_day = update_pregame_log(out, [{**row, "win_prob": 0.6}, new], "2026-11-12T20:00:00")
-    assert same_day["g2"]["logged_at"] == "2026-11-12T20:00:00"
-    today = {"g1": {"win_prob": 0.55, "pred_margin": 1.0, "logged_at": "2026-11-12T08:00:00"}}
-    assert update_pregame_log(today, [row], "2026-11-12T14:00:00")["g1"]["win_prob"] == 0.7
+def test_pregame_log_tracks_latest_prediction_until_game_day_passes():
+    old = {
+        "future": {"win_prob": 0.55, "pred_margin": 1.0, "logged_at": "2026-11-01T14:00:00"},
+        "past": {"win_prob": 0.55, "pred_margin": 1.0, "logged_at": "2026-11-10T14:00:00"},
+    }
+    rows = [
+        # upcoming game: refreshed every run so the log holds the latest pre-game value
+        {"game_id": "future", "date": "2026-11-15", "completed": False, "win_prob": 0.7, "pred_margin": 4.0},
+        # game dated before today but missing its result (short game log): stays frozen
+        {"game_id": "past", "date": "2026-11-11", "completed": False, "win_prob": 0.9, "pred_margin": 9.0},
+        # game today: still refreshable
+        {"game_id": "today", "date": "2026-11-12", "completed": False, "win_prob": 0.4, "pred_margin": -2.0},
+    ]
+    out = update_pregame_log(old, rows, "2026-11-12T14:00:00")
+    assert out["future"]["win_prob"] == 0.7 and out["future"]["logged_at"] == "2026-11-12T14:00:00"
+    assert out["past"]["win_prob"] == 0.55
+    assert out["today"]["win_prob"] == 0.4
+    # a past-dated game with no entry yet is not back-filled
+    assert "past" not in update_pregame_log({}, rows, "2026-11-12T14:00:00")
 
 
 def test_pregame_log_schema_rejects_bad_entry():

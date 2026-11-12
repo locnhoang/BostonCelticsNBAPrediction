@@ -28,7 +28,7 @@ def repo(tmp_path):
 
 
 def test_run_update_writes_valid_outputs(repo):
-    run_update(repo, TODAY, offline=True, n_sims=200, now=datetime(2024, 11, 20, 14, 0))
+    run_update(repo, TODAY, offline=True, n_sims=200, now=datetime(2024, 11, 19, 14, 0))  # day of the next synthetic round
     pred = json.loads((repo.site_data / "predictions.json").read_text())
     Predictions.model_validate(pred)
     assert pred["season"] == "2024-25"
