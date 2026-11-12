@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Celtics 2026-27 Projection</title>
+  <meta name="description" content="Daily-updated win probabilities and season projection for the Boston Celtics.">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6.16/dist/plot.umd.min.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Boston Celtics 2026-27 projection</h1>
+      <p id="updated" class="muted">Loading…</p>
+    </header>
+
+    <div id="headline" class="tiles"></div>
+
+    <section>
+      <h2>Projected wins over time</h2>
+      <p class="muted">Median projection with the 80% range, one point per daily update.</p>
+      <div id="chart-history" class="chart"></div>
+      <details><summary>Show as table</summary><div id="table-history" class="table-wrap"></div></details>
+    </section>
+
+    <section>
+      <h2>Upcoming games</h2>
+      <div id="upcoming" class="table-wrap"></div>
+    </section>
+
+    <section>
+      <h2>Results vs. pre-game prediction</h2>
+      <div id="completed" class="table-wrap"></div>
+    </section>
+
+    <section>
+      <h2>Final win total</h2>
+      <p class="muted">Share of 10,000 simulated seasons ending at each win total.</p>
+      <div id="chart-wins" class="chart"></div>
+      <details><summary>Show as table</summary><div id="table-wins" class="table-wrap"></div></details>
+    </section>
+
+    <section>
+      <h2>Seed probabilities</h2>
+      <p class="muted">Seeds 7–10 go to the play-in; 11–15 miss the postseason.</p>
+      <div id="chart-seeds" class="chart"></div>
+      <details><summary>Show as table</summary><div id="table-seeds" class="table-wrap"></div></details>
+    </section>
+
+    <section>
+      <h2>Eastern Conference projection</h2>
+      <div id="east" class="table-wrap"></div>
+    </section>
+
+    <section>
+      <h2>Model report card</h2>
+      <p id="backtest-note" class="muted"></p>
+      <div id="models" class="table-wrap"></div>
+      <p id="live" class="muted"></p>
+      <h3>Calibration</h3>
+      <p class="muted">When the model says X%, does the team win X% of the time? Points on the diagonal are perfectly calibrated.</p>
+      <div id="chart-calibration" class="chart"></div>
+      <details><summary>Show as table</summary><div id="table-calibration" class="table-wrap"></div></details>
+    </section>
+
+    <section>
+      <h2>How it works</h2>
+      <p>Each game is predicted as a point margin from team strength (a margin-of-victory Elo rating and a recency-weighted net rating per 100 possessions), home court, and rest (days off, back-to-backs, three games in four nights). The margin becomes a win probability using the model's historical error.</p>
+      <p>The rest of the league schedule is simulated 10,000 times. Each simulation shifts every team's strength by a random amount reflecting how uncertain we are about it, then plays out every game, applies tiebreakers (head-to-head, division winner, conference record), and runs the play-in.</p>
+      <p>The model is trained on every regular-season game since 2015-16 and tested walk-forward: each test season is predicted using only data from before it.</p>
+    </section>
+
+    <footer class="muted">
+      Data from NBA.com via nba_api. Not affiliated with the NBA or the Boston Celtics.
+      <a href="https://github.com/locnhoang/BostonCelticsNBAPrediction">Source code</a>
+    </footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
