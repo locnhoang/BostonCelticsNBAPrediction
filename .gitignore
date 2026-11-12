@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
-.venv/
+.venv
+.venv.nosync/
 .pytest_cache/
 .ruff_cache/
 /data/
