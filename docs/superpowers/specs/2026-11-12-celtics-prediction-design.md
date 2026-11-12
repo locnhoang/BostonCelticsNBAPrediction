@@ -123,7 +123,7 @@ Single static page (HTML/JS, no build step) on GitHub Pages. Charts use Observab
 7. **Model report card:** backtest metrics vs. baselines, calibration chart, current-season live accuracy.
 8. **Methodology:** short explanation, link to repo.
 
-**Design:** mobile-friendly; light and dark mode; Celtics green as the accent color only. No NBA or team logos or other trademarked branding.
+**Design:** mobile-friendly; light and dark mode; Celtics green as the accent color only. Team logos are shown (decision changed 2026-11-12; see 2026-11-12-frontend-refresh-design.md), with a trademark credit in the footer.
 
 **JSON contract:**
 
