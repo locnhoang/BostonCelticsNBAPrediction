@@ -49,5 +49,7 @@ uv run pytest               # tests (offline)
 - Team-level only: injuries and trades show up only through results (player-level adjustments are planned).
 - Tiebreakers are simplified (head-to-head → division winner → conference record → random).
 - The two NBA Cup–determined games per team are simulated against an average opponent until the NBA schedules them.
+- Neutral-site games (international games, NBA Cup semifinals in Las Vegas) are still modeled with home-court advantage for the nominal home team.
+- Between Aug 1 and the next season's schedule release, the daily job exits with "schedule for season not published yet". That is expected, not an IP block.
 
 Not affiliated with the NBA or the Boston Celtics.
