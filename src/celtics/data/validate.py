@@ -1,5 +1,7 @@
 """Integrity checks run before any modeling. A failure aborts the run."""
 
+from datetime import date, timedelta
+
 import pandas as pd
 
 from celtics.teams import TEAMS
@@ -14,7 +16,9 @@ def validate_games(
     season: int,
     min_games: int = 80,
     max_games: int = 82,
-    max_stale_days: int = 1,
+    today: date | None = None,
+    stale_grace_days: int = 2,
+    max_stale_games: int = 3,
 ) -> None:
     problems: list[str] = []
 
@@ -41,15 +45,17 @@ def validate_games(
     if len(bad):
         problems.append(f"games per team out of [{min_games}, {max_games}]: {bad.to_dict()}")
 
-    # A postponed game is normally re-dated in the schedule, so an unplayed game dated well
-    # before the latest result means its result is missing.
-    cur_played = cur["home_pts"].notna() | cur["away_pts"].notna()
-    if cur_played.any():
-        cutoff = cur.loc[cur_played, "date"].max() - pd.Timedelta(days=max_stale_days)
+    # Relative to today, so a log cut off at the end is caught. A few unplayed past-dated games
+    # are real postponements (they stay in the remaining schedule and get simulated).
+    if today is not None:
+        cur_played = cur["home_pts"].notna() | cur["away_pts"].notna()
+        cutoff = pd.Timestamp(today - timedelta(days=stale_grace_days))
         stale = cur[~cur_played & (cur["date"] < cutoff)]
-        if len(stale):
+        if len(stale) > max_stale_games:
             ids = stale["game_id"].tolist()
-            problems.append(f"{len(ids)} past-dated games have no result: {ids[:5]}")
+            problems.append(
+                f"{len(ids)} past-dated games have no result (allowing {max_stale_games} postponements): {ids[:5]}"
+            )
 
     if problems:
         raise DataValidationError("; ".join(problems))

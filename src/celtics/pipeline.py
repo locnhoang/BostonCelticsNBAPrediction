@@ -69,7 +69,7 @@ def load_or_train(features, paths: Paths, today: date, force: bool = False) -> M
 
 def run_train(paths: Paths, today: date) -> MarginModel:
     games = load_all(paths.raw_dir)
-    validate_games(games, current_season(today))
+    validate_games(games, current_season(today), today=today)
     feats = build_features(games)
     return load_or_train(feats, paths, today, force=True)
 
@@ -103,7 +103,7 @@ def run_update(
 ) -> dict:
     season = current_season(today)
     games = _load_games(paths, today, offline)
-    validate_games(games, season)
+    validate_games(games, season, today=today)
     _check_not_backwards(games, season, read_json(paths.site_data / "predictions.json", None))
     feats = build_features(games)
     model = load_or_train(feats, paths, today, force=force_train)
@@ -149,7 +149,7 @@ def run_backtest(
     now: datetime | None = None,
 ) -> dict:
     games = _load_games(paths, today, offline)
-    validate_games(games, current_season(today))
+    validate_games(games, current_season(today), today=today)
     feats = build_features(games)
     scores, main_preds = {}, None
     for name in MODELS:

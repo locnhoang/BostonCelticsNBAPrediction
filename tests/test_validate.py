@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -64,21 +66,46 @@ def test_eighty_games_allowed_before_cup_games_are_scheduled():
     validate_games(league_season(games_per_team=80), 2026)
 
 
-def test_past_dated_unplayed_game_fails():
+def _blank(g, mask):
+    g.loc[mask, ["home_pts", "away_pts", "poss"]] = np.nan
+
+
+def _stale_league(n_stale):
+    """10 rounds played (day 0..9, every other day from Oct 20); blank n_stale old games."""
     g = league_season(played=10)
-    g.loc[0, ["home_pts", "away_pts", "poss"]] = np.nan  # day 0 game, but day 9 is played
-    with pytest.raises(DataValidationError, match=r"1 past-dated games have no result: \['"):
-        validate_games(g, 2026)
+    _blank(g, g.index.isin(g.index[:n_stale]))
+    return g
 
 
-def test_recent_unplayed_game_is_allowed():
+TODAY = date(2026, 11, 8)  # day after the last played synthetic round (Nov 7)
+
+
+def test_three_stale_games_are_tolerated_as_postponements():
+    validate_games(_stale_league(3), 2026, today=TODAY)
+
+
+def test_four_stale_games_fail():
+    with pytest.raises(DataValidationError, match=r"4 past-dated games have no result \(allowing 3 postponements\): \['"):
+        validate_games(_stale_league(4), 2026, today=TODAY)
+
+
+def test_log_cut_off_at_the_end_fails():
     g = league_season(played=10)
-    last_day = g[g["home_pts"].notna()]["date"].max()
-    g.loc[g["date"] == last_day, ["home_pts", "away_pts", "poss"]] = np.nan
-    validate_games(g, 2026)  # games on the last played date minus nothing: within the window
+    last_two = sorted(g.loc[g["home_pts"].notna(), "date"].unique())[-2:]
+    _blank(g, g["date"].isin(last_two))
+    today = pd.Timestamp(last_two[-1]).date() + timedelta(days=5)
+    with pytest.raises(DataValidationError, match="past-dated games have no result"):
+        validate_games(g, 2026, today=today)
 
 
-def test_stale_threshold_is_configurable():
+def test_stale_check_skipped_without_today():
+    validate_games(_stale_league(30), 2026)
+
+
+def test_games_inside_grace_window_pass():
     g = league_season(played=10)
-    g.loc[g["date"] == g["date"].min(), ["home_pts", "away_pts", "poss"]] = np.nan
-    validate_games(g, 2026, max_stale_days=30)
+    last = g.loc[g["home_pts"].notna(), "date"].max()
+    _blank(g, g["date"] == last)  # 15 unplayed games dated 2 days before today
+    validate_games(g, 2026, today=(last + pd.Timedelta(days=2)).date())
+    with pytest.raises(DataValidationError):
+        validate_games(g, 2026, today=(last + pd.Timedelta(days=3)).date())
