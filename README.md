@@ -18,8 +18,8 @@ Daily-updated projections for the Boston Celtics: win probability for every rema
 |---|---|---|---|
 | Home court only | 0.6868 | 0.2468 | 55.7% |
 | Elo only | 0.6279 | 0.2192 | 64.6% |
-| Ridge (live) | 0.6192 | 0.2152 | 65.5% |
-| Gradient boosting (scikit-learn) | 0.6238 | 0.2172 | 65.3% |
+| Ridge (live) | 0.6193 | 0.2152 | 65.5% |
+| Gradient boosting (scikit-learn) | 0.6237 | 0.2172 | 65.2% |
 
 Gradient boosting did not beat ridge by the 0.002 log-loss margin required to switch, so ridge is live.
 
