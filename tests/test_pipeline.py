@@ -1,14 +1,16 @@
 import json
 from datetime import date, datetime
 
+import pandas as pd
 import pytest
 
 from celtics.cli import main
-from celtics.config import Paths
+from celtics.config import DEFAULT_TEAM_SD, Paths
 from celtics.data.cache import season_path
 from celtics.data.fetch import FetchBlockedError
+from celtics.data.validate import DataValidationError
 from celtics.export.schema import BacktestReport, HistoryEntry, Predictions
-from celtics.pipeline import run_backtest, run_update
+from celtics.pipeline import read_team_sd, run_backtest, run_train, run_update
 from tests.synth import make_league
 
 TODAY = date(2024, 11, 20)
@@ -67,3 +69,59 @@ def test_cli_reports_blocked_fetch(repo, monkeypatch, capsys):
     monkeypatch.setattr("celtics.pipeline.refresh", blocked)
     assert main(["--date", "2024-11-20", "update"]) == 2
     assert "fetch blocked" in capsys.readouterr().err
+    for name in ("predictions.json", "history.json", "pregame_log.json"):
+        assert not (repo.site_data / name).exists()
+
+
+def _corrupt(repo):
+    path = season_path(repo.raw_dir, 2023)
+    df = pd.read_parquet(path)
+    pd.concat([df, df.iloc[[0]]], ignore_index=True).to_parquet(path, index=False)
+
+
+def _meta(repo):
+    return json.loads((repo.model_dir / "ridge.json").read_text())["trained_on"]
+
+
+def test_refit_cadence(repo):
+    run_update(repo, TODAY, offline=True, n_sims=50)
+    assert _meta(repo) == "2024-11-20"
+    pred = run_update(repo, date(2024, 11, 23), offline=True, n_sims=50)
+    assert _meta(repo) == "2024-11-20"
+    assert pred["model_version"].endswith("2024-11-20")
+    pred = run_update(repo, date(2024, 11, 27), offline=True, n_sims=50)
+    assert _meta(repo) == "2024-11-27"
+    assert pred["model_version"].endswith("2024-11-27")
+    run_update(repo, date(2024, 11, 28), offline=True, n_sims=50, force_train=True)
+    assert _meta(repo) == "2024-11-28"
+
+
+def test_cli_validation_failure_exits_3_and_writes_nothing(repo, monkeypatch, capsys):
+    _corrupt(repo)
+    monkeypatch.chdir(repo.root)
+    assert main(["--date", "2024-11-20", "update", "--offline"]) == 3
+    assert "data validation failed" in capsys.readouterr().err
+    assert not (repo.site_data / "predictions.json").exists()
+    assert not (repo.site_data / "history.json").exists()
+    assert not (repo.site_data / "pregame_log.json").exists()
+
+
+def test_run_backtest_rejects_invalid_data(repo):
+    _corrupt(repo)
+    with pytest.raises(DataValidationError):
+        run_backtest(repo, TODAY, offline=True, test_seasons=[2022, 2023], n_sims=50)
+    assert not (repo.site_data / "backtest.json").exists()
+
+
+def test_run_train_rejects_invalid_data(repo):
+    _corrupt(repo)
+    with pytest.raises(DataValidationError):
+        run_train(repo, TODAY)
+    assert not (repo.model_dir / "ridge.joblib").exists()
+
+
+def test_read_team_sd(repo):
+    assert read_team_sd(repo) == DEFAULT_TEAM_SD
+    repo.site_data.mkdir(parents=True)
+    (repo.site_data / "backtest.json").write_text(json.dumps({"chosen_team_sd": 3.0}))
+    assert read_team_sd(repo) == 3.0

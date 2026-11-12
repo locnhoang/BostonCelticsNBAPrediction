@@ -6,11 +6,10 @@ from datetime import date
 from pathlib import Path
 
 from celtics.config import N_SIMS, Paths
-from celtics.data.cache import load_all, refresh
+from celtics.data.cache import refresh
 from celtics.data.fetch import FetchBlockedError
 from celtics.data.validate import DataValidationError
-from celtics.features.build import build_features
-from celtics.pipeline import load_or_train, run_backtest, run_update
+from celtics.pipeline import run_backtest, run_train, run_update
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -39,7 +38,7 @@ def main(argv: list[str] | None = None) -> int:
             games = refresh(paths.raw_dir, today)
             print(f"cached {len(games)} games")
         elif args.cmd == "train":
-            load_or_train(build_features(load_all(paths.raw_dir)), paths, today, force=True)
+            run_train(paths, today)
             print("model trained")
         elif args.cmd == "update":
             pred = run_update(

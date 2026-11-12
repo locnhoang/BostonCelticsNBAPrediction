@@ -67,6 +67,13 @@ def load_or_train(features, paths: Paths, today: date, force: bool = False) -> M
     return model
 
 
+def run_train(paths: Paths, today: date) -> MarginModel:
+    games = load_all(paths.raw_dir)
+    validate_games(games, current_season(today))
+    feats = build_features(games)
+    return load_or_train(feats, paths, today, force=True)
+
+
 def read_team_sd(paths: Paths) -> float:
     report = read_json(paths.site_data / "backtest.json", None)
     return float(report["chosen_team_sd"]) if report else DEFAULT_TEAM_SD
@@ -126,6 +133,7 @@ def run_backtest(
     now: datetime | None = None,
 ) -> dict:
     games = _load_games(paths, today, offline)
+    validate_games(games, current_season(today))
     feats = build_features(games)
     scores, main_preds = {}, None
     for name in MODELS:
