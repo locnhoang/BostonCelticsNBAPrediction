@@ -161,3 +161,18 @@ Single static page (HTML/JS, no build step) on GitHub Pages. Charts use Observab
 ## Tooling
 
 Python 3.12, `uv`, pandas, pyarrow, scikit-learn, `nba_api`, pytest, ruff. Frontend: plain HTML/CSS/JS + Observable Plot (pinned CDN version).
+
+## Results (first run)
+
+Walk-forward backtest, 2018-19 to 2025-26:
+
+| Model | Log loss | Brier | Accuracy |
+|---|---|---|---|
+| Home court only | 0.6868 | 0.2468 | 55.7% |
+| Elo only | 0.6279 | 0.2192 | 64.6% |
+| Ridge | 0.6192 | 0.2152 | 65.5% |
+| Gradient boosting (scikit-learn) | 0.6238 | 0.2172 | 65.3% |
+
+Chosen model: **ridge** (gbm was 0.0046 worse in log loss, so the 0.002 switch rule did not trigger). `chosen_team_sd` = 2.5. Caveat: gbm's sigma comes from in-sample residuals, which likely makes it overconfident and may understate its log loss.
+
+First real update (2026-11-12): `BOS 10-2 | proj 61 wins (80%: 54-67) | playoffs 100%`.
