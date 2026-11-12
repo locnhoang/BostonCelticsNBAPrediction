@@ -273,24 +273,34 @@ function renderAll() {
 }
 
 async function main() {
+  let pred, history, backtest;
   try {
-    const [pred, history, backtest] = await Promise.all([
+    [pred, history, backtest] = await Promise.all([
       loadJson("data/predictions.json"),
       loadJson("data/history.json").catch(() => []),
       loadJson("data/backtest.json").catch(() => null),
     ]);
-    state = { pred, history, backtest };
-    renderAll();
   } catch (err) {
     document.getElementById("updated").textContent = `Could not load predictions (${err.message}).`;
     return;
   }
+  state = { pred, history, backtest };
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
   let timer;
+  let lastWidth = window.innerWidth;
   window.addEventListener("resize", () => {
+    // Mobile browsers fire resize when the address bar shows or hides; re-render only on width change.
+    if (window.innerWidth === lastWidth) return;
+    lastWidth = window.innerWidth;
     clearTimeout(timer);
     timer = setTimeout(renderAll, 150);
   });
+  try {
+    renderAll();
+  } catch (err) {
+    console.error(err);
+    document.getElementById("updated").textContent = `Some sections failed to render (${err.message}).`;
+  }
 }
 
 main();
