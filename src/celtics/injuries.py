@@ -1,5 +1,6 @@
 """ESPN injury feed: parse into a frame and match injured players to their stats."""
 
+import logging
 import re
 import unicodedata
 from datetime import date
@@ -7,6 +8,8 @@ from datetime import date
 import pandas as pd
 
 from celtics.config import DTD_MIN_CASES, DTD_PRIOR
+
+log = logging.getLogger(__name__)
 
 ESPN_TEAM: dict[str, str] = {
     "Atlanta Hawks": "ATL",
@@ -22,6 +25,7 @@ ESPN_TEAM: dict[str, str] = {
     "Houston Rockets": "HOU",
     "Indiana Pacers": "IND",
     "LA Clippers": "LAC",
+    "Los Angeles Clippers": "LAC",
     "Los Angeles Lakers": "LAL",
     "Memphis Grizzlies": "MEM",
     "Miami Heat": "MIA",
@@ -61,10 +65,19 @@ def _return_date(entry: dict) -> date | None:
         return None
 
 
+def unknown_teams(raw: dict) -> list[str]:
+    """Team display names in the feed that ESPN_TEAM does not know (their injuries are skipped)."""
+    names = {b.get("displayName") or "" for b in raw.get("injuries", [])}
+    return sorted(n for n in names if n and n not in ESPN_TEAM)
+
+
 def parse_injuries(raw: dict) -> pd.DataFrame:
+    unknown = unknown_teams(raw)
+    if unknown:
+        log.warning("ESPN injury feed has unknown teams, skipped: %s", ", ".join(unknown))
     rows = []
     for team_block in raw.get("injuries", []):
-        team = ESPN_TEAM.get(team_block.get("displayName", ""))
+        team = ESPN_TEAM.get(team_block.get("displayName") or "")
         if team is None:
             continue
         for entry in team_block.get("injuries", []):
@@ -112,7 +125,8 @@ def match_players(
             exact = team_players[team_players["norm"] == norm]
             if len(exact) == 1:
                 pid = int(exact["player_id"].iloc[0])
-            elif exact.empty:
+            elif exact.empty and norm not in league_unique.index:
+                # a full name that exists elsewhere is a different player, not a loose match
                 loose = team_players[team_players["key"] == _first_initial_key(norm)]
                 if len(loose) == 1:
                     pid = int(loose["player_id"].iloc[0])
@@ -124,7 +138,8 @@ def match_players(
 
     out = injuries.copy()
     out["player_id"] = pd.array(ids, dtype="Int64")
-    return out[out["player_id"].notna()].reset_index(drop=True), unmatched
+    matched = out[out["player_id"].notna()].drop_duplicates("player_id", keep="first")
+    return matched.reset_index(drop=True), unmatched
 
 
 def update_dtd_log(

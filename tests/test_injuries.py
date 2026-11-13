@@ -13,6 +13,7 @@ from celtics.injuries import (
     match_players,
     normalize_name,
     parse_injuries,
+    unknown_teams,
     update_dtd_log,
 )
 from celtics.teams import TEAMS
@@ -151,3 +152,79 @@ def test_learn_p_dtd_threshold():
         {"date": "d", "team": "BOS", "player_id": 999, "name": "x", "played": None}
     ]
     assert learn_p_dtd(unresolved) == DTD_PRIOR
+
+
+def test_unknown_team_warns_returns_name_and_does_not_raise(caplog):
+    raw = _raw()
+    raw["injuries"].append(
+        {"displayName": "Seattle Supersonics", "injuries": [{"status": "Out", "athlete": {"displayName": "X Y"}}]}
+    )
+    with caplog.at_level("WARNING"):
+        inj = parse_injuries(raw)
+    assert unknown_teams(raw) == ["Seattle Supersonics"]
+    assert "Seattle Supersonics" in caplog.text
+    assert "X Y" not in set(inj["name"])
+    assert ESPN_TEAM["Los Angeles Clippers"] == "LAC"
+
+
+def test_loose_match_skipped_when_full_name_exists_elsewhere():
+    inj = pd.DataFrame(
+        {
+            "team": ["OKC"],
+            "name": ["Jalen Williams"],
+            "status": ["Out"],
+            "comment": [""],
+            "return_date": [None],
+            "reported_at": [pd.NaT],
+        }
+    )
+    players = _players([("OKC", 1, "Jaylin Williams"), ("CHI", 2, "Jalen Williams")])
+    matched, unmatched = match_players(inj, players, 2026)
+    # falls through to league-wide unique match on the real Jalen Williams, never Jaylin
+    assert matched["player_id"].tolist() == [2]
+    assert unmatched == []
+    players = _players([("OKC", 1, "Jaylin Williams"), ("CHI", 2, "Jalen Williams"), ("MIA", 3, "Jalen Williams")])
+    matched, unmatched = match_players(inj, players, 2026)
+    assert matched.empty
+    assert unmatched == ["Jalen Williams (OKC)"]
+
+
+def test_matched_rows_deduped_on_player_id():
+    inj = pd.DataFrame(
+        {
+            "team": ["BOS", "TOR"],
+            "name": ["Kawhi Leonard", "Kawhi Leonard"],
+            "status": ["Out", "Day-To-Day"],
+            "comment": ["", ""],
+            "return_date": [None, None],
+            "reported_at": [pd.NaT, pd.NaT],
+        }
+    )
+    matched, _ = match_players(inj, _players([("TOR", 9, "Kawhi Leonard")]), 2026)
+    assert len(matched) == 1
+    assert matched["status"].tolist() == ["Out"]
+
+
+def test_parse_injuries_tolerates_malformed_entries():
+    raw = {
+        "injuries": [
+            {
+                "displayName": "Boston Celtics",
+                "injuries": [
+                    {"status": "Out", "athlete": {"displayName": "A One"}, "details": None},
+                    {"status": "Out", "athlete": {"displayName": "B Two"}},
+                    {"status": "Out", "athlete": {"displayName": "C Three"}, "details": {}, "date": None},
+                    {"status": "Out"},
+                    {"status": "Questionable", "athlete": {"displayName": "D Four"}},
+                    {"status": None, "athlete": {"displayName": "E Five"}, "date": "garbage"},
+                ],
+            },
+            {"injuries": [{"status": "Out", "athlete": {"displayName": "No Team"}}]},
+        ]
+    }
+    inj = parse_injuries(raw).set_index("name")
+    assert list(inj.index) == ["A One", "B Two", "C Three", "D Four", "E Five"]
+    assert inj.loc["A One", "return_date"] is None
+    assert pd.isna(inj.loc["C Three", "reported_at"])
+    assert inj.loc["D Four", "status"] == "Day-To-Day"
+    assert inj.loc["E Five", "status"] == "Day-To-Day"
