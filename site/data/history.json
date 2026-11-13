@@ -8,5 +8,15 @@
   "playoff_prob": 0.9998,
   "top6_prob": 0.9983,
   "seed1_prob": 0.6235
+ },
+ {
+  "date": "2026-11-13",
+  "record": "10-2",
+  "projected_wins_median": 61.0,
+  "p10": 53.0,
+  "p90": 67.0,
+  "playoff_prob": 0.9998,
+  "top6_prob": 0.9979,
+  "seed1_prob": 0.6148
  }
 ]

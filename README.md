@@ -10,7 +10,7 @@ Daily-updated projections for the Boston Celtics: win probability for every rema
 2. **Features** (all point-in-time, so there's no leakage): margin-of-victory Elo, recency-weighted net rating per 100 possessions with a preseason prior, home court, rest days, back-to-backs, three-in-four.
 3. **Model:** ridge regression predicts the point margin; win probability = Φ(margin / σ). It's compared against Elo-only, home-court-only, and gradient boosting (scikit-learn) in a walk-forward backtest (2018-19 → 2025-26).
 4. **Simulation:** 10,000 runs of the full league's remaining schedule, with correlated team-strength uncertainty (tuned so 80% intervals cover about 80% of outcomes), simplified tiebreakers, and the play-in.
-5. **Site:** static HTML/JS on GitHub Pages reading JSON written by the pipeline.
+5. **Site:** static HTML/JS on GitHub Pages reading JSON written by the pipeline. It leads with the next game, including a breakdown of what drives the prediction (season strength, recent form, home court, rest), then shows the season outlook, team context (standings, last 10, offensive/defensive rank), schedule, and the model's track record. Team logos live in `site/logos/` (fetched once with `scripts/fetch_logos.py`).
 
 ## Backtest results
 
@@ -51,5 +51,6 @@ uv run pytest               # tests (offline)
 - The two NBA Cup–determined games per team are simulated against an average opponent until the NBA schedules them.
 - Neutral-site games (international games, NBA Cup semifinals in Las Vegas) are still modeled with home-court advantage for the nominal home team.
 - Between Aug 1 and the next season's schedule release, the daily job exits with "schedule for season not published yet". That is expected, not an IP block.
+- Team logos are trademarks of the NBA and its teams, shown with credit; this project is not affiliated with either.
 
 Not affiliated with the NBA or the Boston Celtics.
