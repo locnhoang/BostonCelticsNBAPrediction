@@ -275,3 +275,34 @@ def test_live_avail_baseline_is_mean_of_recent_missing():
     bos = miss[miss["team"] == "BOS"].sort_values("game_id")["missing_value"].tail(10)
     assert bos.iloc[-1] > 0
     assert _avail(live, 13)["home_avail"] == pytest.approx(bos.mean())
+
+
+def test_zero_minute_row_counts_as_played():
+    games, players = _a_out_at_12()
+    extra = _frame([player_rows(_gid(S, 12), "2014-11-25", "BOS", 1, "A", 0, pts=0)])
+    states = player_states(games, pd.concat([players, extra], ignore_index=True))
+    a = _bos(states, 12).set_index("player_id").loc[1]
+    assert a["played"]
+    missing = team_missing(states)
+    bos12 = missing[(missing["game_id"] == _gid(S, 12)) & (missing["team"] == "BOS")]
+    assert bos12["missing_value"].iloc[0] == 0.0
+
+
+def test_out_back_on_or_before_next_game_not_counted():
+    games, players = _live_setup()
+    for rd in (TODAY, date(S, 11, 27)):  # next game (13) is Nov 27
+        live = live_avail(games, players, _inj([("BOS", "A", "Out", rd, 1)]), S, TODAY, 0.5)
+        assert _avail(live, 13)["home_avail"] == pytest.approx(0.0)
+    g1, _ = _values(games, players)
+    live = live_avail(games, players, _inj([("BOS", "A", "Out", date(S, 11, 28), 1)]), S, TODAY, 0.5)
+    assert _avail(live, 13)["home_avail"] == pytest.approx(-g1)
+
+
+def test_opening_day_ignores_last_season_rotation():
+    games, players = _live_setup()
+    games = games[games["home_pts"].notna()]
+    opener = make_games([(_gid(S + 1, 1), S + 1, f"{S + 1}-10-25", "BOS", "NYK", None, None)])
+    games = pd.concat([games, opener], ignore_index=True)
+    assert current_player_values(games, players, S + 1).empty
+    live = live_avail(games, players, _inj([("BOS", "A", "Out", None, 1)]), S + 1, date(S + 1, 10, 24), 0.5)
+    assert live.iloc[0]["home_avail"] == 0.0 and live.iloc[0]["away_avail"] == 0.0

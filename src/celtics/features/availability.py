@@ -66,11 +66,13 @@ def _is_rotation(stats: tuple[int, float] | None) -> bool:
 
 
 def _played_minutes(players: pd.DataFrame) -> dict[tuple[str, str], dict[int, float]]:
-    """(game_id, team) -> {player_id: minutes} for players who actually played."""
+    """(game_id, team) -> {player_id: minutes} for players with a box-score row.
+
+    A row means he played (DNPs have no row; 0-minute rows are brief appearances).
+    """
     out: dict[tuple[str, str], dict[int, float]] = defaultdict(dict)
-    on_court = players[players["min"] > 0]
     for gid, team, pid, mins in zip(
-        on_court["game_id"], on_court["team"], on_court["player_id"], on_court["min"], strict=True
+        players["game_id"], players["team"], players["player_id"], players["min"], strict=True
     ):
         out[(gid, team)][int(pid)] = float(mins)
     return out
@@ -97,7 +99,6 @@ def _rotation_flags(players: pd.DataFrame) -> np.ndarray:
             here = {
                 int(p): float(m)
                 for p, m in zip(team_rows["player_id"], team_rows["min"], strict=True)
-                if m > 0
             }
             history[team].append(here)
             last_team.update(dict.fromkeys(here, team))
@@ -173,15 +174,10 @@ def _record_game(
 
 def _gs_lookup(players: pd.DataFrame) -> dict[tuple[str, str, int], float]:
     gscore = game_score(players)
-    on_court = players["min"] > 0
     return {
         (g, t, int(p)): float(s)
         for g, t, p, s in zip(
-            players.loc[on_court, "game_id"],
-            players.loc[on_court, "team"],
-            players.loc[on_court, "player_id"],
-            gscore[on_court],
-            strict=True,
+            players["game_id"], players["team"], players["player_id"], gscore, strict=True
         )
     }
 
@@ -263,6 +259,8 @@ def current_player_values(games: pd.DataFrame, players: pd.DataFrame, season: in
             history.clear()
             current_season = g_season
         _record_game(gid, (home, away), played, gs_lookup, history, last_team, recent, sums)
+    if current_season != season:
+        history.clear()  # no completed game this season yet: last season's rotation does not carry over
 
     rows = []
     for team, hist in history.items():
@@ -380,7 +378,11 @@ def live_avail(
         for row in by_team.get(team, pd.DataFrame()).itertuples():
             v = value.get(int(row.player_id), 0.0)
             if next_game[team] == gid:
-                total += v * (1.0 if row.status == "Out" else p_dtd)
+                if row.status == "Out":
+                    back = pd.notna(row.return_date) and today <= row.return_date <= game_date
+                    total += 0.0 if back else v
+                else:
+                    total += v * p_dtd
             elif row.status == "Out" and pd.notna(row.return_date) and row.return_date > game_date:
                 total += v
         return total

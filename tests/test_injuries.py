@@ -228,3 +228,20 @@ def test_parse_injuries_tolerates_malformed_entries():
     assert pd.isna(inj.loc["C Three", "reported_at"])
     assert inj.loc["D Four", "status"] == "Day-To-Day"
     assert inj.loc["E Five", "status"] == "Day-To-Day"
+
+
+def test_update_dtd_log_zero_minute_row_counts_as_played():
+    from celtics.data.parse import playerlog_to_frame
+
+    games = make_games([("0021400001", 2014, "2014-11-02", "BOS", "NYK", 100, 90)])
+    players = playerlog_to_frame(pd.DataFrame([player_rows("0021400001", "2014-11-02", "BOS", 2, "Brown", 0)]), 2014)
+    inj = pd.DataFrame([{"team": "BOS", "name": "Brown", "status": "Day-To-Day", "player_id": 2}])
+    log = update_dtd_log([], inj, games.iloc[0:0], players.iloc[0:0], date(2014, 11, 1))
+    assert update_dtd_log(log, inj.iloc[0:0], games, players, date(2014, 11, 3))[0]["played"] is True
+
+
+def test_update_dtd_log_resolves_against_same_day_game():
+    games, players, inj = _dtd_inputs()  # BOS game is on 2014-11-02
+    log = update_dtd_log([], inj, games.iloc[0:0], players.iloc[0:0], date(2014, 11, 2))
+    log = update_dtd_log(log, inj.iloc[0:0], games, players, date(2014, 11, 2))
+    assert log[0]["played"] is False

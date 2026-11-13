@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from celtics.data.cache import player_season_path, refresh_players
-from celtics.data.fetch import FetchBlockedError
+from celtics.data.fetch import FetchBlockedError, nba_team_ids
 from celtics.data.parse import PLAYER_COLUMNS, playerlog_to_frame
 from celtics.data.validate import DataValidationError, validate_players
 from celtics.teams import TEAMS
@@ -97,3 +97,8 @@ def test_validate_players():
         validate_players(frame([player_rows("0022600001", "2026-10-22", "BOS", 1, "A", 30.0)]), games)
     incomplete = make_games([("0022600001", 2026, "2026-10-22", "BOS", "NYK", None, None)])
     validate_players(frame([player_rows("0022600001", "2026-10-22", "BOS", 1, "A", 30.0)]), incomplete)
+
+
+def test_every_team_has_an_nba_team_id():
+    ids = nba_team_ids()
+    assert set(TEAMS) <= set(ids)

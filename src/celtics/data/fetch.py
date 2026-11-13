@@ -69,12 +69,17 @@ def fetch_schedule(season: int) -> pd.DataFrame:
     return with_retries(call)
 
 
+def nba_team_ids() -> dict[str, int]:
+    """Team abbreviation -> NBA team_id."""
+    from nba_api.stats.static import teams
+
+    return {t["abbreviation"]: t["id"] for t in teams.get_teams()}
+
+
 def fetch_team_roster(team: str, season: int) -> pd.DataFrame:
     """Players on a team's roster (columns player_id, player_name)."""
     from nba_api.stats.endpoints import commonteamroster
-    from nba_api.stats.static import teams
-
-    team_ids = {t["abbreviation"]: t["id"] for t in teams.get_teams()}
+    team_ids = nba_team_ids()
 
     def call() -> pd.DataFrame:
         endpoint = commonteamroster.CommonTeamRoster(

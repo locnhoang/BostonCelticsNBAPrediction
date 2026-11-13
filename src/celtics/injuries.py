@@ -151,8 +151,8 @@ def update_dtd_log(
 ) -> list[dict]:
     """Log today's Day-To-Day players and resolve earlier cases against the team's next game.
 
-    A case resolves once the team has a completed game dated after the case; the player
-    played if he logged minutes in it.
+    A case resolves once the team has a completed game dated on or after the case (the log is
+    written before tip-off); the player played if he has a box-score row in it.
     """
     out = [dict(case) for case in log]
     seen = {(c["date"], c["player_id"]) for c in out}
@@ -174,14 +174,13 @@ def update_dtd_log(
         )
 
     done = games[games["home_pts"].notna()].sort_values(["date", "game_id"])
-    on_court = players[players["min"] > 0]
-    appeared = set(zip(on_court["game_id"], on_court["player_id"].astype(int), strict=True))
+    appeared = set(zip(players["game_id"], players["player_id"].astype(int), strict=True))
     for case in out:
         if case["played"] is not None:
             continue
         after = done[
             ((done["home_team"] == case["team"]) | (done["away_team"] == case["team"]))
-            & (done["date"] > pd.Timestamp(case["date"]))
+            & (done["date"] >= pd.Timestamp(case["date"]))
         ]
         if not after.empty:
             case["played"] = (after["game_id"].iloc[0], case["player_id"]) in appeared
