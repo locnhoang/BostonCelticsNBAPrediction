@@ -39,7 +39,7 @@ Adjust win probabilities for which players are missing.
 - **Source:** `nba_api` `LeagueGameLog(season=…, season_type_all_star="Regular Season", player_or_team_abbreviation="P")`. That is one call per season, 2014-15 onward, served by stats.nba.com, which is reachable.
 - **Canonical player-game frame:** `game_id, season, date, team, player_id, player_name, min, pts, fgm, fga, ftm, fta, oreb, dreb, ast, stl, blk, tov, pf`. Only `"002"` game IDs are kept.
 - **Cache:** `data/raw/players_{season}.parquet`.
-  - Past seasons are fetched once, behind the same incomplete-season guard as the team data (≥ 900 games' worth of rows across 30 teams).
+  - Past seasons are fetched once, behind the same incomplete-season guard as the team data: at least 900 distinct game_ids and 30 teams.
   - The current season is refetched daily.
 - **Validation:**
   - Every `(game_id, team)` in the player logs exists in the games frame.
