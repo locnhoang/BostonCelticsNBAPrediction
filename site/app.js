@@ -156,7 +156,7 @@ function renderDrivers(g, t) {
       marginLeft: 120,
       marginRight: 16,
       style: plotStyle(t),
-      x: { domain: [Math.min(-1, minValue * 1.3), Math.max(1, maxValue * 1.3)], label: "Points toward Boston", grid: true },
+      x: { domain: [Math.min(-1, minValue * 1.3), Math.max(1, maxValue * 1.3)], label: "Points toward Boston", grid: true, ticks: 5, tickFormat: "d" },
       y: { domain: data.map((d) => d.label), label: null },
       marks: [
         Plot.barX(data, { x: "value", y: "label", fill: (d) => (d.value >= 0 ? t.accent : t.neutral), insetTop: 8, insetBottom: 8 }),
