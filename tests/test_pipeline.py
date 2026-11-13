@@ -55,7 +55,7 @@ def test_run_update_twice_same_day_keeps_one_history_entry(repo):
 def test_run_backtest_writes_report(repo):
     report = run_backtest(repo, TODAY, offline=True, test_seasons=[2022, 2023], n_sims=100)
     BacktestReport.model_validate(report)
-    assert set(report["models"]) == {"homecourt", "elo", "ridge", "gbm"}
+    assert set(report["models"]) == {"homecourt", "elo", "ridge", "ridge_avail", "gbm"}
     assert report["chosen_team_sd"] in [0.0, 1.0, 2.0, 2.5, 3.0, 4.0]
     assert (repo.site_data / "backtest.json").exists()
 

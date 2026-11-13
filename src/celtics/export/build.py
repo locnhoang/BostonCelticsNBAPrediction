@@ -10,8 +10,7 @@ import numpy as np
 import pandas as pd
 
 from celtics.evaluate.metrics import summarize
-from celtics.features.build import FEATURES
-from celtics.models.explain import DRIVER_ORDER, explain
+from celtics.models.explain import explain
 from celtics.models.margin import MarginModel
 from celtics.simulate.inputs import SimInputs
 from celtics.simulate.season import SimResult
@@ -80,9 +79,9 @@ def game_rows(
     ].sort_values(["date", "game_id"])
     if cur.empty:
         return []
-    margins = model.predict_margin(cur[FEATURES])
-    probs = model.win_prob(cur[FEATURES])
-    parts = explain(model, cur[FEATURES])
+    margins = model.predict_margin(cur)
+    probs = model.win_prob(cur)
+    parts = explain(model, cur)
     rows = []
     for idx, row, m, p in zip(cur.index, cur.itertuples(index=False), margins, probs, strict=True):
         home = row.home_team == team
@@ -113,7 +112,7 @@ def game_rows(
                 sign = 1.0 if home else -1.0
                 out["drivers"] = [
                     {"label": label, "value": round(sign * float(parts.at[idx, label]), 1)}
-                    for label in DRIVER_ORDER
+                    for label in parts.columns
                 ]
         rows.append(out)
     return rows

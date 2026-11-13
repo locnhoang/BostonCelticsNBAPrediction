@@ -48,7 +48,7 @@ def test_learned_models_recover_signal(name):
 
 
 def test_registry_and_roundtrip(tmp_path):
-    assert set(MODELS) == {"homecourt", "elo", "ridge", "gbm"}
+    assert set(MODELS) == {"homecourt", "elo", "ridge", "ridge_avail", "gbm"}
     X, y = synthetic_xy(500)
     m = make_model("ridge").fit(X, y)
     path = tmp_path / "ridge.joblib"
@@ -56,3 +56,17 @@ def test_registry_and_roundtrip(tmp_path):
     loaded = load_model(path)
     assert np.allclose(loaded.predict_margin(X), m.predict_margin(X))
     assert loaded.sigma == m.sigma
+
+
+def test_ridge_avail_uses_avail_columns():
+    X, y = synthetic_xy()
+    X["home_avail"] = np.random.default_rng(1).normal(0, 3, len(X))
+    X["away_avail"] = 0.0
+    y = y + 0.5 * X["home_avail"]
+    avail = make_model("ridge_avail").fit(X, y)
+    plain = make_model("ridge").fit(X, y)
+    bumped = X.copy()
+    bumped["home_avail"] += 5.0
+    assert not np.allclose(avail.predict_margin(X), avail.predict_margin(bumped))
+    np.testing.assert_allclose(plain.predict_margin(X), plain.predict_margin(bumped))
+    assert "ridge_avail" in MODELS

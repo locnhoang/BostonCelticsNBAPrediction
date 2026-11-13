@@ -1,5 +1,6 @@
 """End-to-end orchestration: data -> features -> model -> simulation -> JSON."""
 
+import logging
 from datetime import UTC, date, datetime
 
 from celtics.config import (
@@ -17,8 +18,8 @@ from celtics.config import (
     current_season,
     season_label,
 )
-from celtics.data.cache import load_all, refresh
-from celtics.data.validate import DataValidationError, validate_games
+from celtics.data.cache import load_all, load_all_players, refresh, refresh_players
+from celtics.data.validate import DataValidationError, validate_games, validate_players
 from celtics.evaluate.backtest import season_coverage, walk_forward
 from celtics.evaluate.metrics import calibration_table, summarize
 from celtics.export.build import (
@@ -35,11 +36,13 @@ from celtics.export.build import (
 )
 from celtics.export.context import team_context
 from celtics.export.schema import BacktestReport, HistoryEntry, Predictions, PregameLog
-from celtics.features.build import FEATURES, build_features, current_team_state
+from celtics.features.build import build_features, current_team_state
 from celtics.models.margin import MODELS, MarginModel, load_model, make_model, save_model
 from celtics.simulate.inputs import prepare_sim_inputs
 from celtics.simulate.season import simulate_season
 from celtics.teams import CONFERENCE_OF, TEAM_INDEX
+
+log = logging.getLogger(__name__)
 
 
 def _now(now: datetime | None) -> str:
@@ -48,6 +51,16 @@ def _now(now: datetime | None) -> str:
 
 def _load_games(paths: Paths, today: date, offline: bool):
     return load_all(paths.raw_dir) if offline else refresh(paths.raw_dir, today)
+
+
+def _load_players(paths: Paths, today: date, offline: bool, games):
+    """Player logs, validated; None (avail = 0) when none are cached offline."""
+    players = load_all_players(paths.raw_dir) if offline else refresh_players(paths.raw_dir, today)
+    if players.empty:
+        log.warning("no player logs available; availability features are 0")
+        return None
+    validate_players(players, games)
+    return players
 
 
 def load_or_train(features, paths: Paths, today: date, force: bool = False) -> MarginModel:
@@ -61,7 +74,7 @@ def load_or_train(features, paths: Paths, today: date, force: bool = False) -> M
             model.trained_on = meta["trained_on"]
             return model
     train = features[features["completed"] & (features["season"] >= FIRST_TRAIN_SEASON)]
-    model = make_model(MODEL_NAME).fit(train[FEATURES], train["margin"])
+    model = make_model(MODEL_NAME).fit(train, train["margin"])
     save_model(model, model_path)
     write_json_atomic(meta_path, {"trained_on": today.isoformat()})
     model.trained_on = today.isoformat()
@@ -152,14 +165,15 @@ def run_backtest(
 ) -> dict:
     games = _load_games(paths, today, offline)
     validate_games(games, current_season(today), today=today)
-    feats = build_features(games)
+    players = _load_players(paths, today, offline, games)
+    feats = build_features(games, players)
     scores, main_preds = {}, None
     for name in MODELS:
         preds = walk_forward(feats, name, test_seasons)
         scores[name] = summarize(preds["prob"], preds["outcome"])
         if name == MODEL_NAME:
             main_preds = preds
-    coverage = season_coverage(games, MODEL_NAME, test_seasons, TEAM_SD_GRID, n_sims=n_sims)
+    coverage = season_coverage(games, MODEL_NAME, test_seasons, TEAM_SD_GRID, n_sims=n_sims, players=players)
     chosen = min(coverage, key=lambda sd: (abs(coverage[sd] - 0.8), sd))
     report = {
         "generated_at": _now(now),
