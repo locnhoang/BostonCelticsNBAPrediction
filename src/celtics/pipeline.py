@@ -4,6 +4,7 @@ import logging
 from datetime import UTC, date, datetime
 
 import pandas as pd
+from pydantic import ValidationError
 
 from celtics.config import (
     BACKTEST_COVERAGE_SIMS,
@@ -104,7 +105,8 @@ def load_or_train(features, paths: Paths, today: date, force: bool = False) -> M
 def run_train(paths: Paths, today: date) -> MarginModel:
     games = load_all(paths.raw_dir)
     validate_games(games, current_season(today), today=today)
-    feats = build_features(games)
+    players = _load_players(paths, today, offline=True, games=games)
+    feats = build_features(games, players)
     return load_or_train(feats, paths, today, force=True)
 
 
@@ -127,15 +129,31 @@ def _check_not_backwards(games, season: int, existing: dict | None) -> None:
         )
 
 
-def _fetch_injuries(paths: Paths, today: date) -> dict | None:
-    """The ESPN feed (cached under data/injuries/); None when it cannot be fetched."""
+def _empty_matched() -> pd.DataFrame:
+    return pd.DataFrame(columns=INJURY_COLUMNS).assign(player_id=pd.array([], dtype="Int64"))
+
+
+def _load_feed(paths: Paths, today: date, players, season: int):
+    """Fetch, parse and match the ESPN feed -> (parsed, matched, unmatched, as_of), or None.
+
+    Any failure (fetch, malformed feed, matching) is logged and means "no feed": no adjustment.
+    """
     try:
         raw = fetch_espn_injuries()
-    except Exception as exc:  # an injury-feed failure never blocks a run
-        log.warning("ESPN injury feed unavailable, publishing no adjustment: %s", exc)
+        if not isinstance(raw, dict) or not isinstance(raw.get("injuries"), list):
+            raise ValueError("unexpected injury feed shape")
+        parsed = parse_injuries(raw)
+        matched, unmatched = match_players(
+            parsed, players if players is not None else empty_players(), season
+        )
+        unmatched = [*unmatched, *(f"{n} (unknown team)" for n in unknown_teams(raw))]
+        as_of = raw.get("timestamp")
+        as_of = as_of if isinstance(as_of, str) else None
+        write_json_atomic(paths.injuries_dir / f"{today.isoformat()}.json", raw)
+    except Exception as exc:  # an injury-feed problem never blocks a run
+        log.warning("ESPN injury feed unusable, publishing no adjustment: %s", exc)
         return None
-    write_json_atomic(paths.injuries_dir / f"{today.isoformat()}.json", raw)
-    return raw
+    return parsed, matched, unmatched, as_of
 
 
 def _fetch_rosters(teams: list[str], season: int) -> dict[str, pd.DataFrame | None]:
@@ -175,17 +193,16 @@ def run_update(
     _check_not_backwards(games, season, read_json(paths.site_data / "predictions.json", None))
     players = _load_players(paths, today, offline, games)
 
-    raw = _fetch_injuries(paths, today)
-    parsed = parse_injuries(raw) if raw else pd.DataFrame(columns=INJURY_COLUMNS)
-    unmatched: list[str] = []
-    matched = parsed.iloc[0:0].assign(player_id=pd.array([], dtype="Int64"))
-    if raw:
-        matched, unmatched = match_players(
-            parsed, players if players is not None else empty_players(), season
-        )
-        unmatched = [*unmatched, *(f"{n} (unknown team)" for n in unknown_teams(raw))]
+    feed = _load_feed(paths, today, players, season)
+    parsed, matched, unmatched, as_of = feed or (
+        pd.DataFrame(columns=INJURY_COLUMNS), _empty_matched(), [], None
+    )
 
     dtd_log = read_json(paths.site_data / "dtd_log.json", [])
+    try:
+        DtdLog.validate_python(dtd_log)
+    except ValidationError as exc:
+        raise DataValidationError(f"dtd_log.json is invalid: {exc}") from exc
     if players is not None:  # without box scores a case could not be resolved honestly
         dtd_log = update_dtd_log(dtd_log, matched, games, players, today)
     DtdLog.validate_python(dtd_log)
@@ -194,7 +211,9 @@ def run_update(
     feats = build_features(games, players)
     current = pd.DataFrame(columns=CURRENT_COLUMNS)
     if players is not None:
-        feats = _apply_live_avail(feats, live_avail(games, players, matched, season, today, p_dtd))
+        if feed is not None:  # no feed, no adjustment: incomplete games keep avail 0
+            live = live_avail(games, players, matched, season, today, p_dtd)
+            feats = _apply_live_avail(feats, live)
         current = current_player_values(games, players, season)
     model = load_or_train(feats, paths, today, force=force_train)
     inputs = prepare_sim_inputs(feats, model, current_team_state(games), season, GAMES_PER_TEAM)
@@ -210,16 +229,16 @@ def run_update(
     teams: dict[str, list[dict]] = {}
     if upcoming is not None:
         upcoming["win_prob_healthy"] = healthy_win_prob(feats, model, upcoming["game_id"], TEAM)
-        teams = injury_teams(
-            [TEAM, upcoming["opponent"]],
-            parsed,
-            matched,
-            current,
-            _fetch_rosters([TEAM, upcoming["opponent"]], season),
-            today,
-            date.fromisoformat(upcoming["date"]),
-            p_dtd,
-        )
+        pair = [TEAM, upcoming["opponent"]]
+        game_date = date.fromisoformat(upcoming["date"])
+        rosters = _fetch_rosters(pair, season)
+        try:
+            teams = injury_teams(pair, parsed, matched, current, rosters, today, game_date, p_dtd)
+        except Exception as exc:
+            log.warning("injury display failed, falling back to recent players only: %s", exc)
+            teams = injury_teams(
+                pair, parsed.iloc[0:0], _empty_matched(), current, dict.fromkeys(pair), today, game_date, p_dtd
+            )
     i = TEAM_INDEX[TEAM]
     summary = team_summary(result, TEAM, inputs.current_wins[i], inputs.current_losses[i])
     predictions = {
@@ -233,8 +252,8 @@ def run_update(
         "metrics": {"live": live_metrics(rows)},
         "team_context": team_context(games, season),
         "injury_report": {
-            "available": raw is not None,
-            "as_of": (raw or {}).get("timestamp"),
+            "available": feed is not None,
+            "as_of": as_of,
             "p_dtd": p_dtd,
             "unmatched": unmatched,
             "teams": teams,

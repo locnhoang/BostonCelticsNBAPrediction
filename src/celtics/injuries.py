@@ -193,3 +193,17 @@ def learn_p_dtd(log: list[dict]) -> float:
     if len(resolved) < DTD_MIN_CASES:
         return DTD_PRIOR
     return sum(1 for c in resolved if not c["played"]) / len(resolved)
+
+
+def p_out(status: str, return_date, game_date: date, today: date, p_dtd: float, next_game: bool = True) -> float:
+    """Probability a listed player misses a game.
+
+    Next game: Out counts fully unless his return date falls between today and the game;
+    Day-To-Day counts p_dtd. Later games: only Out players whose return date is after the game.
+    """
+    has_date = pd.notna(return_date)
+    if not next_game:
+        return 1.0 if status == "Out" and has_date and return_date > game_date else 0.0
+    if status == "Out":
+        return 0.0 if has_date and today <= return_date <= game_date else 1.0
+    return p_dtd if status == "Day-To-Day" else 0.0

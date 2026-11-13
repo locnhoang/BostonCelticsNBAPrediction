@@ -11,7 +11,7 @@ import pandas as pd
 
 from celtics.evaluate.metrics import summarize
 from celtics.features.build import AVAIL_FEATURES
-from celtics.injuries import normalize_name
+from celtics.injuries import normalize_name, p_out
 from celtics.models.explain import explain
 from celtics.models.margin import MarginModel
 from celtics.simulate.inputs import SimInputs
@@ -188,13 +188,6 @@ def healthy_win_prob(features: pd.DataFrame, model: MarginModel, game_id: str, t
     return r4(p if row["home_team"].iloc[0] == team else 1 - p)
 
 
-def _p_out(status: str, return_date, today: date, game_date: date, p_dtd: float) -> float:
-    if status == "Out":
-        back = pd.notna(return_date) and today <= return_date <= game_date
-        return 0.0 if back else 1.0
-    return p_dtd if status == "Day-To-Day" else 0.0
-
-
 def injury_teams(
     teams: list[str],
     parsed: pd.DataFrame,
@@ -242,7 +235,7 @@ def injury_teams(
                     "status": status,
                     "comment": inj.comment if inj is not None else "",
                     "return_date": rd.isoformat() if pd.notna(rd) else None,
-                    "p_out": r4(_p_out(status, rd, today, game_date, p_dtd)),
+                    "p_out": r4(p_out(status, rd, game_date, today, p_dtd)),
                     "expected_minutes": round(float(s.expected_minutes), 1) if s else 0.0,
                     "game_value": round(float(s.game_value), 2) if s else 0.0,
                     "rotation": bool(s.rotation) if s else False,

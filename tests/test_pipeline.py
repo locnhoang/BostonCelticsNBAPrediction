@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 from pydantic import ValidationError
 
+import celtics.pipeline as pipeline_module
 from celtics.cli import main
 from celtics.config import DEFAULT_TEAM_SD, Paths
 from celtics.data.cache import player_season_path, season_path
@@ -31,6 +32,8 @@ def _player_logs(games):
     for g in games[games["home_pts"].notna()].itertuples():
         for team in (g.home_team, g.away_team):
             for k in range(8):
+                if k == 7 and int(g.game_id[-5:]) % 4 == 0:
+                    continue  # the best player sits out some games, so historical avail varies
                 rows.append(
                     {
                         "game_id": g.game_id, "season": g.season, "date": g.date, "team": team,
@@ -272,16 +275,62 @@ def test_run_update_publishes_injury_report(repo_players, opp_p):
     assert _next_row(on_disk)["win_prob_healthy"] is not None
 
 
-def test_run_update_survives_espn_failure(repo_players, monkeypatch):
-    def boom():
-        raise RuntimeError("espn down")
+def _force_avail_model(monkeypatch):
+    monkeypatch.setattr("celtics.pipeline.MODEL_NAME", "ridge_avail")
 
-    monkeypatch.setattr("celtics.pipeline.fetch_espn_injuries", boom)
-    pred = run_update(repo_players, TODAY, offline=True, n_sims=100)
+
+def _boom():
+    raise RuntimeError("espn down")
+
+
+@pytest.mark.parametrize("bad", [_boom, lambda: [], lambda: {}, lambda: {"injuries": None}])
+def test_run_update_without_usable_feed_applies_no_adjustment(repo_players, monkeypatch, bad):
+    _force_avail_model(monkeypatch)
+    seen = {}
+    real = pipeline_module.prepare_sim_inputs
+
+    def spy(feats, *args, **kwargs):
+        seen["avail"] = feats.loc[~feats["completed"], ["home_avail", "away_avail"]]
+        return real(feats, *args, **kwargs)
+
+    monkeypatch.setattr("celtics.pipeline.fetch_espn_injuries", bad)
+    monkeypatch.setattr("celtics.pipeline.prepare_sim_inputs", spy)
+    pred = run_update(repo_players, TODAY, offline=True, n_sims=50)
     Predictions.model_validate(pred)
     assert pred["injury_report"]["available"] is False
+    assert (seen["avail"] == 0).all().all() and len(seen["avail"]) > 0
     row = _next_row(pred)
     assert row["win_prob"] == row["win_prob_healthy"]
+    assert [d["label"] for d in row["drivers"]][-1] == "Injuries & availability"
+
+
+def test_run_update_with_feed_applies_live_avail(repo_players, opp_p, monkeypatch):
+    _force_avail_model(monkeypatch)
+    monkeypatch.setattr("celtics.pipeline.fetch_espn_injuries", lambda: _feed(opp_p, 7))  # best player
+    pred = run_update(repo_players, TODAY, offline=True, n_sims=50)
+    row = _next_row(pred)
+    assert row["win_prob"] != row["win_prob_healthy"]
+
+
+def test_run_update_rejects_invalid_dtd_log(repo_players):
+    repo_players.site_data.mkdir(parents=True)
+    (repo_players.site_data / "dtd_log.json").write_text(json.dumps([{"date": "2024-11-19"}]))
+    with pytest.raises(DataValidationError, match="dtd_log"):
+        run_update(repo_players, TODAY, offline=True, n_sims=50)
+
+
+def test_run_train_uses_player_logs(repo_players, monkeypatch):
+    _force_avail_model(monkeypatch)
+    seen = {}
+    real = pipeline_module.load_or_train
+
+    def spy(feats, *args, **kwargs):
+        seen["avail"] = feats.loc[feats["completed"], "home_avail"]
+        return real(feats, *args, **kwargs)
+
+    monkeypatch.setattr("celtics.pipeline.load_or_train", spy)
+    run_train(repo_players, TODAY)
+    assert (seen["avail"] != 0).any()
 
 
 def test_run_update_reports_unmatched_and_unknown_team(repo, opp, monkeypatch):

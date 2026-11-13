@@ -19,6 +19,7 @@ from celtics.config import (
     VALUE_DECAY,
     VALUE_PRIOR_MINUTES,
 )
+from celtics.injuries import p_out
 
 STATE_COLUMNS = [
     "game_id", "team", "player_id", "player_name",
@@ -377,14 +378,9 @@ def live_avail(
         total = 0.0
         for row in by_team.get(team, pd.DataFrame()).itertuples():
             v = value.get(int(row.player_id), 0.0)
-            if next_game[team] == gid:
-                if row.status == "Out":
-                    back = pd.notna(row.return_date) and today <= row.return_date <= game_date
-                    total += 0.0 if back else v
-                else:
-                    total += v * p_dtd
-            elif row.status == "Out" and pd.notna(row.return_date) and row.return_date > game_date:
-                total += v
+            total += v * p_out(
+                row.status, row.return_date, game_date, today, p_dtd, next_game=next_game[team] == gid
+            )
         return total
 
     out = []

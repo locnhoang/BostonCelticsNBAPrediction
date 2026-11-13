@@ -245,3 +245,18 @@ def test_update_dtd_log_resolves_against_same_day_game():
     log = update_dtd_log([], inj, games.iloc[0:0], players.iloc[0:0], date(2014, 11, 2))
     log = update_dtd_log(log, inj.iloc[0:0], games, players, date(2014, 11, 2))
     assert log[0]["played"] is False
+
+
+def test_p_out_rules():
+    from datetime import date
+
+    from celtics.injuries import p_out
+
+    today, game = date(2024, 11, 20), date(2024, 11, 22)
+    assert p_out("Out", None, game, today, 0.4) == 1.0
+    assert p_out("Out", date(2024, 11, 10), game, today, 0.4) == 1.0  # stale date: out for the next game
+    assert p_out("Out", date(2024, 11, 21), game, today, 0.4) == 0.0  # back before the game
+    assert p_out("Day-To-Day", None, game, today, 0.4) == 0.4
+    assert p_out("Out", date(2024, 11, 25), game, today, 0.4, next_game=False) == 1.0
+    assert p_out("Out", None, game, today, 0.4, next_game=False) == 0.0
+    assert p_out("Day-To-Day", None, game, today, 0.4, next_game=False) == 0.0
