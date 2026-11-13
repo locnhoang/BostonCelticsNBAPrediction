@@ -11,70 +11,102 @@
 </head>
 <body>
   <main>
-    <header>
-      <h1>Boston Celtics 2026-27 projection</h1>
-      <p id="updated" class="muted">Loading…</p>
+    <header class="page-header">
+      <span id="hdr-logo"></span>
+      <div>
+        <h1 id="hdr-title">Boston Celtics</h1>
+        <p id="hdr-meta" class="hdr-meta"></p>
+        <p id="updated" class="muted">Loading…</p>
+      </div>
     </header>
 
-    <div id="headline" class="tiles"></div>
+    <section aria-labelledby="h-next">
+      <h2 id="h-next">Next game</h2>
+      <p class="subtitle">Win chance from the model, and what it is based on.</p>
+      <div id="next-card"></div>
+      <div id="drivers-wrap">
+        <h3>Why the model leans this way</h3>
+        <p class="subtitle">Points each factor adds to Boston's projected margin. Green helps, gray hurts.</p>
+        <div id="chart-drivers" class="chart"></div>
+        <details><summary>Show as table</summary><div id="table-drivers" class="table-wrap"></div></details>
+      </div>
+    </section>
 
-    <section>
-      <h2>Projected wins over time</h2>
-      <p class="muted">Median projection with the 80% range, one point per daily update.</p>
+    <section aria-labelledby="h-outlook">
+      <h2 id="h-outlook">Season outlook</h2>
+      <p class="subtitle">From 10,000 simulations of the rest of the season.</p>
+      <div id="outlook" class="tiles"></div>
+    </section>
+
+    <section aria-labelledby="h-context">
+      <h2 id="h-context">Team context</h2>
+      <p class="subtitle">Where Boston stands right now, from this season's games.</p>
+      <div id="context"></div>
+    </section>
+
+    <section aria-labelledby="h-schedule">
+      <h2 id="h-schedule">Schedule</h2>
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-upcoming" aria-controls="upcoming" aria-selected="true">Upcoming</button>
+        <button role="tab" id="tab-results" aria-controls="completed" aria-selected="false">Results</button>
+      </div>
+      <p class="subtitle">Select an upcoming game to see its breakdown.</p>
+      <div id="upcoming" class="table-wrap" role="tabpanel" aria-labelledby="tab-upcoming"></div>
+      <div id="completed" class="table-wrap" role="tabpanel" aria-labelledby="tab-results" hidden></div>
+    </section>
+
+    <section aria-labelledby="h-history">
+      <h2 id="h-history">Projected wins over time</h2>
+      <p class="subtitle">Median projection with the 80% range, one point per daily update.</p>
       <div id="chart-history" class="chart"></div>
       <details><summary>Show as table</summary><div id="table-history" class="table-wrap"></div></details>
     </section>
 
-    <section>
-      <h2>Upcoming games</h2>
-      <div id="upcoming" class="table-wrap"></div>
-    </section>
+    <div class="two-col">
+      <section aria-labelledby="h-wins">
+        <h2 id="h-wins">Final win total</h2>
+        <p class="subtitle">Share of simulated seasons ending at each win total.</p>
+        <div id="chart-wins" class="chart"></div>
+        <details><summary>Show as table</summary><div id="table-wins" class="table-wrap"></div></details>
+      </section>
+      <section aria-labelledby="h-seeds">
+        <h2 id="h-seeds">East seed</h2>
+        <p class="subtitle">Seeds 7–10 go to the play-in; 11–15 miss the postseason.</p>
+        <div id="chart-seeds" class="chart"></div>
+        <details><summary>Show as table</summary><div id="table-seeds" class="table-wrap"></div></details>
+      </section>
+    </div>
 
-    <section>
-      <h2>Results vs. pre-game prediction</h2>
-      <div id="completed" class="table-wrap"></div>
-    </section>
-
-    <section>
-      <h2>Final win total</h2>
-      <p class="muted">Share of 10,000 simulated seasons ending at each win total.</p>
-      <div id="chart-wins" class="chart"></div>
-      <details><summary>Show as table</summary><div id="table-wins" class="table-wrap"></div></details>
-    </section>
-
-    <section>
-      <h2>Seed probabilities</h2>
-      <p class="muted">Seeds 7–10 go to the play-in; 11–15 miss the postseason.</p>
-      <div id="chart-seeds" class="chart"></div>
-      <details><summary>Show as table</summary><div id="table-seeds" class="table-wrap"></div></details>
-    </section>
-
-    <section>
-      <h2>Eastern Conference projection</h2>
+    <section aria-labelledby="h-east">
+      <h2 id="h-east">Eastern Conference projection</h2>
+      <p class="subtitle">Current record and simulated outlook for every East team.</p>
       <div id="east" class="table-wrap"></div>
     </section>
 
-    <section>
-      <h2>Model report card</h2>
-      <p id="backtest-note" class="muted"></p>
+    <section aria-labelledby="h-report">
+      <h2 id="h-report">Model report card</h2>
+      <p id="live" class="lead"></p>
+      <p id="backtest-note" class="subtitle"></p>
       <div id="models" class="table-wrap"></div>
-      <p id="live" class="muted"></p>
-      <h3>Calibration</h3>
-      <p class="muted">When the model says X%, does the team win X% of the time? Points on the diagonal are perfectly calibrated.</p>
-      <div id="chart-calibration" class="chart"></div>
-      <details><summary>Show as table</summary><div id="table-calibration" class="table-wrap"></div></details>
+      <details>
+        <summary>Calibration</summary>
+        <p class="subtitle">When the model says X%, does the home team win X% of the time? Points on the diagonal are perfectly calibrated.</p>
+        <div id="chart-calibration" class="chart"></div>
+        <div id="table-calibration" class="table-wrap"></div>
+      </details>
     </section>
 
-    <section>
-      <h2>How it works</h2>
-      <p>Each game is predicted as a point margin from team strength (a margin-of-victory Elo rating and a recency-weighted net rating per 100 possessions), home court, and rest (days off, back-to-backs, three games in four nights). The margin becomes a win probability using the model's historical error.</p>
+    <section aria-labelledby="h-how">
+      <h2 id="h-how">How it works</h2>
+      <p id="how-example" class="lead" hidden></p>
+      <p>Each game is predicted as a point margin from four things: season-long team strength (a margin-of-victory Elo rating), recent form (a recency-weighted net rating per 100 possessions), home court, and rest (days off, back-to-backs, three games in four nights). The margin becomes a win probability using how much NBA results vary from game to game.</p>
       <p>The rest of the league schedule is simulated 10,000 times. Each simulation shifts every team's strength by a random amount reflecting how uncertain we are about it, then plays out every game, applies tiebreakers (head-to-head, division winner, conference record), and runs the play-in.</p>
-      <p>The model is trained on every regular-season game since 2015-16 and tested walk-forward: each test season is predicted using only data from before it.</p>
+      <p>The model is trained on every regular-season game since 2015-16 and tested walk-forward: each test season is predicted using only data from before it. It does not account for injuries yet.</p>
     </section>
 
     <footer class="muted">
-      Data from NBA.com via nba_api. Not affiliated with the NBA or the Boston Celtics.
-      <a href="https://github.com/locnhoang/BostonCelticsNBAPrediction">Source code</a>
+      <p>Data from NBA.com via nba_api. Team logos are trademarks of the NBA and its teams. Not affiliated with the NBA or the Boston Celtics.</p>
+      <p><a href="https://github.com/locnhoang/BostonCelticsNBAPrediction">Source code</a></p>
     </footer>
   </main>
   <script src="app.js"></script>

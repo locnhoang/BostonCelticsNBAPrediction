@@ -1,8 +1,26 @@
 "use strict";
 
+// Nickname and primary color per team; the color backs the badge shown if a logo fails to load.
+const TEAMS = {
+  ATL: ["Hawks", "#E03A3E"], BKN: ["Nets", "#000000"], BOS: ["Celtics", "#007A33"], CHA: ["Hornets", "#1D1160"],
+  CHI: ["Bulls", "#CE1141"], CLE: ["Cavaliers", "#860038"], DAL: ["Mavericks", "#00538C"], DEN: ["Nuggets", "#0E2240"],
+  DET: ["Pistons", "#C8102E"], GSW: ["Warriors", "#1D428A"], HOU: ["Rockets", "#CE1141"], IND: ["Pacers", "#002D62"],
+  LAC: ["Clippers", "#C8102E"], LAL: ["Lakers", "#552583"], MEM: ["Grizzlies", "#5D76A9"], MIA: ["Heat", "#98002E"],
+  MIL: ["Bucks", "#00471B"], MIN: ["Timberwolves", "#0C2340"], NOP: ["Pelicans", "#0C2340"], NYK: ["Knicks", "#006BB6"],
+  OKC: ["Thunder", "#007AC1"], ORL: ["Magic", "#0077C0"], PHI: ["76ers", "#006BB6"], PHX: ["Suns", "#1D1160"],
+  POR: ["Trail Blazers", "#E03A3E"], SAC: ["Kings", "#5A2D81"], SAS: ["Spurs", "#000000"], TOR: ["Raptors", "#CE1141"],
+  UTA: ["Jazz", "#002B5C"], WAS: ["Wizards", "#002B5C"],
+};
+const teamName = (abbr) => TEAMS[abbr]?.[0] ?? abbr;
+
 const pct = (p) => (p == null ? "—" : `${Math.round(p * 100)}%`);
 const pct1 = (p) => `${(p * 100).toFixed(1)}%`;
 const signed = (m) => (m > 0 ? `+${m.toFixed(1)}` : m.toFixed(1));
+const ord = (n) => {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
 const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
 function el(tag, attrs = {}, ...children) {
@@ -16,16 +34,35 @@ function el(tag, attrs = {}, ...children) {
   return node;
 }
 
-function table(headers, rows, highlighted = []) {
+function teamMark(abbr, size = 20) {
+  const badge = () =>
+    el(
+      "span",
+      {
+        class: "badge",
+        style: `background:${TEAMS[abbr]?.[1] ?? "#555555"};width:${size}px;height:${size}px;font-size:${Math.max(8, Math.round(size * 0.3))}px`,
+        "aria-hidden": "true",
+      },
+      abbr,
+    );
+  const img = el("img", { class: "logo", src: `logos/${abbr}.png`, alt: "", width: size, height: size });
+  img.addEventListener("error", () => img.replaceWith(badge()), { once: true });
+  return img;
+}
+
+const teamLabel = (abbr, size = 20) => el("span", { class: "team" }, teamMark(abbr, size), el("span", {}, abbr));
+
+function table(headers, rows, { highlighted = [], secondary = [] } = {}) {
+  const cls = (j) => (secondary.includes(j) ? { class: "secondary" } : {});
   return el(
     "table",
     {},
-    el("thead", {}, el("tr", {}, ...headers.map((h) => el("th", {}, h)))),
+    el("thead", {}, el("tr", {}, ...headers.map((h, j) => el("th", cls(j), h)))),
     el(
       "tbody",
       {},
       ...rows.map((cells, i) =>
-        el("tr", highlighted[i] ? { class: "highlight" } : {}, ...cells.map((c) => el("td", {}, c))),
+        el("tr", highlighted[i] ? { class: "highlight" } : {}, ...cells.map((c, j) => el("td", cls(j), c))),
       ),
     ),
   );
@@ -34,6 +71,7 @@ function table(headers, rows, highlighted = []) {
 function theme() {
   return {
     accent: token("--accent"),
+    neutral: token("--neutral-bar"),
     surface: token("--surface"),
     ink: token("--text-secondary"),
     rule: token("--axis"),
@@ -44,30 +82,252 @@ function plotStyle(t) {
   return { background: t.surface, color: t.ink, fontSize: "12px", fontFamily: "inherit" };
 }
 
-function renderHeadline(pred) {
+const nextGame = (pred) => pred.games.find((g) => !g.completed) ?? null;
+
+function renderHeader(pred) {
+  const team = pred.team_summary.team;
+  const c = pred.team_context[team];
+  document.getElementById("hdr-logo").replaceChildren(teamMark(team, 28));
+  document.getElementById("hdr-title").textContent = `Boston ${teamName(team)} ${pred.season}`;
+  document.getElementById("hdr-meta").textContent = `${c.wins}-${c.losses} · ${ord(c.conf_rank)} in the East`;
+  document.getElementById("updated").textContent =
+    `Updated ${new Date(pred.generated_at).toLocaleString()} · model ${pred.model_version}`;
+}
+
+function renderNextGame(pred, t) {
+  const card = document.getElementById("next-card");
+  const g = nextGame(pred);
+  const team = pred.team_summary.team;
+  if (!g) {
+    card.replaceChildren(el("p", { class: "muted" }, "Regular season complete."));
+    renderDrivers(null, t);
+    return;
+  }
+  const ctx = pred.team_context;
+  const side = (abbr) =>
+    el(
+      "div",
+      { class: "side" },
+      teamMark(abbr, 56),
+      el("div", { class: "side-name" }, teamName(abbr)),
+      el("div", { class: "side-rec" }, `${ctx[abbr].wins}-${ctx[abbr].losses}`),
+    );
+  const [away, home] = g.home ? [g.opponent, team] : [team, g.opponent];
+  const when = new Date(`${g.date}T12:00:00Z`).toLocaleDateString(undefined, {
+    weekday: "short", month: "short", day: "numeric", timeZone: "UTC",
+  });
+  const opp = ctx[g.opponent];
+  card.replaceChildren(
+    el("div", { class: "matchup" }, side(away), el("div", { class: "at", "aria-hidden": "true" }, "@"), side(home)),
+    el("div", { class: "next-meta" }, `${when} · ${g.home ? "Home" : "Away"}${g.b2b ? " · Back-to-back" : ""}`),
+    el(
+      "div",
+      { class: "next-prob" },
+      el("span", { class: "big" }, pct(g.win_prob)),
+      el("span", { class: "sub" }, `${teamName(team)} win chance · projected margin ${signed(g.pred_margin)}`),
+    ),
+    el(
+      "p",
+      { class: "muted next-opp" },
+      `${teamName(g.opponent)}: ${opp.wins}-${opp.losses}, net rating ${ord(opp.net_rank)} of 30, last 10 ${opp.last10}`,
+    ),
+  );
+  renderDrivers(g, t);
+}
+
+function renderDrivers(g, t) {
+  const wrap = document.getElementById("drivers-wrap");
+  if (!g || !g.drivers) {
+    wrap.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  const box = document.getElementById("chart-drivers");
+  const data = g.drivers;
+  const ext = Math.max(4, ...data.map((d) => Math.abs(d.value))) * 1.3;
+  box.replaceChildren(
+    Plot.plot({
+      width: box.clientWidth,
+      height: 40 * data.length + 40,
+      marginLeft: 120,
+      marginRight: 16,
+      style: plotStyle(t),
+      x: { domain: [-ext, ext], label: "Points toward Boston", grid: true },
+      y: { domain: data.map((d) => d.label), label: null },
+      marks: [
+        Plot.barX(data, { x: "value", y: "label", fill: (d) => (d.value >= 0 ? t.accent : t.neutral), insetTop: 8, insetBottom: 8 }),
+        Plot.ruleX([0], { stroke: t.rule }),
+        Plot.text(data.filter((d) => d.value >= 0), { x: "value", y: "label", text: (d) => signed(d.value), textAnchor: "start", dx: 6, fill: t.ink }),
+        Plot.text(data.filter((d) => d.value < 0), { x: "value", y: "label", text: (d) => signed(d.value), textAnchor: "end", dx: -6, fill: t.ink }),
+        Plot.tip(data, Plot.pointerY({ x: "value", y: "label", title: (d) => `${d.label}: ${signed(d.value)} points` })),
+      ],
+    }),
+  );
+  document.getElementById("table-drivers").replaceChildren(
+    table(["Factor", "Points"], [...data.map((d) => [d.label, signed(d.value)]), ["Projected margin", signed(g.pred_margin)]]),
+  );
+}
+
+function change(cur, prev, kind) {
+  if (prev == null) return "";
+  const d = kind === "wins" ? Math.round(cur - prev) : Math.round((cur - prev) * 100);
+  if (d === 0) return "No change since last update";
+  const unit = kind === "wins" ? (Math.abs(d) === 1 ? "win" : "wins") : "pts";
+  return `${d > 0 ? "▲" : "▼"} ${Math.abs(d)} ${unit} since last update`;
+}
+
+function renderOutlook(pred, history) {
   const s = pred.team_summary;
+  const prev = history.length >= 2 ? history[history.length - 2] : null;
   const median = Math.round(s.proj_wins_median);
   const tiles = [
-    ["Current record", `${s.wins}-${s.losses}`, ""],
-    ["Projected record", `${median}-${82 - median}`, `80% range ${Math.round(s.proj_wins_p10)}–${Math.round(s.proj_wins_p90)} wins`],
-    ["Make playoffs", pct(s.p_playoffs), "after the play-in"],
-    ["Top-6 seed", pct(s.p_top6), "skips the play-in"],
-    ["#1 seed in East", pct(s.p_seed1), ""],
-    ["50+ wins", pct(s.p_50_wins), ""],
+    ["Projected record", `${median}-${82 - median}`, `80% range ${Math.round(s.proj_wins_p10)}–${Math.round(s.proj_wins_p90)} wins`, change(s.proj_wins_median, prev?.projected_wins_median, "wins")],
+    ["Make playoffs", pct(s.p_playoffs), "includes the play-in", change(s.p_playoffs, prev?.playoff_prob, "pts")],
+    ["#1 seed in East", pct(s.p_seed1), "", change(s.p_seed1, prev?.seed1_prob, "pts")],
   ];
-  document.getElementById("headline").replaceChildren(
-    ...tiles.map(([label, value, note]) =>
+  document.getElementById("outlook").replaceChildren(
+    ...tiles.map(([label, value, note, delta]) =>
       el(
         "div",
         { class: "tile" },
         el("div", { class: "tile-label" }, label),
         el("div", { class: "tile-value" }, value),
         el("div", { class: "tile-note" }, note),
+        delta ? el("div", { class: "tile-change" }, delta) : "",
       ),
     ),
   );
-  document.getElementById("updated").textContent =
-    `Updated ${new Date(pred.generated_at).toLocaleString()} · ${pred.season} · model ${pred.model_version}`;
+}
+
+function rankStrip(rank, label) {
+  return el(
+    "div",
+    { class: "rank-strip", role: "img", "aria-label": `${label}: ${ord(rank)} of 30 teams` },
+    ...Array.from({ length: 30 }, (_, i) => el("span", i + 1 === rank ? { class: "on" } : {})),
+  );
+}
+
+function renderContext(pred) {
+  const team = pred.team_summary.team;
+  const c = pred.team_context[team];
+  const gb = c.games_back === 0 ? "Leads the conference" : `${c.games_back} ${c.games_back === 1 ? "game" : "games"} back`;
+  const facts = [
+    ["East standing", ord(c.conf_rank), gb],
+    ["Last 10", c.last10, c.streak ? `Current streak: ${c.streak}` : ""],
+  ];
+  const ratings = [
+    ["Offense", c.off_rating.toFixed(1), c.off_rank, "Points scored per 100 possessions"],
+    ["Defense", c.def_rating.toFixed(1), c.def_rank, "Points allowed per 100 possessions"],
+    ["Net rating", signed(c.net_rating), c.net_rank, "Offense minus defense"],
+  ];
+  document.getElementById("context").replaceChildren(
+    el(
+      "div",
+      { class: "facts" },
+      ...facts.map(([label, value, note]) =>
+        el("div", { class: "fact" }, el("div", { class: "tile-label" }, label), el("div", { class: "fact-value" }, value), el("div", { class: "tile-note" }, note)),
+      ),
+    ),
+    el(
+      "div",
+      { class: "ratings" },
+      ...ratings.map(([label, value, rank, note]) =>
+        el(
+          "div",
+          { class: "rating" },
+          el("div", { class: "rating-head" }, el("span", { class: "tile-label" }, label), el("span", { class: "rating-rank" }, `${ord(rank)} of 30`)),
+          el("div", { class: "fact-value" }, value),
+          rankStrip(rank, label),
+          el("div", { class: "tile-note" }, `${note} · best on the left`),
+        ),
+      ),
+    ),
+  );
+}
+
+function probBar(p) {
+  return el(
+    "span",
+    { class: "prob" },
+    el("span", { class: "prob-track" }, el("span", { class: "prob-fill", style: `width:${Math.round(p * 100)}%` })),
+    el("span", {}, pct(p)),
+  );
+}
+
+const whereCell = (g) => el("span", { class: "team" }, el("span", { class: "muted" }, g.home ? "vs" : "@"), teamMark(g.opponent, 20), el("span", {}, g.opponent));
+const calledIt = (g) => (g.pregame_win_prob >= 0.5) === g.result.startsWith("W");
+
+function renderSchedule(pred) {
+  const rest = (g) => (g.b2b ? "Back-to-back" : `${Math.round(g.rest_days)}d rest`);
+  const upcoming = pred.games.filter((g) => !g.completed);
+  const done = pred.games.filter((g) => g.completed).reverse();
+
+  const up = document.getElementById("upcoming");
+  if (!upcoming.length) {
+    up.replaceChildren(el("p", { class: "muted" }, "Regular season complete."));
+  } else {
+    const head = el(
+      "thead",
+      {},
+      el("tr", {}, el("th", {}, "Date"), el("th", {}, "Opponent"), el("th", { class: "secondary" }, "Rest"), el("th", {}, "Win chance"), el("th", { class: "secondary" }, "Proj. margin")),
+    );
+    const body = el("tbody");
+    for (const g of upcoming) {
+      const attrs = g.drivers ? { class: "expandable", tabindex: "0", "aria-expanded": "false" } : {};
+      const row = el(
+        "tr",
+        attrs,
+        el("td", {}, g.date),
+        el("td", {}, whereCell(g)),
+        el("td", { class: "secondary" }, rest(g)),
+        el("td", {}, probBar(g.win_prob)),
+        el("td", { class: "secondary" }, signed(g.pred_margin)),
+      );
+      body.append(row);
+      if (g.drivers) {
+        const text = `${g.drivers.map((d) => `${d.label} ${signed(d.value)}`).join(" · ")} = ${signed(g.pred_margin)} projected margin`;
+        const detail = el("tr", { class: "detail" }, el("td", { colspan: "5" }, text));
+        detail.hidden = true;
+        const toggle = () => {
+          detail.hidden = !detail.hidden;
+          row.setAttribute("aria-expanded", String(!detail.hidden));
+        };
+        row.addEventListener("click", toggle);
+        row.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggle();
+          }
+        });
+        body.append(detail);
+      }
+    }
+    up.replaceChildren(el("table", {}, head, body));
+  }
+
+  const mark = (g) => (g.pregame_win_prob == null ? "" : calledIt(g) ? "✓" : "✗");
+  document.getElementById("completed").replaceChildren(
+    done.length
+      ? table(
+          ["Date", "Opponent", "Result", "Pre-game win chance", "Model called it"],
+          done.map((g) => [g.date, whereCell(g), g.result, pct(g.pregame_win_prob), mark(g)]),
+          { secondary: [3] },
+        )
+      : el("p", { class: "muted" }, "No games played yet."),
+  );
+}
+
+function setupTabs() {
+  const tabs = [...document.querySelectorAll("[role=tab]")];
+  for (const tab of tabs) {
+    tab.addEventListener("click", () => {
+      for (const other of tabs) {
+        const on = other === tab;
+        other.setAttribute("aria-selected", String(on));
+        document.getElementById(other.getAttribute("aria-controls")).hidden = !on;
+      }
+    });
+  }
 }
 
 function renderHistory(history, t) {
@@ -99,41 +359,9 @@ function renderHistory(history, t) {
   );
   document.getElementById("table-history").replaceChildren(
     table(
-      ["Date", "Record", "Median wins", "80% range", "Playoffs", "Top 6", "#1 seed"],
-      data.map((d) => [d.date, d.record, String(d.projected_wins_median), `${d.p10}–${d.p90}`, pct(d.playoff_prob), pct(d.top6_prob), pct(d.seed1_prob)]),
+      ["Date", "Record", "Median wins", "80% range", "Playoffs", "#1 seed"],
+      data.map((d) => [d.date, d.record, String(d.projected_wins_median), `${d.p10}–${d.p90}`, pct(d.playoff_prob), pct(d.seed1_prob)]),
     ),
-  );
-}
-
-function probBar(p) {
-  return el(
-    "span",
-    { class: "prob" },
-    el("span", { class: "prob-track" }, el("span", { class: "prob-fill", style: `width:${Math.round(p * 100)}%` })),
-    el("span", {}, pct(p)),
-  );
-}
-
-function renderSchedule(pred) {
-  const where = (g) => `${g.home ? "vs" : "@"} ${g.opponent}`;
-  const rest = (g) => (g.b2b ? "Back-to-back" : `${Math.round(g.rest_days)}d rest`);
-  const upcoming = pred.games.filter((g) => !g.completed);
-  const done = pred.games.filter((g) => g.completed).reverse();
-  document.getElementById("upcoming").replaceChildren(
-    upcoming.length
-      ? table(
-          ["Date", "Opponent", "Rest", "Win probability", "Proj. margin"],
-          upcoming.map((g) => [g.date, where(g), rest(g), probBar(g.win_prob), signed(g.pred_margin)]),
-        )
-      : el("p", { class: "muted" }, "Regular season complete."),
-  );
-  document.getElementById("completed").replaceChildren(
-    done.length
-      ? table(
-          ["Date", "Opponent", "Result", "Pre-game win prob."],
-          done.map((g) => [g.date, where(g), g.result, pct(g.pregame_win_prob)]),
-        )
-      : el("p", { class: "muted" }, "No games played yet."),
   );
 }
 
@@ -172,7 +400,7 @@ function renderSeeds(pred, t) {
   box.replaceChildren(
     Plot.plot({
       width: box.clientWidth,
-      height: 220,
+      height: 240,
       marginLeft: 44,
       style: plotStyle(t),
       x: { type: "band", label: "East seed", padding: 0.2, domain: data.map((d) => d.label) },
@@ -193,9 +421,9 @@ function renderEast(pred) {
   const rows = pred.conference_table;
   document.getElementById("east").replaceChildren(
     table(
-      ["Team", "Record", "Proj. wins", "Playoffs", "Top 6", "#1 seed"],
-      rows.map((r) => [r.team, `${r.wins}-${r.losses}`, r.proj_wins.toFixed(1), pct(r.p_playoffs), pct(r.p_top6), pct(r.p_seed1)]),
-      rows.map((r) => r.team === pred.team_summary.team),
+      ["Team", "Record", "Proj. wins", "Playoffs", "#1 seed"],
+      rows.map((r) => [teamLabel(r.team), `${r.wins}-${r.losses}`, r.proj_wins.toFixed(1), pct(r.p_playoffs), pct(r.p_seed1)]),
+      { highlighted: rows.map((r) => r.team === pred.team_summary.team) },
     ),
   );
 }
@@ -203,17 +431,20 @@ function renderEast(pred) {
 const MODEL_NAMES = { homecourt: "Home court only", elo: "Elo only", ridge: "Ridge regression", gbm: "Gradient boosting" };
 
 function renderReportCard(pred, backtest, t) {
+  const scored = pred.games.filter((g) => g.completed && g.pregame_win_prob != null);
+  const right = scored.filter(calledIt).length;
   const live = pred.metrics.live;
-  document.getElementById("live").textContent = live
-    ? `This season so far: ${live.n} Celtics games, ${pct1(live.accuracy)} correct, log loss ${live.log_loss.toFixed(3)}.`
-    : "Live accuracy appears once predicted games have been played.";
+  document.getElementById("live").textContent = scored.length
+    ? `This season: called ${right} of ${scored.length} Celtics games${live ? `, log loss ${live.log_loss.toFixed(3)}` : ""}.`
+    : "This season's record of picks appears once predicted games have been played.";
   if (!backtest) {
     document.getElementById("backtest-note").textContent = "Backtest results not available yet.";
     return;
   }
   const seasons = backtest.test_seasons;
+  const label = (s) => `${s}-${String(s + 1).slice(2)}`;
   document.getElementById("backtest-note").textContent =
-    `Walk-forward backtest, ${seasons[0]}-${String(seasons[0] + 1).slice(2)} through ${seasons.at(-1)}-${String(seasons.at(-1) + 1).slice(2)} seasons. Lower log loss and Brier are better.`;
+    `Walk-forward backtest over the ${label(seasons[0])} through ${label(seasons.at(-1))} seasons. Lower log loss and Brier are better.`;
   const entries = Object.entries(backtest.models);
   document.getElementById("models").replaceChildren(
     table(
@@ -225,16 +456,15 @@ function renderReportCard(pred, backtest, t) {
         pct1(m.accuracy),
         m.n.toLocaleString(),
       ]),
-      entries.map(([k]) => k === backtest.main_model),
+      { highlighted: entries.map(([k]) => k === backtest.main_model), secondary: [2, 4] },
     ),
   );
-  const box = document.getElementById("chart-calibration");
+  // Rendered at a fixed size: the box sits inside a closed <details>, where clientWidth is 0.
   const cal = backtest.calibration;
-  const size = Math.min(box.clientWidth, 380);
-  box.replaceChildren(
+  document.getElementById("chart-calibration").replaceChildren(
     Plot.plot({
-      width: size,
-      height: size,
+      width: 380,
+      height: 380,
       marginLeft: 44,
       style: plotStyle(t),
       x: { domain: [0, 1], label: "Predicted home win probability", tickFormat: "%", grid: true },
@@ -251,6 +481,21 @@ function renderReportCard(pred, backtest, t) {
   );
 }
 
+function renderHowExample(pred) {
+  const box = document.getElementById("how-example");
+  const g = nextGame(pred);
+  if (!g || !g.drivers) {
+    box.hidden = true;
+    return;
+  }
+  box.hidden = false;
+  const parts = g.drivers.map((d) => `${d.label.toLowerCase()} ${signed(d.value)}`).join(", ");
+  box.textContent =
+    `Take the next game (${g.home ? "vs" : "@"} ${teamName(g.opponent)}). The model adds up ${parts}, ` +
+    `for a projected margin of ${signed(g.pred_margin)} points. Given how much NBA results vary from game to game, ` +
+    `that margin works out to a ${pct(g.win_prob)} chance that the ${teamName(pred.team_summary.team)} win.`;
+}
+
 async function loadJson(path) {
   const resp = await fetch(path, { cache: "no-store" });
   if (!resp.ok) throw new Error(`${path}: HTTP ${resp.status}`);
@@ -263,13 +508,26 @@ function renderAll() {
   if (!state) return;
   const t = theme();
   const { pred, history, backtest } = state;
-  renderHeadline(pred);
-  renderHistory(history, t);
+  renderHeader(pred);
+  renderNextGame(pred, t);
+  renderOutlook(pred, history);
+  renderContext(pred);
   renderSchedule(pred);
+  renderHistory(history, t);
   renderWins(pred, t);
   renderSeeds(pred, t);
   renderEast(pred);
   renderReportCard(pred, backtest, t);
+  renderHowExample(pred);
+}
+
+function safeRender() {
+  try {
+    renderAll();
+  } catch (err) {
+    console.error(err);
+    document.getElementById("updated").textContent = `Some sections failed to render (${err.message}).`;
+  }
 }
 
 async function main() {
@@ -285,7 +543,8 @@ async function main() {
     return;
   }
   state = { pred, history, backtest };
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
+  setupTabs();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", safeRender);
   let timer;
   let lastWidth = window.innerWidth;
   window.addEventListener("resize", () => {
@@ -293,14 +552,9 @@ async function main() {
     if (window.innerWidth === lastWidth) return;
     lastWidth = window.innerWidth;
     clearTimeout(timer);
-    timer = setTimeout(renderAll, 150);
+    timer = setTimeout(safeRender, 150);
   });
-  try {
-    renderAll();
-  } catch (err) {
-    console.error(err);
-    document.getElementById("updated").textContent = `Some sections failed to render (${err.message}).`;
-  }
+  safeRender();
 }
 
 main();
