@@ -138,6 +138,67 @@ function renderNextGame(pred, t) {
     ),
   );
   renderDrivers(g, t);
+  guarded("injury report", "injury-panel", () => renderInjuries(pred, g));
+}
+
+const STATUS_CLASS = { Out: "out", "Day-To-Day": "dtd", Available: "avail" };
+
+function playerRow(p) {
+  let detail = "";
+  if (p.status === "Out") {
+    detail = [p.comment, p.return_date ? `back ~${p.return_date}` : ""].filter(Boolean).join(" · ");
+  } else if (p.status === "Day-To-Day") {
+    detail = `~${Math.round((p.p_out ?? 0) * 100)}% out`;
+  }
+  return el(
+    "li",
+    { class: "player" },
+    el("span", { class: "pname" }, p.name),
+    el("span", { class: `chip chip-${STATUS_CLASS[p.status] ?? "avail"}` }, p.status),
+    detail ? el("span", { class: "pdetail muted" }, detail) : "",
+  );
+}
+
+function rosterColumn(abbr, players) {
+  const rotation = players.filter((p) => p.rotation);
+  const rest = players.filter((p) => !p.rotation);
+  const list = el("ul", { class: "players" }, ...rotation.map(playerRow));
+  const col = el("div", { class: "inj-col" }, el("h4", { class: "team" }, teamMark(abbr, 24), el("span", {}, teamName(abbr))), list);
+  if (!players.length) list.append(el("li", { class: "muted" }, "No players listed."));
+  if (rest.length) {
+    const more = el("ul", { class: "players", hidden: "" }, ...rest.map(playerRow));
+    const btn = el("button", { class: "linklike", type: "button", "aria-expanded": "false" }, "Show full roster");
+    btn.addEventListener("click", () => {
+      more.hidden = !more.hidden;
+      btn.setAttribute("aria-expanded", String(!more.hidden));
+      btn.textContent = more.hidden ? "Show full roster" : "Hide full roster";
+    });
+    col.append(more, btn);
+  }
+  return col;
+}
+
+function renderInjuries(pred, g) {
+  const box = document.getElementById("injury-panel");
+  const rep = pred.injury_report;
+  if (!rep) {
+    box.replaceChildren();
+    return;
+  }
+  const parts = [el("h3", {}, "Injury report")];
+  if (rep.available && g.win_prob_healthy != null && Math.round(g.win_prob * 100) !== Math.round(g.win_prob_healthy * 100)) {
+    parts.push(el("p", { class: "inj-line" }, `${pct(g.win_prob_healthy)} healthy roster → ${pct(g.win_prob)} after the injury report`));
+  }
+  const teams = Object.entries(rep.teams ?? {});
+  if (teams.length) parts.push(el("div", { class: "inj-cols" }, ...teams.map(([abbr, players]) => rosterColumn(abbr, players))));
+  let source = "Injury report unavailable — prediction uses healthy rosters.";
+  if (rep.available) {
+    const when = rep.as_of ? new Date(rep.as_of).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "unknown time";
+    source = `Injury report as of ${when} (ESPN)`;
+  }
+  parts.push(el("p", { class: "muted" }, source));
+  if (rep.unmatched?.length) parts.push(el("p", { class: "muted" }, `Not matched to player stats: ${rep.unmatched.join(", ")}`));
+  box.replaceChildren(...parts);
 }
 
 function renderDrivers(g, t) {
@@ -490,6 +551,9 @@ function renderReportCard(pred, backtest, t) {
   document.getElementById("live").textContent = scored.length
     ? `This season: called ${right} of ${scored.length} Celtics games${live ? `, log loss ${live.log_loss.toFixed(3)}` : ""}.`
     : "This season's record of picks appears once predicted games have been played.";
+  const note = document.getElementById("availability-note");
+  note.textContent = backtest?.availability_note ?? "";
+  note.hidden = !backtest?.availability_note;
   if (!backtest) {
     document.getElementById("backtest-note").textContent = "Backtest results not available yet.";
     return;
