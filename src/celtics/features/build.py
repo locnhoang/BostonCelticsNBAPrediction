@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from celtics.config import DEFAULT_REST, ELO_MEAN
+from celtics.features.availability import historical_avail
 from celtics.features.elo import compute_elo
 from celtics.features.ratings import compute_net_ratings, compute_rest
 from celtics.teams import TEAM_INDEX, TEAMS
@@ -21,13 +22,18 @@ FEATURES = [
     "home_3in4",
     "away_3in4",
 ]
+AVAIL_FEATURES = ["home_avail", "away_avail"]
 
 
-def build_features(games: pd.DataFrame) -> pd.DataFrame:
+def build_features(games: pd.DataFrame, players: pd.DataFrame | None = None) -> pd.DataFrame:
     elo, _ = compute_elo(games)
     net, _ = compute_net_ratings(games)
     rest = compute_rest(games)
     df = games.merge(elo, on="game_id").merge(net, on="game_id").merge(rest, on="game_id")
+    if players is None:
+        df[AVAIL_FEATURES] = 0.0
+    else:
+        df = df.merge(historical_avail(games, players), on="game_id")
     df["elo_diff"] = df["home_elo_pre"] - df["away_elo_pre"]
     df["net_diff"] = df["home_net_pre"] - df["away_net_pre"]
     df["completed"] = df["home_pts"].notna()
@@ -65,10 +71,12 @@ def matchup_frame(state: TeamState, pairs: list[tuple[str, str]]) -> pd.DataFram
             "away_b2b": 0.0,
             "home_3in4": 0.0,
             "away_3in4": 0.0,
+            "home_avail": 0.0,
+            "away_avail": 0.0,
         }
         for h, a in pairs
     ]
-    return pd.DataFrame(rows, columns=FEATURES)
+    return pd.DataFrame(rows, columns=[*FEATURES, *AVAIL_FEATURES])
 
 
 def matchup_matrix(

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from celtics.features.build import (
+    AVAIL_FEATURES,
     FEATURES,
     as_of,
     build_features,
@@ -49,7 +50,8 @@ def test_team_state_and_matchup_matrix():
     state = current_team_state(games)
     assert len(state.elo) == 30 and len(state.net) == 30
     frame = matchup_frame(state, [("BOS", "NYK")])
-    assert list(frame.columns) == FEATURES
+    assert list(frame.columns) == [*FEATURES, *AVAIL_FEATURES]
+    assert (frame[AVAIL_FEATURES] == 0.0).all().all()
     assert frame.loc[0, "elo_diff"] == state.elo["BOS"] - state.elo["NYK"]
 
     def predict(X):
