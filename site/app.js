@@ -93,8 +93,8 @@ function renderHeader(pred) {
   document.getElementById("hdr-meta").textContent = started
     ? `${c.wins}-${c.losses} · ${ord(c.conf_rank)} in the East`
     : `${c.wins}-${c.losses}`;
-  document.getElementById("updated").textContent =
-    `Updated ${new Date(pred.generated_at).toLocaleString()} · model ${pred.model_version}`;
+  updatedBase = `Updated ${new Date(pred.generated_at).toLocaleString()} · model ${pred.model_version}`;
+  document.getElementById("updated").textContent = updatedBase;
 }
 
 function renderNextGame(pred, t) {
@@ -132,7 +132,9 @@ function renderNextGame(pred, t) {
     el(
       "p",
       { class: "muted next-opp" },
-      `${teamName(g.opponent)}: ${opp.wins}-${opp.losses}, net rating ${ord(opp.net_rank)} of 30, last 10 ${opp.last10}`,
+      opp.wins + opp.losses === 0
+        ? `${teamName(g.opponent)}: ${opp.wins}-${opp.losses}`
+        : `${teamName(g.opponent)}: ${opp.wins}-${opp.losses}, net rating ${ord(opp.net_rank)} of 30, last 10 ${opp.last10}`,
     ),
   );
   renderDrivers(g, t);
@@ -215,19 +217,24 @@ function renderContext(pred) {
   const team = pred.team_summary.team;
   const c = pred.team_context[team];
   const started = c.wins + c.losses > 0;
+  const games = (n) => `${n} ${n === 1 ? "game" : "games"}`;
   const gb = !started
     ? ""
-    : c.games_back === 0
+    : c.conf_rank === 1
       ? "Leads the conference"
-      : `${c.games_back} ${c.games_back === 1 ? "game" : "games"} back`;
+      : c.games_back > 0
+        ? `${games(c.games_back)} back`
+        : c.games_back === 0
+          ? "Tied for 1st"
+          : `${games(-c.games_back)} ahead of 1st`;
   const facts = [
     ["East standing", started ? ord(c.conf_rank) : "—", started ? gb : "Season not started"],
     ["Last 10", c.last10, c.streak ? `Current streak: ${c.streak}` : ""],
   ];
   const ratings = [
-    ["Offense", c.off_rating.toFixed(1), c.off_rank, "Points scored per 100 possessions"],
-    ["Defense", c.def_rating.toFixed(1), c.def_rank, "Points allowed per 100 possessions"],
-    ["Net rating", signed(c.net_rating), c.net_rank, "Offense minus defense"],
+    ["Offense", started ? c.off_rating.toFixed(1) : "—", c.off_rank, "Points scored per 100 possessions"],
+    ["Defense", started ? c.def_rating.toFixed(1) : "—", c.def_rank, "Points allowed per 100 possessions"],
+    ["Net rating", started ? signed(c.net_rating) : "—", c.net_rank, "Offense minus defense"],
   ];
   document.getElementById("context").replaceChildren(
     el(
@@ -244,10 +251,10 @@ function renderContext(pred) {
         el(
           "div",
           { class: "rating" },
-          el("div", { class: "rating-head" }, el("span", { class: "tile-label" }, label), el("span", { class: "rating-rank" }, `${ord(rank)} of 30`)),
+          el("div", { class: "rating-head" }, el("span", { class: "tile-label" }, label), el("span", { class: "rating-rank" }, started ? `${ord(rank)} of 30` : "—")),
           el("div", { class: "fact-value" }, value),
-          rankStrip(rank, label),
-          el("div", { class: "tile-note" }, `${note} · best on the left`),
+          started ? rankStrip(rank, label) : "",
+          el("div", { class: "tile-note" }, started ? `${note} · best on the left` : note),
         ),
       ),
     ),
@@ -264,12 +271,12 @@ function probBar(p) {
 }
 
 const whereCell = (g) => el("span", { class: "team" }, el("span", { class: "muted" }, g.home ? "vs" : "@"), teamMark(g.opponent, 20), el("span", {}, g.opponent));
+// Exactly 0.5 counts as favoring Boston.
 const calledIt = (g) => (g.pregame_win_prob >= 0.5) === g.result.startsWith("W");
 
-function renderSchedule(pred) {
+function renderUpcoming(pred) {
   const rest = (g) => (g.b2b ? "Back-to-back" : `${Math.round(g.rest_days)}d rest`);
   const upcoming = pred.games.filter((g) => !g.completed);
-  const done = pred.games.filter((g) => g.completed).reverse();
 
   const up = document.getElementById("upcoming");
   if (!upcoming.length) {
@@ -333,7 +340,10 @@ function renderSchedule(pred) {
     }
     up.replaceChildren(...nodes);
   }
+}
 
+function renderResults(pred) {
+  const done = pred.games.filter((g) => g.completed).reverse();
   const mark = (g) => {
     if (g.pregame_win_prob == null) return "";
     const ok = calledIt(g);
@@ -548,6 +558,7 @@ async function loadJson(path) {
 let state = null;
 
 let failed = false;
+let updatedBase = "";
 
 // Run one section renderer on its own so a failure only blanks that section.
 function guarded(name, containerId, fn) {
@@ -569,7 +580,8 @@ function safeRender() {
   guarded("next game", "next-card", () => renderNextGame(pred, t));
   guarded("outlook", "outlook", () => renderOutlook(pred, history));
   guarded("context", "context", () => renderContext(pred));
-  guarded("schedule", "upcoming", () => renderSchedule(pred));
+  guarded("upcoming games", "upcoming", () => renderUpcoming(pred));
+  guarded("results", "completed", () => renderResults(pred));
   guarded("history", "chart-history", () => renderHistory(history, t));
   guarded("wins", "chart-wins", () => renderWins(pred, t));
   guarded("seeds", "chart-seeds", () => renderSeeds(pred, t));
@@ -578,7 +590,7 @@ function safeRender() {
   guarded("how it works", "how-example", () => renderHowExample(pred));
   if (failed) {
     const u = document.getElementById("updated");
-    u.textContent += " · some sections failed to draw";
+    u.textContent = `${updatedBase} · some sections failed to draw`;
   }
 }
 
