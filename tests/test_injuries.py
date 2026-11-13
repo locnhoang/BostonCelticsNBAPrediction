@@ -3,10 +3,20 @@ from datetime import date
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
+from celtics.config import DTD_MIN_CASES, DTD_PRIOR
 from celtics.data.parse import empty_players
-from celtics.injuries import ESPN_TEAM, match_players, normalize_name, parse_injuries
+from celtics.injuries import (
+    ESPN_TEAM,
+    learn_p_dtd,
+    match_players,
+    normalize_name,
+    parse_injuries,
+    update_dtd_log,
+)
 from celtics.teams import TEAMS
+from tests.factories import make_games, player_rows
 
 FIXTURE = Path(__file__).parent / "fixtures" / "espn_injuries.json"
 
@@ -83,7 +93,61 @@ def test_match_players_first_initial_and_ambiguous_league_wide():
             "reported_at": [pd.NaT, pd.NaT],
         }
     )
-    players = _players([("BOS", 1, "Nicolas Claxton"), ("NYK", 2, "John Smith"), ("MIA", 3, "John Smith")])
+    players = _players(
+        [("BOS", 1, "Nicolas Claxton"), ("NYK", 2, "John Smith"), ("MIA", 3, "John Smith")]
+    )
     matched, unmatched = match_players(inj, players, 2026)
     assert dict(zip(matched["name"], matched["player_id"], strict=True)) == {"Nic Claxton": 1}
     assert unmatched == ["John Smith (BOS)"]
+
+
+def _dtd_inputs():
+    from celtics.data.parse import playerlog_to_frame
+
+    games = make_games([("0021400001", 2014, "2014-11-02", "BOS", "NYK", 100, 90)])
+    raw = pd.DataFrame([player_rows("0021400001", "2014-11-02", "BOS", 1, "Tatum", 30)])
+    inj = pd.DataFrame(
+        [
+            {"team": "BOS", "name": "Brown", "status": "Day-To-Day", "player_id": 2},
+            {"team": "BOS", "name": "Tatum", "status": "Out", "player_id": 1},
+        ]
+    )
+    return games, playerlog_to_frame(raw, 2014), inj
+
+
+def test_update_dtd_log_appends_and_resolves():
+    games, players, inj = _dtd_inputs()
+    empty_games = games.iloc[0:0]
+    log = update_dtd_log([], inj, empty_games, players.iloc[0:0], date(2014, 11, 1))
+    assert log == [
+        {"date": "2014-11-01", "team": "BOS", "player_id": 2, "name": "Brown", "played": None}
+    ]
+    log = update_dtd_log(log, inj.iloc[0:0], games, players, date(2014, 11, 3))
+    assert log[0]["played"] is False  # Brown has no row in BOS's next game
+    again = update_dtd_log(log, inj, games, players, date(2014, 11, 1))
+    assert len(again) == 1 and again[0]["played"] is False
+
+
+def test_update_dtd_log_player_who_appears_played():
+    games, players, inj = _dtd_inputs()
+    inj = inj.assign(player_id=[1, 1], status="Day-To-Day")
+    log = update_dtd_log([], inj, games.iloc[0:0], players.iloc[0:0], date(2014, 11, 1))
+    assert len(log) == 1
+    assert (
+        update_dtd_log(log, inj.iloc[0:0], games, players, date(2014, 11, 3))[0]["played"] is True
+    )
+
+
+def test_learn_p_dtd_threshold():
+    def cases(n, missed):
+        return [
+            {"date": "d", "team": "BOS", "player_id": i, "name": "x", "played": i >= missed}
+            for i in range(n)
+        ]
+
+    assert learn_p_dtd(cases(DTD_MIN_CASES - 1, 30)) == DTD_PRIOR
+    assert learn_p_dtd(cases(DTD_MIN_CASES, 30)) == pytest.approx(0.30)
+    unresolved = cases(DTD_MIN_CASES - 1, 30) + [
+        {"date": "d", "team": "BOS", "player_id": 999, "name": "x", "played": None}
+    ]
+    assert learn_p_dtd(unresolved) == DTD_PRIOR

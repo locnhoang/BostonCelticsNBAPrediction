@@ -69,6 +69,25 @@ def fetch_schedule(season: int) -> pd.DataFrame:
     return with_retries(call)
 
 
+def fetch_team_roster(team: str, season: int) -> pd.DataFrame:
+    """Players on a team's roster (columns player_id, player_name)."""
+    from nba_api.stats.endpoints import commonteamroster
+    from nba_api.stats.static import teams
+
+    team_ids = {t["abbreviation"]: t["id"] for t in teams.get_teams()}
+
+    def call() -> pd.DataFrame:
+        endpoint = commonteamroster.CommonTeamRoster(
+            team_id=team_ids[team], season=season_label(season), timeout=30
+        )
+        return endpoint.get_data_frames()[0]
+
+    raw = with_retries(call)
+    return pd.DataFrame(
+        {"player_id": raw["PLAYER_ID"].astype("int64"), "player_name": raw["PLAYER"].astype(str)}
+    )
+
+
 ESPN_INJURIES_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries"
 
 

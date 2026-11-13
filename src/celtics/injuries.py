@@ -6,6 +6,8 @@ from datetime import date
 
 import pandas as pd
 
+from celtics.config import DTD_MIN_CASES, DTD_PRIOR
+
 ESPN_TEAM: dict[str, str] = {
     "Atlanta Hawks": "ATL",
     "Boston Celtics": "BOS",
@@ -123,3 +125,57 @@ def match_players(
     out = injuries.copy()
     out["player_id"] = pd.array(ids, dtype="Int64")
     return out[out["player_id"].notna()].reset_index(drop=True), unmatched
+
+
+def update_dtd_log(
+    log: list[dict],
+    injuries_matched: pd.DataFrame,
+    games: pd.DataFrame,
+    players: pd.DataFrame,
+    today: date,
+) -> list[dict]:
+    """Log today's Day-To-Day players and resolve earlier cases against the team's next game.
+
+    A case resolves once the team has a completed game dated after the case; the player
+    played if he logged minutes in it.
+    """
+    out = [dict(case) for case in log]
+    seen = {(c["date"], c["player_id"]) for c in out}
+    day = today.isoformat()
+    dtd = injuries_matched[injuries_matched["status"] == "Day-To-Day"]
+    for row in dtd.itertuples():
+        key = (day, int(row.player_id))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(
+            {
+                "date": day,
+                "team": row.team,
+                "player_id": int(row.player_id),
+                "name": row.name,
+                "played": None,
+            }
+        )
+
+    done = games[games["home_pts"].notna()].sort_values(["date", "game_id"])
+    on_court = players[players["min"] > 0]
+    appeared = set(zip(on_court["game_id"], on_court["player_id"].astype(int), strict=True))
+    for case in out:
+        if case["played"] is not None:
+            continue
+        after = done[
+            ((done["home_team"] == case["team"]) | (done["away_team"] == case["team"]))
+            & (done["date"] > pd.Timestamp(case["date"]))
+        ]
+        if not after.empty:
+            case["played"] = (after["game_id"].iloc[0], case["player_id"]) in appeared
+    return out
+
+
+def learn_p_dtd(log: list[dict]) -> float:
+    """Share of resolved Day-To-Day cases that did not play; the prior until enough cases."""
+    resolved = [c for c in log if c["played"] is not None]
+    if len(resolved) < DTD_MIN_CASES:
+        return DTD_PRIOR
+    return sum(1 for c in resolved if not c["played"]) / len(resolved)

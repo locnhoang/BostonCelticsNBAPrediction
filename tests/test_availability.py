@@ -1,3 +1,5 @@
+from datetime import date
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -5,8 +7,10 @@ import pytest
 from celtics.config import FIRST_SEASON
 from celtics.data.parse import playerlog_to_frame
 from celtics.features.availability import (
+    current_player_values,
     game_score,
     historical_avail,
+    live_avail,
     player_states,
     season_baselines,
     team_missing,
@@ -53,10 +57,18 @@ def test_game_score_formula():
 
 def test_rotation_requires_min_games_and_minutes():
     rows = _rows(S, 11, pid=1, name="A")
-    rows += [r for r in _rows(S, 11, pid=2, name="B", minutes=30) if int(r["GAME_ID"][-5:]) > 6]  # 5 games
-    rows += [r for r in _rows(S, 11, pid=3, name="C", minutes=30) if int(r["GAME_ID"][-5:]) > 7]  # 4 games
-    rows += [r for r in _rows(S, 11, pid=4, name="D", minutes=14) if int(r["GAME_ID"][-5:]) > 4]  # 7 @ 14
-    rows += [r for r in _rows(S, 11, pid=5, name="E", minutes=20) if int(r["GAME_ID"][-5:]) > 4]  # 7 @ 20
+    rows += [
+        r for r in _rows(S, 11, pid=2, name="B", minutes=30) if int(r["GAME_ID"][-5:]) > 6
+    ]  # 5 games
+    rows += [
+        r for r in _rows(S, 11, pid=3, name="C", minutes=30) if int(r["GAME_ID"][-5:]) > 7
+    ]  # 4 games
+    rows += [
+        r for r in _rows(S, 11, pid=4, name="D", minutes=14) if int(r["GAME_ID"][-5:]) > 4
+    ]  # 7 @ 14
+    rows += [
+        r for r in _rows(S, 11, pid=5, name="E", minutes=20) if int(r["GAME_ID"][-5:]) > 4
+    ]  # 7 @ 20
     states = _bos(player_states(_games(S, 12), _frame(rows)), 12).set_index("player_id")
     assert states.loc[1, "rotation"] and states.loc[5, "rotation"] and states.loc[2, "rotation"]
     assert not states.loc[3, "rotation"]
@@ -73,7 +85,9 @@ def test_absent_rotation_player_counts_as_missing():
     a = _bos(states, 12).set_index("player_id").loc[1]
     assert a["rotation"] and not a["played"] and a["game_value"] > 0
     missing = team_missing(states)
-    got = missing[(missing["game_id"] == _gid(S, 12)) & (missing["team"] == "BOS")]["missing_value"].iloc[0]
+    got = missing[(missing["game_id"] == _gid(S, 12)) & (missing["team"] == "BOS")][
+        "missing_value"
+    ].iloc[0]
     assert abs(got - a["game_value"]) < 1e-9
 
 
@@ -84,7 +98,9 @@ def test_values_are_point_in_time():
     def states(pts_k):
         rows = _rows(S + 1, 14)
         rows[k - 1] = _rows(S + 1, 14, pts=pts_k)[k - 1]
-        return player_states(games, pd.concat([_frame(_rows(S, 12)), _frame(rows, S + 1)], ignore_index=True))
+        return player_states(
+            games, pd.concat([_frame(_rows(S, 12)), _frame(rows, S + 1)], ignore_index=True)
+        )
 
     base, changed = states(10), states(50)
     ids = list(games.sort_values(["date", "game_id"])["game_id"])
@@ -155,3 +171,107 @@ def test_build_features_with_players_adds_avail():
     out = build_features(games, players)
     row = out[out["game_id"] == _gid(S, 12)].iloc[0]
     assert row["home_avail"] < 0
+
+
+# ---- live availability ----
+
+TODAY = date(S, 11, 26)
+
+
+def _live_setup():
+    """BOS, 12 completed games with A (id 1, 20 pts) and B (id 2, 10 pts); games 13-15 still to play."""
+    done = _games(S, 12)
+    todo = make_games(
+        [(_gid(S, i), S, str(pd.Timestamp(f"{S}-11-01") + pd.Timedelta(days=2 * i))[:10], "BOS", "NYK", None, None)
+         for i in (13, 14, 15)]
+    )  # fmt: skip
+    games = pd.concat([done, todo], ignore_index=True)
+    bench = _rows(S, 12, pts=0, name="C", pid=3, minutes=10)  # keeps replacement level low
+    players = _frame(_rows(S, 12, pts=20) + _rows(S, 12, pts=10, name="B", pid=2) + bench)
+    return games, players
+
+
+def _inj(rows):
+    return pd.DataFrame(
+        [
+            {"team": t, "name": n, "status": st, "comment": "", "return_date": rd, "reported_at": pd.NaT, "player_id": pid}
+            for t, n, st, rd, pid in rows
+        ],
+        columns=["team", "name", "status", "comment", "return_date", "reported_at", "player_id"],
+    )  # fmt: skip
+
+
+def _values(games, players):
+    cur = current_player_values(games, players, S).set_index("player_id")
+    return cur.loc[1, "game_value"], cur.loc[2, "game_value"]
+
+
+def _avail(live, n):
+    return live[live["game_id"] == _gid(S, n)].iloc[0]
+
+
+def test_current_player_values_matches_next_game_state():
+    games, players = _live_setup()
+    cur = current_player_values(games, players, S).set_index("player_id")
+    assert set(cur.index) == {1, 2, 3} and list(cur["rotation"].sort_index()) == [True, True, False]
+    assert cur.loc[1, "game_value"] > cur.loc[2, "game_value"] > 0
+    # equals the point-in-time state a 13th game would see
+    as_if_played = games.copy()
+    as_if_played.loc[as_if_played["game_id"] == _gid(S, 13), ["home_pts", "away_pts", "poss"]] = [100, 90, 100]
+    nxt = _bos(player_states(as_if_played, players), 13).set_index("player_id")
+    for pid in (1, 2, 3):
+        for col in ("value_per_min", "expected_minutes", "game_value"):
+            assert cur.loc[pid, col] == pytest.approx(nxt.loc[pid, col])
+
+
+def test_live_avail_next_game_uses_out_and_dtd():
+    games, players = _live_setup()
+    g1, g2 = _values(games, players)
+    inj = _inj([("BOS", "A", "Out", None, 1), ("BOS", "B", "Day-To-Day", None, 2)])
+    live = live_avail(games, players, inj, S, TODAY, 0.5)
+    assert list(live["game_id"]) == [_gid(S, n) for n in (13, 14, 15)]
+    assert _avail(live, 13)["home_avail"] == pytest.approx(-(g1 + 0.5 * g2))
+    assert _avail(live, 13)["away_avail"] == 0.0  # NYK: no injuries, no baseline
+
+
+def test_live_avail_return_date_limits_later_games():
+    games, players = _live_setup()
+    g1, _ = _values(games, players)
+    inj = _inj([("BOS", "A", "Out", date(S, 12, 1), 1), ("BOS", "B", "Day-To-Day", None, 2)])
+    live = live_avail(games, players, inj, S, TODAY, 1.0)
+    g1, g2 = _values(games, players)
+    assert _avail(live, 13)["home_avail"] == pytest.approx(-(g1 + g2))
+    assert _avail(live, 14)["home_avail"] == pytest.approx(
+        -g1
+    )  # Nov 29, before the return; Brown back
+    assert _avail(live, 15)["home_avail"] == pytest.approx(0.0)  # Dec 1: on the return date
+
+
+def test_out_without_return_date_counts_next_game_only():
+    games, players = _live_setup()
+    g1, _ = _values(games, players)
+    for rd in (None, date(S, 11, 1)):  # missing, or already past
+        live = live_avail(games, players, _inj([("BOS", "A", "Out", rd, 1)]), S, TODAY, 0.5)
+        assert _avail(live, 13)["home_avail"] == pytest.approx(-g1)
+        assert _avail(live, 14)["home_avail"] == pytest.approx(0.0)
+        assert not live.isna().any().any()
+
+
+def test_team_missing_from_feed_has_no_injuries():
+    games, players = _live_setup()
+    inj = _inj([("MIA", "Z", "Out", None, 99)])  # BOS and NYK absent from the feed
+    live = live_avail(games, players, inj, S, TODAY, 0.5)
+    assert (live[["home_avail", "away_avail"]] == 0.0).all().all()
+    empty = live_avail(games, players, _inj([]), S, TODAY, 0.5)
+    assert (empty[["home_avail", "away_avail"]] == 0.0).all().all()
+
+
+def test_live_avail_baseline_is_mean_of_recent_missing():
+    games, players = _live_setup()
+    rows = _rows(S, 12, pts=20, skip={11, 12}) + _rows(S, 12, pts=10, name="B", pid=2)
+    live = live_avail(games, _frame(rows), _inj([]), S, TODAY, 0.5)
+    states = player_states(games, _frame(rows))
+    miss = team_missing(states)
+    bos = miss[miss["team"] == "BOS"].sort_values("game_id")["missing_value"].tail(10)
+    assert bos.iloc[-1] > 0
+    assert _avail(live, 13)["home_avail"] == pytest.approx(bos.mean())

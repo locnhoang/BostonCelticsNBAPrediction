@@ -4,6 +4,7 @@ Everything here is sequential: a game's values use only games strictly before it
 """
 
 from collections import defaultdict
+from datetime import date
 
 import numpy as np
 import pandas as pd
@@ -89,9 +90,15 @@ def _rotation_flags(players: pd.DataFrame) -> np.ndarray:
             current_season = season
         for team, team_rows in game_rows.groupby("team", sort=False):
             stats = _window_stats(history[team], ROTATION_WINDOW, team, last_team)
-            flags[team_rows.index] = [_is_rotation(stats.get(int(p))) for p in team_rows["player_id"]]
+            flags[team_rows.index] = [
+                _is_rotation(stats.get(int(p))) for p in team_rows["player_id"]
+            ]
         for team, team_rows in game_rows.groupby("team", sort=False):
-            here = {int(p): float(m) for p, m in zip(team_rows["player_id"], team_rows["min"], strict=True) if m > 0}
+            here = {
+                int(p): float(m)
+                for p, m in zip(team_rows["player_id"], team_rows["min"], strict=True)
+                if m > 0
+            }
             history[team].append(here)
             last_team.update(dict.fromkeys(here, team))
     return flags
@@ -128,13 +135,46 @@ def season_baselines(players: pd.DataFrame) -> dict[int, tuple[float, float]]:
     return out
 
 
-def player_states(games: pd.DataFrame, players: pd.DataFrame) -> pd.DataFrame:
-    players = players.reset_index(drop=True)
-    baselines = season_baselines(players)
-    played = _played_minutes(players)
+def _value_state(
+    pid: int,
+    sums: dict[int, list[float]],
+    recent: dict[int, list[float]],
+    league_avg: float,
+    replacement: float,
+) -> tuple[float, float, float]:
+    """(value per minute, expected minutes, game value) for a player given the history so far."""
+    s, m = sums.get(pid, (0.0, 0.0))
+    vpm = (VALUE_PRIOR_MINUTES * league_avg + s) / (VALUE_PRIOR_MINUTES + m)
+    own_games = recent[pid][-EXPECTED_MIN_WINDOW:]
+    expected = float(np.mean(own_games)) if own_games else 0.0
+    return vpm, expected, max(0.0, vpm - replacement) * expected
+
+
+def _record_game(
+    gid: str,
+    teams: tuple[str, str],
+    played: dict[tuple[str, str], dict[int, float]],
+    gs_lookup: dict[tuple[str, str, int], float],
+    history: dict[str, list[dict[int, float]]],
+    last_team: dict[int, str],
+    recent: dict[int, list[float]],
+    sums: dict[int, list[float]],
+) -> None:
+    """Fold one completed game into the running state (after both teams' states are fixed)."""
+    for team in teams:
+        here = played.get((gid, team), {})
+        history[team].append(here)
+        for pid, mins in here.items():
+            last_team[pid] = team
+            recent[pid].append(mins)
+            s, m = sums.get(pid, (0.0, 0.0))
+            sums[pid] = [VALUE_DECAY * s + gs_lookup[(gid, team, pid)], VALUE_DECAY * m + mins]
+
+
+def _gs_lookup(players: pd.DataFrame) -> dict[tuple[str, str, int], float]:
     gscore = game_score(players)
     on_court = players["min"] > 0
-    gs_lookup = {
+    return {
         (g, t, int(p)): float(s)
         for g, t, p, s in zip(
             players.loc[on_court, "game_id"],
@@ -144,6 +184,13 @@ def player_states(games: pd.DataFrame, players: pd.DataFrame) -> pd.DataFrame:
             strict=True,
         )
     }
+
+
+def player_states(games: pd.DataFrame, players: pd.DataFrame) -> pd.DataFrame:
+    players = players.reset_index(drop=True)
+    baselines = season_baselines(players)
+    played = _played_minutes(players)
+    gs_lookup = _gs_lookup(players)
     names = dict(zip(players["player_id"].astype(int), players["player_name"], strict=True))
 
     sums: dict[int, list[float]] = {}  # player -> [decayed game score, decayed minutes]
@@ -167,28 +214,62 @@ def player_states(games: pd.DataFrame, players: pd.DataFrame) -> pd.DataFrame:
             here = played.get((gid, team), {})
             other = played.get((gid, away if team == home else home), {})
             for pid in rot_stats:
-                if pid in other:  # playing for the other side today: traded, new team from this game
+                if (
+                    pid in other
+                ):  # playing for the other side today: traded, new team from this game
                     continue
-                s, m = sums.get(pid, (0.0, 0.0))
-                vpm = (VALUE_PRIOR_MINUTES * league_avg + s) / (VALUE_PRIOR_MINUTES + m)
-                own_games = recent[pid][-EXPECTED_MIN_WINDOW:]
-                expected = float(np.mean(own_games)) if own_games else 0.0
+                vpm, expected, value = _value_state(pid, sums, recent, league_avg, replacement)
                 rows.append(
                     (
-                        gid, team, pid, names[pid], vpm, expected,
-                        max(0.0, vpm - replacement) * expected,
+                        gid, team, pid, names[pid], vpm, expected, value,
                         _is_rotation(rot_stats.get(pid)), pid in here,
                     )
                 )  # fmt: skip
-        for team in (home, away):  # update only after both teams' states are fixed
-            here = played.get((gid, team), {})
-            history[team].append(here)
-            for pid, mins in here.items():
-                last_team[pid] = team
-                recent[pid].append(mins)
-                s, m = sums.get(pid, (0.0, 0.0))
-                sums[pid] = [VALUE_DECAY * s + gs_lookup[(gid, team, pid)], VALUE_DECAY * m + mins]
+        _record_game(gid, (home, away), played, gs_lookup, history, last_team, recent, sums)
     return pd.DataFrame(rows, columns=STATE_COLUMNS)
+
+
+CURRENT_COLUMNS = [
+    "team",
+    "player_id",
+    "player_name",
+    "value_per_min",
+    "expected_minutes",
+    "game_value",
+    "rotation",
+]
+
+
+def current_player_values(games: pd.DataFrame, players: pd.DataFrame, season: int) -> pd.DataFrame:
+    """Each recent player's state after his latest completed game, under his latest team."""
+    players = players.reset_index(drop=True)
+    league_avg, replacement = season_baselines(players).get(season, (0.0, 0.0))
+    played = _played_minutes(players)
+    gs_lookup = _gs_lookup(players)
+    names = dict(zip(players["player_id"].astype(int), players["player_name"], strict=True))
+
+    sums: dict[int, list[float]] = {}
+    history: dict[str, list[dict[int, float]]] = defaultdict(list)
+    last_team: dict[int, str] = {}
+    recent: dict[int, list[float]] = defaultdict(list)
+    current_season: int | None = None
+    done = games[games["home_pts"].notna() & (games["season"] <= season)].sort_values(
+        ["date", "game_id"]
+    )
+    for gid, g_season, home, away in zip(
+        done["game_id"], done["season"], done["home_team"], done["away_team"], strict=True
+    ):
+        if g_season != current_season:
+            history.clear()
+            current_season = g_season
+        _record_game(gid, (home, away), played, gs_lookup, history, last_team, recent, sums)
+
+    rows = []
+    for team, hist in history.items():
+        for pid, stats in _window_stats(hist, ROTATION_WINDOW, team, last_team).items():
+            vpm, expected, value = _value_state(pid, sums, recent, league_avg, replacement)
+            rows.append((team, pid, names[pid], vpm, expected, value, _is_rotation(stats)))
+    return pd.DataFrame(rows, columns=CURRENT_COLUMNS)
 
 
 def team_missing(states: pd.DataFrame) -> pd.DataFrame:
@@ -206,7 +287,12 @@ def team_missing(states: pd.DataFrame) -> pd.DataFrame:
 def historical_avail(games: pd.DataFrame, players: pd.DataFrame) -> pd.DataFrame:
     """avail = baseline - missing: negative when more rotation value than usual is out."""
     missing = team_missing(player_states(games, players))
-    lookup = {(g, t): v for g, t, v in zip(missing["game_id"], missing["team"], missing["missing_value"], strict=True)}
+    lookup = {
+        (g, t): v
+        for g, t, v in zip(
+            missing["game_id"], missing["team"], missing["missing_value"], strict=True
+        )
+    }
     done = games[games["home_pts"].notna()].sort_values(["date", "game_id"])
     recent: dict[str, list[float]] = defaultdict(list)
     avail: dict[str, dict[str, float]] = {}
@@ -232,3 +318,87 @@ def historical_avail(games: pd.DataFrame, players: pd.DataFrame) -> pd.DataFrame
             "away_avail": [avail.get(g, {}).get("away", 0.0) for g in games["game_id"]],
         }
     )
+
+
+def live_avail(
+    games: pd.DataFrame,
+    players: pd.DataFrame,
+    injuries_matched: pd.DataFrame,
+    season: int,
+    today: date,
+    p_dtd: float,
+) -> pd.DataFrame:
+    """avail (baseline - missing) for the season's incomplete games, from the injury report.
+
+    A team's next game counts Out players fully and Day-To-Day players at p_dtd. Later games
+    count only Out players whose return_date is after the game. An Out player with no return
+    date, or one already past, therefore counts for the next game only. Like the historical
+    feature, only rotation players contribute.
+    """
+    columns = ["game_id", "home_avail", "away_avail"]
+    upcoming = games[games["home_pts"].isna() & (games["season"] == season)].sort_values(
+        ["date", "game_id"]
+    )
+    if upcoming.empty:
+        return pd.DataFrame(columns=columns)
+
+    current = current_player_values(games, players, season)
+    value = {
+        int(p): float(v)
+        for p, v, r in zip(
+            current["player_id"], current["game_value"], current["rotation"], strict=True
+        )
+        if r
+    }
+    missing = team_missing(player_states(games, players))
+    lookup = {
+        (g, t): v
+        for g, t, v in zip(
+            missing["game_id"], missing["team"], missing["missing_value"], strict=True
+        )
+    }
+
+    done = games[games["home_pts"].notna() & (games["season"] == season)].sort_values(
+        ["date", "game_id"]
+    )
+    baseline: dict[str, float] = {}
+    for team in set(upcoming["home_team"]) | set(upcoming["away_team"]):
+        mine = done[(done["home_team"] == team) | (done["away_team"] == team)]["game_id"].tolist()
+        prior = [lookup.get((g, team), 0.0) for g in mine[-AVAIL_BASELINE_GAMES:]]
+        baseline[team] = float(np.mean(prior)) if prior else 0.0
+
+    by_team = {t: g for t, g in injuries_matched.groupby("team")} if len(injuries_matched) else {}
+    next_game: dict[str, str] = {}
+    for gid, home, away in zip(
+        upcoming["game_id"], upcoming["home_team"], upcoming["away_team"], strict=True
+    ):
+        next_game.setdefault(home, gid)
+        next_game.setdefault(away, gid)
+
+    def missing_for(team: str, gid: str, game_date: date) -> float:
+        total = 0.0
+        for row in by_team.get(team, pd.DataFrame()).itertuples():
+            v = value.get(int(row.player_id), 0.0)
+            if next_game[team] == gid:
+                total += v * (1.0 if row.status == "Out" else p_dtd)
+            elif row.status == "Out" and pd.notna(row.return_date) and row.return_date > game_date:
+                total += v
+        return total
+
+    out = []
+    for gid, d, home, away in zip(
+        upcoming["game_id"],
+        upcoming["date"],
+        upcoming["home_team"],
+        upcoming["away_team"],
+        strict=True,
+    ):
+        game_date = d.date()
+        out.append(
+            (
+                gid,
+                baseline[home] - missing_for(home, gid, game_date),
+                baseline[away] - missing_for(away, gid, game_date),
+            )
+        )
+    return pd.DataFrame(out, columns=columns)
