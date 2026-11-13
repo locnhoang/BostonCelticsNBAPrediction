@@ -141,21 +141,23 @@ function renderNextGame(pred, t) {
   guarded("injury report", "injury-panel", () => renderInjuries(pred, g));
 }
 
-const STATUS_CLASS = { Out: "out", "Day-To-Day": "dtd", Available: "avail" };
+const STATUS_CLASS = { Out: "out", "Day-To-Day": "dtd" };
 
 function playerRow(p) {
-  let detail = "";
-  if (p.status === "Out") {
-    detail = [p.comment, p.return_date ? `back ~${p.return_date}` : ""].filter(Boolean).join(" · ");
-  } else if (p.status === "Day-To-Day") {
-    detail = `~${Math.round((p.p_out ?? 0) * 100)}% out`;
-  }
+  let tag = "";
+  if (p.status === "Out") tag = p.return_date ? `back ~${p.return_date}` : "";
+  else tag = `~${Math.round((p.p_out ?? 0) * 100)}% out`;
   return el(
     "li",
     { class: "player" },
-    el("span", { class: "pname" }, p.name),
-    el("span", { class: `chip chip-${STATUS_CLASS[p.status] ?? "avail"}` }, p.status),
-    detail ? el("span", { class: "pdetail muted" }, detail) : "",
+    el(
+      "div",
+      { class: "prow" },
+      el("span", { class: `chip chip-${STATUS_CLASS[p.status]}` }, p.status),
+      el("span", { class: "pname" }, p.name),
+      tag ? el("span", { class: "ptag muted" }, tag) : "",
+    ),
+    p.status === "Out" && p.comment ? el("div", { class: "pcomment muted" }, p.comment) : "",
   );
 }
 
@@ -171,10 +173,13 @@ function rosterColumn(abbr, players) {
     return col;
   }
   const list = el("ul", { class: "players", hidden: "" }, ...listed.map(playerRow));
-  const btn = el("button", { class: "linklike", type: "button", "aria-expanded": "false" }, `Injury report (${listed.length})`);
+  list.id = `inj-list-${abbr}`;
+  const label = `Injury report (${listed.length})`;
+  const btn = el("button", { class: "inj-toggle", type: "button", "aria-expanded": "false", "aria-controls": list.id }, `▸ ${label}`);
   btn.addEventListener("click", () => {
     list.hidden = !list.hidden;
     btn.setAttribute("aria-expanded", String(!list.hidden));
+    btn.textContent = `${list.hidden ? "▸" : "▾"} ${label}`;
   });
   col.append(btn, list);
   return col;
