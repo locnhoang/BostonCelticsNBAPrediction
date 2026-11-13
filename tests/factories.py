@@ -19,6 +19,21 @@ def gamelog_rows(game_id, date, home, away, home_pts, away_pts, neutral=False):
     ]
 
 
+def player_rows(game_id, date, team, player_id, name, minutes, **stats):
+    """One player-mode LeagueGameLog row (raw uppercase nba_api names); unspecified stats are 0."""
+    row = {
+        "GAME_ID": game_id,
+        "GAME_DATE": date,
+        "TEAM_ABBREVIATION": team,
+        "PLAYER_ID": player_id,
+        "PLAYER_NAME": name,
+        "MIN": minutes,
+    }
+    row.update({k: 0 for k in ("PTS", "FGM", "FGA", "FTM", "FTA", "OREB", "DREB", "AST", "STL", "BLK", "TOV", "PF")})
+    row.update({k.upper(): v for k, v in stats.items()})
+    return row
+
+
 def schedule_payload(season_label, games):
     """Minimal ScheduleLeagueV2 frame. games: (game_id, 'YYYY-MM-DD', home, away)."""
     return pd.DataFrame(

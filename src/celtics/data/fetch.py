@@ -44,6 +44,21 @@ def fetch_season_gamelog(season: int) -> pd.DataFrame:
     return with_retries(call)
 
 
+def fetch_season_playerlog(season: int) -> pd.DataFrame:
+    from nba_api.stats.endpoints import leaguegamelog
+
+    def call() -> pd.DataFrame:
+        endpoint = leaguegamelog.LeagueGameLog(
+            season=season_label(season),
+            season_type_all_star="Regular Season",
+            player_or_team_abbreviation="P",
+            timeout=60,
+        )
+        return endpoint.get_data_frames()[0]
+
+    return with_retries(call)
+
+
 def fetch_schedule(season: int) -> pd.DataFrame:
     from nba_api.stats.endpoints import scheduleleaguev2
 
