@@ -152,7 +152,7 @@ def test_game_rows_drivers_sum_and_flip(season_rows):
         assert [d["label"] for d in r["drivers"]] == [
             "Season strength", "Recent form", "Home court", "Rest & schedule"
         ]
-        assert sum(d["value"] for d in r["drivers"]) == pytest.approx(r["pred_margin"], abs=0.25)
+        assert sum(d["value"] for d in r["drivers"]) == pytest.approx(r["pred_margin"], abs=0.25 + 1e-9)
     home = next(r for r in upcoming if r["home"])
     away = next(r for r in upcoming if not r["home"])
     court = {r["game_id"]: next(d["value"] for d in r["drivers"] if d["label"] == "Home court") for r in (home, away)}

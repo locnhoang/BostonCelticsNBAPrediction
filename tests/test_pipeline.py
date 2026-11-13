@@ -154,3 +154,11 @@ def test_run_update_rejects_corrupt_pregame_log(repo):
     (repo.site_data / "pregame_log.json").write_text(json.dumps(bad))
     with pytest.raises(ValidationError):
         run_update(repo, TODAY, offline=True, n_sims=50)
+
+
+def test_schema_rejects_incomplete_team_context(repo):
+    run_update(repo, TODAY, offline=True, n_sims=200, now=datetime(2024, 11, 19, 14, 0))
+    pred = json.loads((repo.site_data / "predictions.json").read_text())
+    del pred["team_context"]["NYK"]
+    with pytest.raises(ValidationError):
+        Predictions.model_validate(pred)

@@ -1,7 +1,7 @@
 import pytest
 
 from celtics.export.context import team_context
-from celtics.teams import TEAMS
+from celtics.teams import CONFERENCE_OF, TEAMS
 from tests.factories import make_games
 
 GAMES = make_games(
@@ -59,3 +59,29 @@ def test_last10_uses_latest_ten_games():
     ]  # two losses, then ten wins
     ctx = team_context(make_games(rows), 2026)
     assert ctx["BOS"]["last10"] == "10-0" and ctx["BOS"]["streak"] == "W10"
+
+
+def test_games_back_can_be_negative_and_validates():
+    from celtics.export.schema import TeamContext
+
+    games = make_games(
+        [
+            ("a", 2026, "2026-10-22", "BOS", "DAL", 110, 100),  # BOS 1-0 (1.000) leads
+            ("b", 2026, "2026-10-22", "NYK", "DAL", 110, 100),
+            ("c", 2026, "2026-10-24", "NYK", "DEN", 110, 100),
+            ("d", 2026, "2026-10-26", "NYK", "DAL", 110, 100),
+            ("e", 2026, "2026-10-28", "NYK", "DEN", 100, 110),  # NYK 3-1 (.750)
+        ]
+    )
+    ctx = team_context(games, 2026)
+    assert ctx["BOS"]["conf_rank"] == 1 and ctx["NYK"]["conf_rank"] == 2
+    assert ctx["NYK"]["games_back"] == -0.5
+    TeamContext.model_validate(ctx["NYK"])
+
+
+def test_opening_day_all_zero_and_alphabetical():
+    games = make_games([("u1", 2026, "2026-10-22", "BOS", "NYK", None, None)])
+    ctx = team_context(games, 2026)
+    assert all(c["wins"] == 0 and c["losses"] == 0 and c["games_back"] == 0.0 for c in ctx.values())
+    east = sorted((t for t in TEAMS if CONFERENCE_OF[t] == "East"), key=lambda t: ctx[t]["conf_rank"])
+    assert east == sorted(east) and ctx["ATL"]["conf_rank"] == 1

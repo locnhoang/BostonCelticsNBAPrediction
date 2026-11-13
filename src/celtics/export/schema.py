@@ -49,7 +49,7 @@ class TeamContext(BaseModel):
     wins: int = Field(ge=0)
     losses: int = Field(ge=0)
     conf_rank: int = Field(ge=1, le=15)
-    games_back: float = Field(ge=0)
+    games_back: float
     last10: str = Field(pattern=r"^\d+-\d+$")
     streak: str = Field(pattern=r"^([WL]\d+)?$")
     off_rating: float

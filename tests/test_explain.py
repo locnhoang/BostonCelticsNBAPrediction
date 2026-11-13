@@ -53,3 +53,13 @@ def test_nonlinear_model_has_no_breakdown():
     model = make_model("gbm").fit(X, y)
     assert model.is_linear is False
     assert explain(model, X.iloc[:5]) is None
+
+
+def test_homecourt_model_explains_as_all_home_court():
+    X, y = synthetic_xy(500)
+    model = make_model("homecourt").fit(X, y)
+    parts = explain(model, X.iloc[:4])
+    assert parts["Home court"].tolist() == pytest.approx([model.mean_] * 4)
+    for col in DRIVER_ORDER:
+        if col != "Home court":
+            assert parts[col].abs().max() == 0
