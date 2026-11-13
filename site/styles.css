@@ -41,7 +41,7 @@ body {
   font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-main { max-width: 1000px; margin: 0 auto; padding: var(--s6) var(--s4) 64px; }
+main { max-width: 1000px; margin: 0 auto; padding: var(--s6) var(--s4) 0; }
 
 h1 { font-size: 28px; line-height: 1.2; margin: 0; }
 h2 { font-size: 20px; line-height: 1.3; margin: 0; }
@@ -143,5 +143,11 @@ tr.detail td { color: var(--text-secondary); font-size: 12px; white-space: norma
 details { margin-top: var(--s3); }
 summary { cursor: pointer; color: var(--text-secondary); font-size: 14px; }
 
-footer { margin-top: var(--s5); font-size: 12px; }
+footer { max-width: 1000px; margin: 0 auto; padding: var(--s5) var(--s4) 64px; font-size: 12px; }
 footer a { color: var(--text-secondary); }
+
+.expand { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; gap: var(--s2); align-items: center; }
+.expand:focus-visible, .tabs button:focus-visible, .show-all:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chevron { color: var(--muted); width: 1em; }
+.show-all { font: inherit; font-size: 14px; margin-top: var(--s3); padding: var(--s1) var(--s3); border-radius: 999px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); }
+[role=tabpanel]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

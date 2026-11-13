@@ -89,7 +89,10 @@ function renderHeader(pred) {
   const c = pred.team_context[team];
   document.getElementById("hdr-logo").replaceChildren(teamMark(team, 28));
   document.getElementById("hdr-title").textContent = `Boston ${teamName(team)} ${pred.season}`;
-  document.getElementById("hdr-meta").textContent = `${c.wins}-${c.losses} · ${ord(c.conf_rank)} in the East`;
+  const started = c.wins + c.losses > 0;
+  document.getElementById("hdr-meta").textContent = started
+    ? `${c.wins}-${c.losses} · ${ord(c.conf_rank)} in the East`
+    : `${c.wins}-${c.losses}`;
   document.getElementById("updated").textContent =
     `Updated ${new Date(pred.generated_at).toLocaleString()} · model ${pred.model_version}`;
 }
@@ -144,7 +147,8 @@ function renderDrivers(g, t) {
   wrap.hidden = false;
   const box = document.getElementById("chart-drivers");
   const data = g.drivers;
-  const ext = Math.max(4, ...data.map((d) => Math.abs(d.value))) * 1.3;
+  const minValue = Math.min(...data.map((d) => d.value));
+  const maxValue = Math.max(...data.map((d) => d.value));
   box.replaceChildren(
     Plot.plot({
       width: box.clientWidth,
@@ -152,7 +156,7 @@ function renderDrivers(g, t) {
       marginLeft: 120,
       marginRight: 16,
       style: plotStyle(t),
-      x: { domain: [-ext, ext], label: "Points toward Boston", grid: true },
+      x: { domain: [Math.min(-1, minValue * 1.3), Math.max(1, maxValue * 1.3)], label: "Points toward Boston", grid: true },
       y: { domain: data.map((d) => d.label), label: null },
       marks: [
         Plot.barX(data, { x: "value", y: "label", fill: (d) => (d.value >= 0 ? t.accent : t.neutral), insetTop: 8, insetBottom: 8 }),
@@ -172,7 +176,7 @@ function change(cur, prev, kind) {
   if (prev == null) return "";
   const d = kind === "wins" ? Math.round(cur - prev) : Math.round((cur - prev) * 100);
   if (d === 0) return "No change since last update";
-  const unit = kind === "wins" ? (Math.abs(d) === 1 ? "win" : "wins") : "pts";
+  const unit = kind === "wins" ? (Math.abs(d) === 1 ? "win" : "wins") : Math.abs(d) === 1 ? "pt" : "pts";
   return `${d > 0 ? "▲" : "▼"} ${Math.abs(d)} ${unit} since last update`;
 }
 
@@ -210,9 +214,14 @@ function rankStrip(rank, label) {
 function renderContext(pred) {
   const team = pred.team_summary.team;
   const c = pred.team_context[team];
-  const gb = c.games_back === 0 ? "Leads the conference" : `${c.games_back} ${c.games_back === 1 ? "game" : "games"} back`;
+  const started = c.wins + c.losses > 0;
+  const gb = !started
+    ? ""
+    : c.games_back === 0
+      ? "Leads the conference"
+      : `${c.games_back} ${c.games_back === 1 ? "game" : "games"} back`;
   const facts = [
-    ["East standing", ord(c.conf_rank), gb],
+    ["East standing", started ? ord(c.conf_rank) : "—", started ? gb : "Season not started"],
     ["Last 10", c.last10, c.streak ? `Current streak: ${c.streak}` : ""],
   ];
   const ratings = [
@@ -272,40 +281,65 @@ function renderSchedule(pred) {
       el("tr", {}, el("th", {}, "Date"), el("th", {}, "Opponent"), el("th", { class: "secondary" }, "Rest"), el("th", {}, "Win chance"), el("th", { class: "secondary" }, "Proj. margin")),
     );
     const body = el("tbody");
+    const rows = [];
     for (const g of upcoming) {
-      const attrs = g.drivers ? { class: "expandable", tabindex: "0", "aria-expanded": "false" } : {};
+      const dateCell = el("td", {}, g.date);
       const row = el(
         "tr",
-        attrs,
-        el("td", {}, g.date),
+        g.drivers ? { class: "expandable" } : {},
+        dateCell,
         el("td", {}, whereCell(g)),
         el("td", { class: "secondary" }, rest(g)),
         el("td", {}, probBar(g.win_prob)),
         el("td", { class: "secondary" }, signed(g.pred_margin)),
       );
-      body.append(row);
+      const group = [row];
       if (g.drivers) {
         const text = `${g.drivers.map((d) => `${d.label} ${signed(d.value)}`).join(" · ")} = ${signed(g.pred_margin)} projected margin`;
-        const detail = el("tr", { class: "detail" }, el("td", { colspan: "5" }, text));
+        const detail = el("tr", { class: "detail", id: `drv-${g.game_id}` }, el("td", { colspan: "5" }, text));
         detail.hidden = true;
+        const chevron = el("span", { class: "chevron", "aria-hidden": "true" }, "▸");
+        const button = el("button", { class: "expand", type: "button", "aria-expanded": "false", "aria-controls": `drv-${g.game_id}` }, chevron, g.date);
+        dateCell.replaceChildren(button);
         const toggle = () => {
           detail.hidden = !detail.hidden;
-          row.setAttribute("aria-expanded", String(!detail.hidden));
+          button.setAttribute("aria-expanded", String(!detail.hidden));
+          chevron.textContent = detail.hidden ? "▸" : "▾";
         };
-        row.addEventListener("click", toggle);
-        row.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            toggle();
-          }
+        button.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggle();
         });
-        body.append(detail);
+        row.addEventListener("click", toggle);
+        group.push(detail);
       }
+      rows.push(group);
     }
-    up.replaceChildren(el("table", {}, head, body));
+    const LIMIT = 10;
+    let showAll = false;
+    const apply = () => {
+      body.replaceChildren(...rows.slice(0, showAll ? rows.length : LIMIT).flat());
+    };
+    apply();
+    const nodes = [el("table", {}, head, body)];
+    if (rows.length > LIMIT) {
+      const more = el("button", { class: "show-all", type: "button" }, `Show all ${rows.length} games`);
+      more.addEventListener("click", () => {
+        showAll = !showAll;
+        more.textContent = showAll ? "Show fewer" : `Show all ${rows.length} games`;
+        apply();
+      });
+      nodes.push(more);
+    }
+    up.replaceChildren(...nodes);
   }
 
-  const mark = (g) => (g.pregame_win_prob == null ? "" : calledIt(g) ? "✓" : "✗");
+  const mark = (g) => {
+    if (g.pregame_win_prob == null) return "";
+    const ok = calledIt(g);
+    const label = ok ? "Model favored the winner" : "Model favored the loser";
+    return el("span", { title: label, "aria-label": label, role: "img" }, ok ? "✓" : "✗");
+  };
   document.getElementById("completed").replaceChildren(
     done.length
       ? table(
@@ -319,15 +353,24 @@ function renderSchedule(pred) {
 
 function setupTabs() {
   const tabs = [...document.querySelectorAll("[role=tab]")];
-  for (const tab of tabs) {
-    tab.addEventListener("click", () => {
-      for (const other of tabs) {
-        const on = other === tab;
-        other.setAttribute("aria-selected", String(on));
-        document.getElementById(other.getAttribute("aria-controls")).hidden = !on;
-      }
+  const activate = (tab, focus) => {
+    for (const other of tabs) {
+      const on = other === tab;
+      other.setAttribute("aria-selected", String(on));
+      other.setAttribute("tabindex", on ? "0" : "-1");
+      document.getElementById(other.getAttribute("aria-controls")).hidden = !on;
+    }
+    if (focus) tab.focus();
+  };
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => activate(tab, false));
+    tab.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      e.preventDefault();
+      const step = e.key === "ArrowRight" ? 1 : -1;
+      activate(tabs[(i + step + tabs.length) % tabs.length], true);
     });
-  }
+  });
 }
 
 function renderHistory(history, t) {
@@ -345,7 +388,7 @@ function renderHistory(history, t) {
       height: 260,
       marginLeft: 40,
       style: plotStyle(t),
-      x: { type: "utc", label: null },
+      x: { type: "utc", label: null, ticks: d3.utcDay.every(Math.max(1, Math.ceil(data.length / 8))), tickFormat: "%b %-d" },
       y: { label: "Projected wins", grid: true, nice: true },
       marks: [
         Plot.areaY(data, { x: "day", y1: "p10", y2: "p90", fill: t.accent, fillOpacity: 0.15 }),
@@ -493,7 +536,7 @@ function renderHowExample(pred) {
   box.textContent =
     `Take the next game (${g.home ? "vs" : "@"} ${teamName(g.opponent)}). The model adds up ${parts}, ` +
     `for a projected margin of ${signed(g.pred_margin)} points. Given how much NBA results vary from game to game, ` +
-    `that margin works out to a ${pct(g.win_prob)} chance that the ${teamName(pred.team_summary.team)} win.`;
+    `that margin works out to a win chance of ${pct(g.win_prob)} for the ${teamName(pred.team_summary.team)}.`;
 }
 
 async function loadJson(path) {
@@ -504,29 +547,38 @@ async function loadJson(path) {
 
 let state = null;
 
-function renderAll() {
-  if (!state) return;
-  const t = theme();
-  const { pred, history, backtest } = state;
-  renderHeader(pred);
-  renderNextGame(pred, t);
-  renderOutlook(pred, history);
-  renderContext(pred);
-  renderSchedule(pred);
-  renderHistory(history, t);
-  renderWins(pred, t);
-  renderSeeds(pred, t);
-  renderEast(pred);
-  renderReportCard(pred, backtest, t);
-  renderHowExample(pred);
+let failed = false;
+
+// Run one section renderer on its own so a failure only blanks that section.
+function guarded(name, containerId, fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.error(`Section "${name}" failed to draw`, err);
+    failed = true;
+    document.getElementById(containerId)?.replaceChildren(el("p", { class: "muted" }, "This section could not be drawn."));
+  }
 }
 
 function safeRender() {
-  try {
-    renderAll();
-  } catch (err) {
-    console.error(err);
-    document.getElementById("updated").textContent = `Some sections failed to render (${err.message}).`;
+  if (!state) return;
+  failed = false;
+  const t = theme();
+  const { pred, history, backtest } = state;
+  guarded("header", "hdr-meta", () => renderHeader(pred));
+  guarded("next game", "next-card", () => renderNextGame(pred, t));
+  guarded("outlook", "outlook", () => renderOutlook(pred, history));
+  guarded("context", "context", () => renderContext(pred));
+  guarded("schedule", "upcoming", () => renderSchedule(pred));
+  guarded("history", "chart-history", () => renderHistory(history, t));
+  guarded("wins", "chart-wins", () => renderWins(pred, t));
+  guarded("seeds", "chart-seeds", () => renderSeeds(pred, t));
+  guarded("east", "east", () => renderEast(pred));
+  guarded("report card", "models", () => renderReportCard(pred, backtest, t));
+  guarded("how it works", "how-example", () => renderHowExample(pred));
+  if (failed) {
+    const u = document.getElementById("updated");
+    u.textContent += " · some sections failed to draw";
   }
 }
 

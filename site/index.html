@@ -46,13 +46,13 @@
 
     <section aria-labelledby="h-schedule">
       <h2 id="h-schedule">Schedule</h2>
-      <div class="tabs" role="tablist">
-        <button role="tab" id="tab-upcoming" aria-controls="upcoming" aria-selected="true">Upcoming</button>
-        <button role="tab" id="tab-results" aria-controls="completed" aria-selected="false">Results</button>
+      <div class="tabs" role="tablist" aria-label="Schedule view">
+        <button role="tab" id="tab-upcoming" aria-controls="upcoming" aria-selected="true" tabindex="0">Upcoming</button>
+        <button role="tab" id="tab-results" aria-controls="completed" aria-selected="false" tabindex="-1">Results</button>
       </div>
       <p class="subtitle">Select an upcoming game to see its breakdown.</p>
-      <div id="upcoming" class="table-wrap" role="tabpanel" aria-labelledby="tab-upcoming"></div>
-      <div id="completed" class="table-wrap" role="tabpanel" aria-labelledby="tab-results" hidden></div>
+      <div id="upcoming" class="table-wrap" role="tabpanel" tabindex="0" aria-labelledby="tab-upcoming"></div>
+      <div id="completed" class="table-wrap" role="tabpanel" tabindex="0" aria-labelledby="tab-results" hidden></div>
     </section>
 
     <section aria-labelledby="h-history">
@@ -98,17 +98,18 @@
 
     <section aria-labelledby="h-how">
       <h2 id="h-how">How it works</h2>
+      <p class="subtitle">A plain-English walkthrough of one prediction.</p>
       <p id="how-example" class="lead" hidden></p>
       <p>Each game is predicted as a point margin from four things: season-long team strength (a margin-of-victory Elo rating), recent form (a recency-weighted net rating per 100 possessions), home court, and rest (days off, back-to-backs, three games in four nights). The margin becomes a win probability using how much NBA results vary from game to game.</p>
       <p>The rest of the league schedule is simulated 10,000 times. Each simulation shifts every team's strength by a random amount reflecting how uncertain we are about it, then plays out every game, applies tiebreakers (head-to-head, division winner, conference record), and runs the play-in.</p>
       <p>The model is trained on every regular-season game since 2015-16 and tested walk-forward: each test season is predicted using only data from before it. It does not account for injuries yet.</p>
     </section>
 
-    <footer class="muted">
+  </main>
+  <footer class="muted">
       <p>Data from NBA.com via nba_api. Team logos are trademarks of the NBA and its teams. Not affiliated with the NBA or the Boston Celtics.</p>
       <p><a href="https://github.com/locnhoang/BostonCelticsNBAPrediction">Source code</a></p>
     </footer>
-  </main>
   <script src="app.js"></script>
 </body>
 </html>
