@@ -142,3 +142,41 @@ def test_update_pregame_log_freeze_uses_given_today_not_utc_clock():
     out = update_pregame_log({}, rows, "2026-11-12T02:00:00", today="2026-11-11")
     assert out["g"]["win_prob"] == 0.7
     assert update_pregame_log({}, rows, "2026-11-12T02:00:00") == {}  # default: UTC date
+
+
+def test_game_rows_drivers_sum_and_flip(season_rows):
+    feats, model = season_rows
+    rows = game_rows(feats, model, 2023, "BOS", pregame_log={})
+    upcoming = [r for r in rows if not r["completed"]]
+    for r in upcoming:
+        assert [d["label"] for d in r["drivers"]] == [
+            "Season strength", "Recent form", "Home court", "Rest & schedule"
+        ]
+        assert sum(d["value"] for d in r["drivers"]) == pytest.approx(r["pred_margin"], abs=0.25)
+    home = next(r for r in upcoming if r["home"])
+    away = next(r for r in upcoming if not r["home"])
+    court = {r["game_id"]: next(d["value"] for d in r["drivers"] if d["label"] == "Home court") for r in (home, away)}
+    assert court[home["game_id"]] > 0 > court[away["game_id"]]
+    assert all(r["drivers"] is None for r in rows if r["completed"])
+
+
+def test_game_rows_no_drivers_for_nonlinear_model(season_rows):
+    feats, _ = season_rows
+    train = feats[feats["completed"] & (feats["season"] >= FIRST_TRAIN_SEASON)]
+    gbm = make_model("gbm").fit(train[FEATURES], train["margin"])
+    rows = game_rows(feats, gbm, 2023, "BOS", pregame_log={})
+    assert all(r["drivers"] is None for r in rows)
+
+
+def test_schema_rejects_bad_team_context():
+    from celtics.export.schema import TeamContext
+
+    good = {
+        "wins": 3, "losses": 1, "conf_rank": 1, "games_back": 0.0, "last10": "3-1", "streak": "W2",
+        "off_rating": 107.2, "def_rating": 100.8, "net_rating": 6.5,
+        "off_rank": 1, "def_rank": 2, "net_rank": 1,
+    }
+    TeamContext.model_validate(good)
+    for bad in ({"conf_rank": 16}, {"net_rank": 0}, {"streak": "X3"}, {"last10": "ten"}):
+        with pytest.raises(ValidationError):
+            TeamContext.model_validate({**good, **bad})

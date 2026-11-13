@@ -33,6 +33,7 @@ from celtics.export.build import (
     upsert_history,
     write_json_atomic,
 )
+from celtics.export.context import team_context
 from celtics.export.schema import BacktestReport, HistoryEntry, Predictions, PregameLog
 from celtics.features.build import FEATURES, build_features, current_team_state
 from celtics.models.margin import MODELS, MarginModel, load_model, make_model, save_model
@@ -127,6 +128,7 @@ def run_update(
         "seed_probabilities": seed_probabilities(result, TEAM),
         "conference_table": conference_table(result, inputs, CONFERENCE_OF[TEAM]),
         "metrics": {"live": live_metrics(rows)},
+        "team_context": team_context(games, season),
     }
     Predictions.model_validate(predictions)
     PregameLog.validate_python(log)

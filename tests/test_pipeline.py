@@ -31,6 +31,9 @@ def test_run_update_writes_valid_outputs(repo):
     run_update(repo, TODAY, offline=True, n_sims=200, now=datetime(2024, 11, 19, 14, 0))  # day of the next synthetic round
     pred = json.loads((repo.site_data / "predictions.json").read_text())
     Predictions.model_validate(pred)
+    assert len(pred["team_context"]) == 30
+    upcoming = [g for g in pred["games"] if not g["completed"]]
+    assert upcoming and all(len(g["drivers"]) == 4 for g in upcoming)
     assert pred["season"] == "2024-25"
     assert len(pred["games"]) == 82
     assert pred["team_summary"]["wins"] + pred["team_summary"]["losses"] == 15

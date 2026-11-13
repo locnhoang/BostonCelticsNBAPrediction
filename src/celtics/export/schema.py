@@ -40,6 +40,26 @@ class TeamSummary(BaseModel):
         return self
 
 
+class Driver(BaseModel):
+    label: str
+    value: float
+
+
+class TeamContext(BaseModel):
+    wins: int = Field(ge=0)
+    losses: int = Field(ge=0)
+    conf_rank: int = Field(ge=1, le=15)
+    games_back: float = Field(ge=0)
+    last10: str = Field(pattern=r"^\d+-\d+$")
+    streak: str = Field(pattern=r"^([WL]\d+)?$")
+    off_rating: float
+    def_rating: float
+    net_rating: float
+    off_rank: int = Field(ge=1, le=30)
+    def_rank: int = Field(ge=1, le=30)
+    net_rank: int = Field(ge=1, le=30)
+
+
 class GameRow(BaseModel):
     game_id: str
     date: str
@@ -53,6 +73,7 @@ class GameRow(BaseModel):
     pred_margin: float | None
     result: str | None
     pregame_win_prob: Prob | None
+    drivers: list[Driver] | None
 
 
 class ConferenceRow(BaseModel):
@@ -85,12 +106,15 @@ class Predictions(BaseModel):
     seed_probabilities: dict[str, Prob]
     conference_table: list[ConferenceRow]
     metrics: Metrics
+    team_context: dict[str, TeamContext]
 
     @model_validator(mode="after")
     def _seeds(self):
         if list(self.seed_probabilities) != [str(k) for k in range(1, 16)]:
             raise ValueError("seed_probabilities must have keys '1'..'15'")
         _sums_to_one(self.seed_probabilities.values(), "seed_probabilities")
+        if len(self.team_context) != 30:
+            raise ValueError(f"team_context has {len(self.team_context)} teams, expected 30")
         return self
 
 
