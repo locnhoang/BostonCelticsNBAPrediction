@@ -1,6 +1,6 @@
 """JSON contract between the pipeline and the website."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, TypeAdapter, model_validator
 
@@ -74,6 +74,7 @@ class GameRow(BaseModel):
     result: str | None
     pregame_win_prob: Prob | None
     drivers: list[Driver] | None
+    win_prob_healthy: Prob | None = None
 
 
 class ConferenceRow(BaseModel):
@@ -97,6 +98,26 @@ class Metrics(BaseModel):
     live: LiveMetrics | None
 
 
+class InjuryPlayer(BaseModel):
+    player_id: int | None
+    name: str
+    status: Literal["Available", "Out", "Day-To-Day"]
+    comment: str
+    return_date: str | None
+    p_out: Prob
+    expected_minutes: float = Field(ge=0)
+    game_value: float = Field(ge=0)
+    rotation: bool
+
+
+class InjuryReport(BaseModel):
+    available: bool
+    as_of: str | None
+    p_dtd: Prob
+    unmatched: list[str]
+    teams: dict[str, list[InjuryPlayer]]
+
+
 class Predictions(BaseModel):
     generated_at: str
     model_version: str
@@ -107,6 +128,7 @@ class Predictions(BaseModel):
     conference_table: list[ConferenceRow]
     metrics: Metrics
     team_context: dict[str, TeamContext]
+    injury_report: InjuryReport
 
     @model_validator(mode="after")
     def _seeds(self):
@@ -152,6 +174,7 @@ class BacktestReport(BaseModel):
     calibration: list[CalibrationBin]
     coverage: dict[str, Prob]
     chosen_team_sd: float
+    availability_note: str
 
 
 class PregameEntry(BaseModel):
@@ -161,3 +184,14 @@ class PregameEntry(BaseModel):
 
 
 PregameLog = TypeAdapter(dict[str, PregameEntry])
+
+
+class DtdCase(BaseModel):
+    date: str
+    team: str
+    player_id: int
+    name: str
+    played: bool | None
+
+
+DtdLog = TypeAdapter(list[DtdCase])

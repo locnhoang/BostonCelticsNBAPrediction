@@ -58,6 +58,10 @@ class Paths:
         return self.root / "data" / "models"
 
     @property
+    def injuries_dir(self) -> Path:
+        return self.root / "data" / "injuries"
+
+    @property
     def site_data(self) -> Path:
         return self.root / "site" / "data"
 
