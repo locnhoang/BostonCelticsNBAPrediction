@@ -67,3 +67,17 @@ def fetch_schedule(season: int) -> pd.DataFrame:
         return endpoint.get_data_frames()[0]
 
     return with_retries(call)
+
+
+ESPN_INJURIES_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries"
+
+
+def fetch_espn_injuries() -> dict:
+    import requests
+
+    def call() -> dict:
+        resp = requests.get(ESPN_INJURIES_URL, timeout=30)
+        resp.raise_for_status()
+        return resp.json()
+
+    return with_retries(call)

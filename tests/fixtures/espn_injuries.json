@@ -1,0 +1,245 @@
+{
+ "timestamp": "2026-11-13T17:05:36Z",
+ "status": "success",
+ "season": {
+  "year": 2027,
+  "type": 2,
+  "name": "Regular Season",
+  "displayName": "2026-27"
+ },
+ "injuries": [
+  {
+   "id": "0",
+   "displayName": "Boston Celtics",
+   "injuries": [
+    {
+     "id": "-60747",
+     "shortComment": "Jaylen Brown: synthetic fixture comment.",
+     "status": "Day-To-Day",
+     "date": "2026-11-12T03:01Z",
+     "athlete": {
+      "firstName": "Jaylen",
+      "lastName": "Brown",
+      "displayName": "Jaylen Brown",
+      "shortName": "P. George",
+      "team": {
+       "displayName": "Boston Celtics"
+      }
+     },
+     "source": {
+      "id": "1",
+      "description": "basic/manual",
+      "state": "basic"
+     },
+     "type": {
+      "id": "6",
+      "name": "INJURY_STATUS_DAYTODAY",
+      "description": "day-to-day",
+      "abbreviation": "DD"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "GTD",
+       "abbreviation": "GTD"
+      },
+      "type": "Illness",
+      "location": "Other"
+     }
+    },
+    {
+     "id": "-60747",
+     "shortComment": "Jayson Tatum: synthetic fixture comment.",
+     "status": "Out",
+     "date": "2026-11-12T03:01Z",
+     "athlete": {
+      "firstName": "Jayson",
+      "lastName": "Tatum",
+      "displayName": "Jayson Tatum",
+      "shortName": "P. George",
+      "team": {
+       "displayName": "Boston Celtics"
+      }
+     },
+     "source": {
+      "id": "1",
+      "description": "basic/manual",
+      "state": "basic"
+     },
+     "type": {
+      "id": "6",
+      "name": "INJURY_STATUS_DAYTODAY",
+      "description": "day-to-day",
+      "abbreviation": "DD"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "GTD",
+       "abbreviation": "GTD"
+      },
+      "type": "Illness",
+      "location": "Other",
+      "returnDate": "2026-12-01"
+     }
+    },
+    {
+     "id": "-60747",
+     "shortComment": "Unknown Player: synthetic fixture comment.",
+     "status": "Day-To-Day",
+     "date": "2026-11-12T03:01Z",
+     "athlete": {
+      "firstName": "Unknown",
+      "lastName": "Player",
+      "displayName": "Unknown Player",
+      "shortName": "P. George",
+      "team": {
+       "displayName": "Boston Celtics"
+      }
+     },
+     "source": {
+      "id": "1",
+      "description": "basic/manual",
+      "state": "basic"
+     },
+     "type": {
+      "id": "6",
+      "name": "INJURY_STATUS_DAYTODAY",
+      "description": "day-to-day",
+      "abbreviation": "DD"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "GTD",
+       "abbreviation": "GTD"
+      },
+      "type": "Illness",
+      "location": "Other"
+     }
+    }
+   ]
+  },
+  {
+   "id": "0",
+   "displayName": "Dallas Mavericks",
+   "injuries": [
+    {
+     "id": "538641",
+     "shortComment": "Dereck Lively II: synthetic fixture comment.",
+     "status": "Out",
+     "date": "2026-11-11T22:13Z",
+     "athlete": {
+      "firstName": "Dereck",
+      "lastName": "Lively II",
+      "displayName": "Dereck Lively II",
+      "shortName": "D. Lively II",
+      "team": {
+       "displayName": "Dallas Mavericks"
+      }
+     },
+     "source": {
+      "id": "1",
+      "description": "basic/manual",
+      "state": "basic"
+     },
+     "type": {
+      "id": "4",
+      "name": "INJURY_STATUS_OUT",
+      "description": "out",
+      "abbreviation": "O"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "OUT",
+       "abbreviation": "OUT"
+      },
+      "type": "Foot",
+      "location": "Leg",
+      "detail": "Surgery",
+      "side": "Right"
+     }
+    }
+   ]
+  },
+  {
+   "id": "0",
+   "displayName": "LA Clippers",
+   "injuries": [
+    {
+     "id": "538648",
+     "shortComment": "Kawhi Leonard: synthetic fixture comment.",
+     "status": "Day-To-Day",
+     "date": "2026-11-11T22:33Z",
+     "athlete": {
+      "firstName": "Kawhi",
+      "lastName": "Leonard",
+      "displayName": "Kawhi Leonard",
+      "shortName": "K. Leonard",
+      "team": {
+       "displayName": "LA Clippers"
+      }
+     },
+     "source": {
+      "id": "1",
+      "description": "basic/manual",
+      "state": "basic"
+     },
+     "type": {
+      "id": "4",
+      "name": "INJURY_STATUS_OUT",
+      "description": "out",
+      "abbreviation": "O"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "OUT",
+       "abbreviation": "OUT"
+      },
+      "type": "Knee",
+      "location": "Leg",
+      "detail": "Inflammation",
+      "side": "Left"
+     }
+    }
+   ]
+  },
+  {
+   "id": "0",
+   "displayName": "Houston Rockets",
+   "injuries": [
+    {
+     "id": "538829",
+     "shortComment": "Marcus Smart: synthetic fixture comment.",
+     "status": "Suspension",
+     "date": "2026-11-12T22:45Z",
+     "athlete": {
+      "firstName": "Marcus",
+      "lastName": "Smart",
+      "displayName": "Marcus Smart",
+      "shortName": "M. Smart",
+      "team": {
+       "displayName": "Houston Rockets"
+      }
+     },
+     "source": {
+      "id": "1",
+      "description": "basic/manual",
+      "state": "basic"
+     },
+     "type": {
+      "id": "17",
+      "name": "INJURY_STATUS_SUSPENSION",
+      "description": "Suspension",
+      "abbreviation": "SUSP"
+     },
+     "details": {
+      "fantasyStatus": {
+       "description": "OUT",
+       "abbreviation": "OUT"
+      },
+      "type": "Suspension",
+      "location": "Other"
+     }
+    }
+   ]
+  }
+ ]
+}
