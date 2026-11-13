@@ -21,6 +21,7 @@ def win_prob(margin, sigma: float) -> np.ndarray:
 
 class MarginModel:
     name = "base"
+    is_linear = False
 
     def __init__(self) -> None:
         self.sigma = 12.0
@@ -43,6 +44,7 @@ class MarginModel:
 
 class HomeCourtModel(MarginModel):
     name = "homecourt"
+    is_linear = True
 
     def _fit(self, X, y):
         self.mean_ = float(np.mean(y))
@@ -53,6 +55,7 @@ class HomeCourtModel(MarginModel):
 
 class EloModel(MarginModel):
     name = "elo"
+    is_linear = True
 
     def _fit(self, X, y):
         pass
@@ -63,6 +66,7 @@ class EloModel(MarginModel):
 
 class RidgeModel(MarginModel):
     name = "ridge"
+    is_linear = True
 
     def _fit(self, X, y):
         self.pipe_ = make_pipeline(StandardScaler(), Ridge(alpha=1.0)).fit(X, y)
