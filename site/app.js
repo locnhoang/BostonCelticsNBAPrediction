@@ -160,21 +160,23 @@ function playerRow(p) {
 }
 
 function rosterColumn(abbr, players) {
-  const rotation = players.filter((p) => p.rotation);
-  const rest = players.filter((p) => !p.rotation);
-  const list = el("ul", { class: "players" }, ...rotation.map(playerRow));
-  const col = el("div", { class: "inj-col" }, el("h4", { class: "team" }, teamMark(abbr, 24), el("span", {}, teamName(abbr))), list);
-  if (!players.length) list.append(el("li", { class: "muted" }, "No players listed."));
-  if (rest.length) {
-    const more = el("ul", { class: "players", hidden: "" }, ...rest.map(playerRow));
-    const btn = el("button", { class: "linklike", type: "button", "aria-expanded": "false" }, "Show full roster");
-    btn.addEventListener("click", () => {
-      more.hidden = !more.hidden;
-      btn.setAttribute("aria-expanded", String(!more.hidden));
-      btn.textContent = more.hidden ? "Show full roster" : "Hide full roster";
-    });
-    col.append(more, btn);
+  const byMinutes = (x, y) => (y.expected_minutes ?? 0) - (x.expected_minutes ?? 0);
+  const listed = [
+    ...players.filter((p) => p.status === "Out").sort(byMinutes),
+    ...players.filter((p) => p.status === "Day-To-Day").sort(byMinutes),
+  ];
+  const col = el("div", { class: "inj-col" }, el("h4", { class: "team" }, teamMark(abbr, 24), el("span", {}, teamName(abbr))));
+  if (!listed.length) {
+    col.append(el("p", { class: "muted" }, "No injuries reported."));
+    return col;
   }
+  const list = el("ul", { class: "players", hidden: "" }, ...listed.map(playerRow));
+  const btn = el("button", { class: "linklike", type: "button", "aria-expanded": "false" }, `Injury report (${listed.length})`);
+  btn.addEventListener("click", () => {
+    list.hidden = !list.hidden;
+    btn.setAttribute("aria-expanded", String(!list.hidden));
+  });
+  col.append(btn, list);
   return col;
 }
 
@@ -197,7 +199,6 @@ function renderInjuries(pred, g) {
     source = `Injury report as of ${when} (ESPN)`;
   }
   parts.push(el("p", { class: "muted" }, source));
-  if (rep.unmatched?.length) parts.push(el("p", { class: "muted" }, `Not matched to player stats: ${rep.unmatched.join(", ")}`));
   box.replaceChildren(...parts);
 }
 
