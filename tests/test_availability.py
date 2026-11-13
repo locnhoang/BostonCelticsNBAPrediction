@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 from celtics.config import FIRST_SEASON
 from celtics.data.parse import playerlog_to_frame
@@ -47,7 +48,7 @@ def _bos(states, n):
 def test_game_score_formula():
     df = _frame([player_rows("0021400001", "2014-11-01", "BOS", 1, "A", 30, pts=20, fgm=8, fga=15, ftm=4,
                              fta=5, oreb=2, dreb=6, ast=5, stl=1, blk=1, tov=3, pf=2)])  # fmt: skip
-    assert game_score(df).iloc[0] == np.float64(16.9) or abs(game_score(df).iloc[0] - 16.9) < 1e-9
+    assert game_score(df).iloc[0] == pytest.approx(16.9)
 
 
 def test_rotation_requires_min_games_and_minutes():
@@ -77,15 +78,36 @@ def test_absent_rotation_player_counts_as_missing():
 
 
 def test_values_are_point_in_time():
-    seasons = [S, S + 1]
-    games = pd.concat([_games(s, 12) for s in seasons], ignore_index=True)
+    games = pd.concat([_games(S, 12), _games(S + 1, 14)], ignore_index=True)
+    k = 8
 
-    def players(pts_last):
-        return pd.concat([_frame(_rows(S, 12)), _frame(_rows(S + 1, 11) + _rows(S + 1, 12, pts=pts_last)[-1:], S + 1)])
+    def states(pts_k):
+        rows = _rows(S + 1, 14)
+        rows[k - 1] = _rows(S + 1, 14, pts=pts_k)[k - 1]
+        return player_states(games, pd.concat([_frame(_rows(S, 12)), _frame(rows, S + 1)], ignore_index=True))
 
-    base = player_states(games, players(10))
-    changed = player_states(games, players(50))
-    pd.testing.assert_frame_equal(base, changed)
+    base, changed = states(10), states(50)
+    ids = list(games.sort_values(["date", "game_id"])["game_id"])
+    upto = set(ids[: ids.index(_gid(S + 1, k)) + 1])
+    early = base["game_id"].isin(upto)
+    pd.testing.assert_frame_equal(base[early], changed[early])
+    assert not base[~early].equals(changed[~early])
+
+
+def test_traded_player_counts_for_new_team_only():
+    games = make_games(
+        [(_gid(S, i), S, str(pd.Timestamp("2014-11-01") + pd.Timedelta(days=2 * i))[:10],
+          "BOS", "NYK", 100, 90) for i in range(1, 15)]
+    )  # fmt: skip
+    rows = []
+    for i in range(1, 15):
+        date = str(pd.Timestamp("2014-11-01") + pd.Timedelta(days=2 * i))[:10]
+        rows.append(player_rows(_gid(S, i), date, "BOS" if i <= 10 else "NYK", 1, "A", 30, pts=20))
+        rows.append(player_rows(_gid(S, i), date, "BOS", 2, "B", 30, pts=10))
+        rows.append(player_rows(_gid(S, i), date, "NYK", 3, "C", 30, pts=10))
+    missing = team_missing(player_states(games, _frame(rows)))
+    bos = missing[missing["team"] == "BOS"].set_index("game_id")["missing_value"]
+    assert (bos[[_gid(S, i) for i in range(11, 15)]] == 0.0).all()
 
 
 def test_low_minutes_shrink_to_league_avg():

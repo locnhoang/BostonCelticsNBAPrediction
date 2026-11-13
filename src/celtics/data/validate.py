@@ -85,6 +85,14 @@ def validate_players(players: pd.DataFrame, games: pd.DataFrame) -> None:
         problems.append(
             f"player rows with (game_id, team) not in games: {unknown.drop_duplicates().tolist()[:5]}"
         )
+    have = set(zip(players["game_id"], players["team"], strict=True))
+    done = games[games["home_pts"].notna()]
+    expected = set(zip(done["game_id"], done["home_team"], strict=True)) | set(
+        zip(done["game_id"], done["away_team"], strict=True)
+    )
+    absent = sorted(expected - have)
+    if absent:
+        problems.append(f"no player rows for completed (game_id, team): {absent[:5]}")
     if (players["min"] < 0).any():
         problems.append("negative minutes in player log")
     if problems:

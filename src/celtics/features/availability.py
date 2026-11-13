@@ -41,12 +41,20 @@ def game_score(players: pd.DataFrame) -> pd.Series:
     )
 
 
-def _window_stats(history: list[dict[int, float]], window: int) -> dict[int, tuple[int, float]]:
-    """Per player: (games played, mean minutes over those games) in the last `window` games."""
+def _window_stats(
+    history: list[dict[int, float]], window: int, team: str, last_team: dict[int, str]
+) -> dict[int, tuple[int, float]]:
+    """Per player: (games played, mean minutes) in the team's last `window` games.
+
+    Players who have since played for another team are skipped (traded players count for
+    their new team from his first game there).
+    """
     total: dict[int, float] = defaultdict(float)
     count: dict[int, int] = defaultdict(int)
     for minutes in history[-window:]:
         for pid, mins in minutes.items():
+            if last_team.get(pid) != team:
+                continue
             total[pid] += mins
             count[pid] += 1
     return {pid: (count[pid], total[pid] / count[pid]) for pid in count}
@@ -71,22 +79,29 @@ def _rotation_flags(players: pd.DataFrame) -> np.ndarray:
     """Per player row (positional): was he in the team's rotation going into that game?"""
     flags = np.zeros(len(players), dtype=bool)
     ordered = players.reset_index(drop=True).sort_values(["date", "game_id"])
-    for _, team_rows in ordered.groupby(["team", "season"], sort=False):
-        history: list[dict[int, float]] = []
-        for _, game_rows in team_rows.groupby("game_id", sort=False):
-            stats = _window_stats(history, ROTATION_WINDOW)
-            flags[game_rows.index] = [_is_rotation(stats.get(int(p))) for p in game_rows["player_id"]]
-            history.append(
-                {int(p): float(m) for p, m in zip(game_rows["player_id"], game_rows["min"], strict=True) if m > 0}
-            )
+    history: dict[str, list[dict[int, float]]] = defaultdict(list)
+    last_team: dict[int, str] = {}
+    current_season: int | None = None
+    for _, game_rows in ordered.groupby(["date", "game_id"], sort=True):
+        season = int(game_rows["season"].iloc[0])
+        if season != current_season:
+            history.clear()
+            current_season = season
+        for team, team_rows in game_rows.groupby("team", sort=False):
+            stats = _window_stats(history[team], ROTATION_WINDOW, team, last_team)
+            flags[team_rows.index] = [_is_rotation(stats.get(int(p))) for p in team_rows["player_id"]]
+        for team, team_rows in game_rows.groupby("team", sort=False):
+            here = {int(p): float(m) for p, m in zip(team_rows["player_id"], team_rows["min"], strict=True) if m > 0}
+            history[team].append(here)
+            last_team.update(dict.fromkeys(here, team))
     return flags
 
 
 def season_baselines(players: pd.DataFrame) -> dict[int, tuple[float, float]]:
     """season -> (league_avg, replacement) per minute, taken from the previous season.
 
-    FIRST_SEASON (warm-up only) uses its own season; any other season with no previous
-    season in the data also falls back to its own.
+    FIRST_SEASON (warm-up only) uses its own season. Any later season uses the previous
+    season, or the nearest earlier one present, or (0, 0) if there is none; never its own.
     """
     if players.empty:
         return {}
@@ -103,7 +118,14 @@ def season_baselines(players: pd.DataFrame) -> dict[int, tuple[float, float]]:
         bench_minutes = df.loc[bench, "min"].sum()
         replacement = gs[bench].sum() / bench_minutes if bench_minutes > 0 else league_avg
         own[int(season)] = (float(league_avg), float(replacement))
-    return {s: own[s - 1] if s != FIRST_SEASON and s - 1 in own else own[s] for s in own}
+    out: dict[int, tuple[float, float]] = {}
+    for s in own:
+        if s == FIRST_SEASON:
+            out[s] = own[s]
+            continue
+        earlier = [e for e in own if e < s]
+        out[s] = own[max(earlier)] if earlier else (0.0, 0.0)  # never the season's own data
+    return out
 
 
 def player_states(games: pd.DataFrame, players: pd.DataFrame) -> pd.DataFrame:
@@ -126,6 +148,8 @@ def player_states(games: pd.DataFrame, players: pd.DataFrame) -> pd.DataFrame:
 
     sums: dict[int, list[float]] = {}  # player -> [decayed game score, decayed minutes]
     history: dict[str, list[dict[int, float]]] = defaultdict(list)
+    last_team: dict[int, str] = {}
+    recent: dict[int, list[float]] = defaultdict(list)  # player's own last games played, any team
     current_season: int | None = None
     rows: list[tuple] = []
 
@@ -139,13 +163,16 @@ def player_states(games: pd.DataFrame, players: pd.DataFrame) -> pd.DataFrame:
         league_avg, replacement = baselines.get(int(season), (0.0, 0.0))
         for team in (home, away):
             hist = history[team]
-            rot_stats = _window_stats(hist, ROTATION_WINDOW)
-            exp_stats = _window_stats(hist, EXPECTED_MIN_WINDOW)
+            rot_stats = _window_stats(hist, ROTATION_WINDOW, team, last_team)
             here = played.get((gid, team), {})
-            for pid in rot_stats.keys() | exp_stats.keys():
+            other = played.get((gid, away if team == home else home), {})
+            for pid in rot_stats:
+                if pid in other:  # playing for the other side today: traded, new team from this game
+                    continue
                 s, m = sums.get(pid, (0.0, 0.0))
                 vpm = (VALUE_PRIOR_MINUTES * league_avg + s) / (VALUE_PRIOR_MINUTES + m)
-                expected = exp_stats[pid][1] if pid in exp_stats else 0.0
+                own_games = recent[pid][-EXPECTED_MIN_WINDOW:]
+                expected = float(np.mean(own_games)) if own_games else 0.0
                 rows.append(
                     (
                         gid, team, pid, names[pid], vpm, expected,
@@ -157,6 +184,8 @@ def player_states(games: pd.DataFrame, players: pd.DataFrame) -> pd.DataFrame:
             here = played.get((gid, team), {})
             history[team].append(here)
             for pid, mins in here.items():
+                last_team[pid] = team
+                recent[pid].append(mins)
                 s, m = sums.get(pid, (0.0, 0.0))
                 sums[pid] = [VALUE_DECAY * s + gs_lookup[(gid, team, pid)], VALUE_DECAY * m + mins]
     return pd.DataFrame(rows, columns=STATE_COLUMNS)

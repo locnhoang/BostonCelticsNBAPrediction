@@ -92,3 +92,8 @@ def test_validate_players():
         validate_players(
             frame([player_rows("0022600001", "2026-10-22", "BOS", 1, "A", -1.0)]), games
         )
+    # a completed game with no player rows for one side looks like the rotation sat out
+    with pytest.raises(DataValidationError, match="no player rows"):
+        validate_players(frame([player_rows("0022600001", "2026-10-22", "BOS", 1, "A", 30.0)]), games)
+    incomplete = make_games([("0022600001", 2026, "2026-10-22", "BOS", "NYK", None, None)])
+    validate_players(frame([player_rows("0022600001", "2026-10-22", "BOS", 1, "A", 30.0)]), incomplete)
