@@ -80,9 +80,6 @@ section {
 /* team marks */
 .team { display: inline-flex; align-items: center; gap: var(--s2); }
 .logo { display: inline-block; object-fit: contain; flex: none; }
-@media (prefers-color-scheme: dark) {
-  .logo { background: #f0efec; border-radius: 50%; padding: 2px; }
-}
 .badge {
   display: inline-flex; align-items: center; justify-content: center; flex: none;
   border-radius: 50%; color: #ffffff; font-weight: 700; letter-spacing: 0.02em;

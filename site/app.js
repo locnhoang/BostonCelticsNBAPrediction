@@ -87,7 +87,7 @@ const nextGame = (pred) => pred.games.find((g) => !g.completed) ?? null;
 function renderHeader(pred) {
   const team = pred.team_summary.team;
   const c = pred.team_context[team];
-  document.getElementById("hdr-logo").replaceChildren(teamMark(team, 28));
+  document.getElementById("hdr-logo").replaceChildren(teamMark(team, 64));
   document.getElementById("hdr-title").textContent = `Boston ${teamName(team)} ${pred.season}`;
   const started = c.wins + c.losses > 0;
   document.getElementById("hdr-meta").textContent = started
