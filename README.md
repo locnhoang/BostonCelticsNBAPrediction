@@ -10,7 +10,7 @@ Daily-updated projections for the Boston Celtics: win probability for every rema
 2. **Features** (all point-in-time, so there's no leakage): margin-of-victory Elo, recency-weighted net rating per 100 possessions with a preseason prior, home court, rest days, back-to-backs, three-in-four.
 3. **Model:** ridge regression predicts the point margin; win probability = Φ(margin / σ). It's compared against Elo-only, home-court-only, and gradient boosting (scikit-learn) in a walk-forward backtest (2018-19 → 2025-26).
 4. **Simulation:** 10,000 runs of the full league's remaining schedule, with correlated team-strength uncertainty (tuned so 80% intervals cover about 80% of outcomes), simplified tiebreakers, and the play-in.
-5. **Site:** static HTML/JS on GitHub Pages reading JSON written by the pipeline. It leads with the next game, including a breakdown of what drives the prediction (season strength, recent form, home court, rest), then shows the season outlook, team context (standings, last 10, offensive/defensive rank), schedule, and the model's track record. Team logos live in `site/logos/` (fetched once with `scripts/fetch_logos.py`).
+5. **Site:** static HTML/JS on GitHub Pages reading JSON written by the pipeline. It leads with the next game, including a breakdown of what drives the prediction (season strength, recent form, home court, rest), then shows the season outlook, team context (standings, last 10, offensive/defensive rank), schedule, and the model's track record. Team logos live in `site/logos/` (user-supplied artwork, resized to 128px; `scripts/fetch_logos.py` is the original ESPN fetch and would overwrite them).
 
 ## Backtest results
 
