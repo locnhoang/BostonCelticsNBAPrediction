@@ -17,6 +17,7 @@ from celtics.config import (
     RETRAIN_DAYS,
     TEAM,
     TEAM_SD_GRID,
+    TRACK_PICKS_FROM,
     Paths,
     current_season,
     season_label,
@@ -34,6 +35,7 @@ from celtics.export.build import (
     history_entry,
     injury_teams,
     live_metrics,
+    model_record,
     read_json,
     seed_probabilities,
     team_summary,
@@ -258,7 +260,10 @@ def run_update(
         "games": rows,
         "seed_probabilities": seed_probabilities(result, TEAM),
         "conference_table": conference_table(result, inputs, CONFERENCE_OF[TEAM]),
-        "metrics": {"live": live_metrics(rows)},
+        "metrics": {
+            "live": live_metrics(rows, since=TRACK_PICKS_FROM),
+            "record": model_record(rows, TRACK_PICKS_FROM),
+        },
         "team_context": team_context(games, season),
         "injury_report": {
             "available": feed is not None,

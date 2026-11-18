@@ -180,3 +180,37 @@ def test_schema_rejects_bad_team_context():
     for bad in ({"conf_rank": 16}, {"net_rank": 0}, {"streak": "X3"}, {"last10": "ten"}):
         with pytest.raises(ValidationError):
             TeamContext.model_validate({**good, **bad})
+
+
+def _done(gid, day, result, p):
+    return {"game_id": gid, "date": day, "completed": True, "result": result, "pregame_win_prob": p}
+
+
+def test_model_record_counts_only_tracked_picks():
+    from celtics.export.build import model_record
+
+    rows = [
+        _done("a", "2026-11-16", "L 105-115", 0.77),  # before tracking starts: ignored
+        _done("b", "2026-11-18", "W 110-100", 0.61),  # favored and won: correct
+        _done("c", "2026-11-20", "W 99-98", 0.40),  # underdog and won: wrong
+        _done("d", "2026-11-22", "L 90-100", 0.45),  # underdog and lost: correct
+        _done("e", "2026-11-24", "L 90-100", 0.50),  # exactly 0.5 counts as favoring Boston: wrong
+        _done("f", "2026-11-26", "W 120-100", None),  # no logged pick: ignored
+        {"game_id": "g", "date": "2026-11-28", "completed": False, "result": None, "pregame_win_prob": None},
+    ]
+    rec = model_record(rows, "2026-11-18")
+    assert rec == {"since": "2026-11-18", "correct": 2, "wrong": 2}
+    from celtics.export.schema import ModelRecord
+
+    ModelRecord.model_validate(rec)
+    assert model_record(rows[:1], "2026-11-18") == {"since": "2026-11-18", "correct": 0, "wrong": 0}
+
+
+def test_live_metrics_respects_tracking_start():
+    rows = [
+        _done("a", "2026-11-16", "L 105-115", 0.77),
+        _done("b", "2026-11-18", "W 110-100", 0.61),
+    ]
+    assert live_metrics(rows, since="2026-11-18")["n"] == 1
+    assert live_metrics(rows[:1], since="2026-11-18") is None
+    assert live_metrics(rows)["n"] == 2  # default: every logged pick

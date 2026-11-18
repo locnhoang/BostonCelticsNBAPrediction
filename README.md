@@ -12,6 +12,7 @@ Daily-updated projections for the Boston Celtics: win probability for every rema
 4. **Simulation:** 10,000 runs of the full league's remaining schedule, with correlated team-strength uncertainty (tuned so 80% intervals cover about 80% of outcomes), simplified tiebreakers, and the play-in.
 5. **Site:** static HTML/JS on GitHub Pages reading JSON written by the pipeline. It leads with the next game, including a breakdown of what drives the prediction (season strength, recent form, home court, rest, injuries & availability), then shows the season outlook, team context (standings, last 10, offensive/defensive rank), schedule, and the model's track record. Team logos live in `site/logos/` (user-supplied artwork, resized to 128px; `scripts/fetch_logos.py` is the original ESPN fetch and would overwrite them).
 6. **Injuries:** the backtest derives each player's absences from box scores (who played in each game); live predictions use the ESPN injury feed instead. A Day-To-Day player's chance of missing the game is learned over time from logged outcomes (starts at 0.5). Each team's availability is the value of missing rotation players relative to its recent baseline, fed to the ridge model as `ridge_avail`. In the walk-forward backtest `ridge_avail` scored log loss 0.6140 vs 0.6193 for ridge, a 0.0053 gain that clears the 0.001 margin, so `ridge_avail` is live. The site shows only the Celtics' and the next opponent's injured players, Out first and then Day-To-Day.
+7. **Pick record:** each run logs the model's win probability for upcoming Celtics games, and the last value before tip-off is kept. From 2026-11-18 on (`TRACK_PICKS_FROM` in `config.py`), each finished game is graded: the pick is correct if the side the model favored won. The site shows the running record (for example 5-2) on the next-game card and in the report card.
 
 ## Backtest results
 
@@ -39,9 +40,8 @@ uv run pytest               # tests (offline)
 
 ## Automation
 
-- `.github/workflows/daily.yml` runs `celtics update` at 14:00 UTC and deploys the site.
+- The daily update runs from a Mac via launchd (`scripts/install_launchd.sh`, 10:30 local) and pushes to `main`; pushes to `site/` deploy the site. `.github/workflows/daily.yml` is manual-only, because stats.nba.com blocks GitHub-hosted runners.
 - GitHub Pages must be set to Source "GitHub Actions" (repo Settings → Pages), or the deploy step will fail.
-- NBA.com sometimes blocks cloud IPs. If the daily job fails with "fetch blocked", install the local fallback with `scripts/install_launchd.sh` (runs daily at 10:30 from your Mac).
 - The local fallback only runs when this clone is on `main`; if you develop on branches, use a separate clone for launchd.
 - The local fallback skips if CI already updated today, and supports `--force`.
 - On macOS, the launchd job may need Full Disk Access for `/bin/bash`, or the repo moved out of Desktop, to read the folder.

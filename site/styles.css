@@ -95,7 +95,7 @@ section {
 .next-prob { text-align: center; margin-bottom: var(--s3); }
 .next-prob .big { display: block; font-size: 40px; font-weight: 700; line-height: 1.1; }
 .next-prob .sub { color: var(--text-secondary); font-size: 14px; }
-.next-opp { text-align: center; }
+.next-opp, .pick-record { text-align: center; }
 
 /* tiles */
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--s3); }
