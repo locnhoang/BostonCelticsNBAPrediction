@@ -305,10 +305,7 @@ def run_update(
     )
 
     dtd_log = read_json(data / "dtd_log.json", [])
-    try:
-        DtdLog.validate_python(dtd_log)
-    except ValidationError as exc:
-        raise DataValidationError(f"dtd_log.json is invalid: {exc}") from exc
+    _validate("dtd_log.json", lambda: DtdLog.validate_python(dtd_log))
     current = pd.DataFrame(columns=CURRENT_COLUMNS)
     if players is not None:  # without box scores a case could not be resolved honestly
         current = current_player_values(games, players, season)

@@ -310,6 +310,37 @@ def test_first_launch_migrates_old_files(repo):
     assert not (repo.site_data / "history.json").exists()
 
 
+def test_slate_record_counts_logged_picks(repo, monkeypatch):
+    """Yesterday and total count logged picks on completed games from the tracking date on."""
+    since, today, yesterday = "2024-11-01", date(2024, 11, 18), "2024-11-17"  # Nov 17 is a played round
+    monkeypatch.setattr("celtics.pipeline.LEAGUE_TRACK_FROM", since)
+    cur = pd.read_parquet(season_path(repo.raw_dir, 2024))
+    done = cur[cur["home_pts"].notna()].reset_index(drop=True)
+    log = {}
+    for i, g in done.iterrows():  # a mix of home and away picks; every 7th game has no logged pick
+        p = None if i % 7 == 0 else (0.7 if i % 3 else 0.3)
+        log[g["game_id"]] = {"home_win_prob": p, "pred_margin": None, "logged_at": "2024-10-20T14:00:00"}
+    repo.site_data.mkdir(parents=True)
+    (repo.site_data / "pregame_log.json").write_text(json.dumps(log))
+
+    expected = {"yesterday": {"correct": 0, "wrong": 0}, "total": {"correct": 0, "wrong": 0}}
+    for g in done.itertuples():
+        p = log[g.game_id]["home_win_prob"]
+        day = g.date.strftime("%Y-%m-%d")
+        if p is None or day < since:
+            continue
+        key = "correct" if (p >= 0.5) == (g.home_pts > g.away_pts) else "wrong"
+        expected["total"][key] += 1
+        if day == yesterday:
+            expected["yesterday"][key] += 1
+
+    run_update(repo, today, offline=True, n_sims=50)
+    record = _read(repo.site_data / "slate.json")["record"]
+    assert record == {"since": since, **expected}
+    assert all(v > 0 for part in expected.values() for v in part.values())
+    assert sum(expected["total"].values()) < sum(1 for e in log.values() if e["home_win_prob"] is not None)
+
+
 def test_invalid_output_writes_nothing(repo, monkeypatch):
     run_update(repo, TODAY, offline=True, n_sims=50)
     before = _snapshot(repo)
