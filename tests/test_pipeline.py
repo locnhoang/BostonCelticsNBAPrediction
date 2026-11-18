@@ -406,3 +406,16 @@ def test_healthy_equals_prediction_when_no_injuries(repo_players, monkeypatch):
         seen["baselines"][row["opponent"]] if row["home"] else seen["baselines"]["BOS"],
     )
     assert round(row["win_prob"], 4) == round(row["win_prob_healthy"], 4)
+
+
+def test_raw_feed_write_failure_keeps_the_parsed_feed(repo_players, opp_p, monkeypatch):
+    def broken(path, obj):
+        if "injuries" in str(path):
+            raise OSError("disk full")
+        return real(path, obj)
+
+    real = pipeline_module.write_json_atomic
+    monkeypatch.setattr("celtics.pipeline.write_json_atomic", broken)
+    pred = run_update(repo_players, TODAY, offline=True, n_sims=50)
+    assert pred["injury_report"]["available"] is True
+    assert pred["injury_report"]["teams"][opp_p]

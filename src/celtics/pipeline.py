@@ -153,10 +153,13 @@ def _load_feed(paths: Paths, today: date, players, season: int):
         unmatched = [*unmatched, *(f"{n} (unknown team)" for n in unknown_teams(raw))]
         as_of = raw.get("timestamp")
         as_of = as_of if isinstance(as_of, str) else None
-        write_json_atomic(paths.injuries_dir / f"{today.isoformat()}.json", raw)
     except Exception as exc:  # an injury-feed problem never blocks a run
         log.warning("ESPN injury feed unusable, publishing no adjustment: %s", exc)
         return None
+    try:
+        write_json_atomic(paths.injuries_dir / f"{today.isoformat()}.json", raw)
+    except Exception as exc:  # the raw copy is an archive; losing it keeps the parsed feed
+        log.warning("could not save the raw ESPN feed: %s", exc)
     return parsed, matched, unmatched, as_of
 
 
