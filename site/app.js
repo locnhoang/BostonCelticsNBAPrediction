@@ -730,7 +730,12 @@ function registerView(name, render) {
 }
 
 function route() {
-  const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
+  let parts;
+  try {
+    parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
+  } catch {
+    return { view: "home", arg: null }; // malformed escape in the URL
+  }
   const [view, arg] = parts;
   if (view === "team" && arg && arg.toUpperCase() in TEAMS) return { view: "team", arg: arg.toUpperCase() };
   if (view === "game" && arg) return { view: "game", arg };
@@ -787,7 +792,11 @@ function renderNav(r) {
   );
   const add = el("button", { class: "navtab nav-add", type: "button", "aria-haspopup": "dialog" }, "+ Add team");
   add.addEventListener("click", openPicker);
-  document.getElementById("nav-tabs").replaceChildren(...NAV_LEAD.map(fixed), ...teams, add, ...NAV_TRAIL.map(fixed));
+  const box = document.getElementById("nav-tabs");
+  // Re-rendering replaces the tabs; keep keyboard focus on the same link if it had it.
+  const focusedHref = box.contains(document.activeElement) ? document.activeElement.getAttribute("href") : null;
+  box.replaceChildren(...NAV_LEAD.map(fixed), ...teams, add, ...NAV_TRAIL.map(fixed));
+  if (focusedHref) box.querySelector(`a[href="${focusedHref}"]`)?.focus();
   updateThemeButton();
 }
 
@@ -812,9 +821,11 @@ function openPicker() {
             mine.includes(abbr) ? el("span", { class: "fav", title: "Following", "aria-label": "Following" }, "★") : "",
           );
           btn.addEventListener("click", () => {
-            if (!mine.includes(abbr)) setFollowed([...mine, abbr]);
             dialog.close();
+            if (!mine.includes(abbr)) setFollowed([...mine, abbr]);
             location.hash = `#/team/${abbr}`;
+            // The "+ Add team" button that opened the dialog was replaced; move focus to the new tab.
+            document.querySelector(`#nav-tabs a[href="#/team/${abbr}"]`)?.focus();
           });
           return el("li", {}, btn);
         }),
@@ -876,7 +887,10 @@ registerView("game", (arg) => {
 });
 
 async function renderAbout(_arg, t) {
-  const backtest = await loadJson("data/backtest.json").catch(() => null);
+  const backtest = await loadJson("data/backtest.json").catch((err) => {
+    console.error("Could not load the backtest", err);
+    return null;
+  });
   guarded("backtest", "models", () => renderBacktest(backtest, t));
   // "How it works" walks through the Celtics' next game.
   let example = null;
