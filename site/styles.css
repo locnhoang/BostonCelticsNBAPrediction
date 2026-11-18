@@ -15,19 +15,21 @@
   --chip-out-text: #8a1c12;
   --chip-dtd: #fdecc0;
   --chip-dtd-text: #6b4800;
+  --badge-ring: none;
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
 }
 
+/* Dark tokens apply when the device prefers dark and no light choice is stored, or when dark is stored. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --page: #0d0d0d;
-    --surface: #1a1a19;
+    --page: #0d0f12;
+    --surface: #1a1d22;
     --text: #f0efec;
     --text-secondary: #c3c2b7;
-    --muted: #898781;
-    --grid: #2c2c2a;
-    --axis: #383835;
+    --muted: #8a9097;
+    --grid: #2a2e34;
+    --axis: #3a3f46;
     --border: rgba(255, 255, 255, 0.1);
     --accent: #3fae6a;
     --accent-soft: rgba(63, 174, 106, 0.16);
@@ -36,7 +38,28 @@
     --chip-out-text: #ffd0ca;
     --chip-dtd: #4f3b0a;
     --chip-dtd-text: #ffe29a;
+    --badge-ring: 0 0 0 1px rgba(255, 255, 255, 0.35);
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0f12;
+  --surface: #1a1d22;
+  --text: #f0efec;
+  --text-secondary: #c3c2b7;
+  --muted: #8a9097;
+  --grid: #2a2e34;
+  --axis: #3a3f46;
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: #3fae6a;
+  --accent-soft: rgba(63, 174, 106, 0.16);
+  --neutral-bar: #6a6862;
+  --chip-out: #5a211c;
+  --chip-out-text: #ffd0ca;
+  --chip-dtd: #4f3b0a;
+  --chip-dtd-text: #ffe29a;
+  --badge-ring: 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
 * { box-sizing: border-box; }
@@ -49,7 +72,8 @@ body {
   font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-main { max-width: 1000px; margin: 0 auto; padding: var(--s6) var(--s4) 0; }
+main { max-width: 1000px; margin: 0 auto; padding: var(--s5) var(--s4) 0; }
+.view-title { margin-bottom: var(--s2); }
 
 h1 { font-size: 28px; line-height: 1.2; margin: 0; }
 h2 { font-size: 20px; line-height: 1.3; margin: 0; }
@@ -83,6 +107,7 @@ section {
 .badge {
   display: inline-flex; align-items: center; justify-content: center; flex: none;
   border-radius: 50%; color: #ffffff; font-weight: 700; letter-spacing: 0.02em;
+  box-shadow: var(--badge-ring);
 }
 
 /* next game */
@@ -161,10 +186,6 @@ footer a { color: var(--text-secondary); }
 .show-all { font: inherit; font-size: 14px; margin-top: var(--s3); padding: var(--s1) var(--s3); border-radius: 999px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); }
 [role=tabpanel]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-@media (prefers-color-scheme: dark) {
-  .badge { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35); }
-}
-
 .inj-line { font-weight: 600; margin: var(--s2) 0 var(--s3); }
 .inj-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s5); margin-bottom: var(--s3); }
 @media (max-width: 560px) { .inj-cols { grid-template-columns: 1fr; gap: var(--s4); } }
@@ -181,3 +202,52 @@ footer a { color: var(--text-secondary); }
 .inj-toggle { display: block; font: inherit; font-size: 14px; margin: 0 0 var(--s2); padding: var(--s1) var(--s3); border-radius: 999px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); }
 .inj-toggle[aria-expanded="true"] { background: var(--accent-soft); color: var(--text); border-color: var(--accent); }
 .inj-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* nav bar: black in both themes */
+.topnav { background: #000000; color: #ffffff; position: sticky; top: 0; z-index: 10; }
+.topnav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: stretch; padding: 0 var(--s3); }
+.brand {
+  flex: none; display: flex; align-items: center; color: #ffffff; text-decoration: none;
+  font-weight: 800; font-size: 15px; letter-spacing: 0.04em; white-space: nowrap;
+  padding: var(--s3) var(--s4) var(--s3) 0; margin-right: var(--s1); border-right: 1px solid #333333;
+}
+.nav-tabs { flex: 1; min-width: 0; display: flex; align-items: stretch; overflow-x: auto; scrollbar-width: none; }
+.nav-tabs::-webkit-scrollbar { display: none; }
+.navtab {
+  flex: none; display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  padding: var(--s3) 14px 9px; border: 0; border-bottom: 3px solid transparent; background: none;
+  color: #cccccc; font: inherit; font-size: 15px; text-decoration: none; cursor: pointer;
+}
+.navtab:hover { color: #ffffff; }
+.navtab[aria-current="page"] { color: #ffffff; font-weight: 700; border-bottom-color: #dd0000; }
+.navtab .logo, .navtab .badge { width: 22px; height: 22px; }
+.nav-add { margin-left: auto; }
+.fav { color: #e0a800; }
+.theme-toggle {
+  flex: none; align-self: center; margin-left: var(--s2); width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid #444444; background: none; color: #ffffff; font-size: 16px; cursor: pointer;
+}
+.theme-toggle:hover { border-color: #888888; }
+.brand:focus-visible, .navtab:focus-visible, .theme-toggle:focus-visible { outline: 2px solid #ffffff; outline-offset: -2px; }
+@media (max-width: 559px) {
+  .brand { font-size: 13px; padding-right: var(--s3); }
+  .navtab { padding-left: 10px; padding-right: 10px; }
+}
+
+/* team picker */
+.team-picker {
+  width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 64px); padding: var(--s5);
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 12px;
+}
+.team-picker::backdrop { background: rgba(0, 0, 0, 0.55); }
+.picker-head { display: flex; justify-content: space-between; align-items: center; }
+.picker-close { font: inherit; font-size: 18px; background: none; border: 0; color: var(--text-secondary); cursor: pointer; padding: var(--s1) var(--s2); }
+.picker-group h3 { margin: var(--s4) 0 var(--s2); font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.picker-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--s2); }
+.picker-team {
+  width: 100%; display: flex; align-items: center; gap: var(--s2); font: inherit; font-size: 15px; text-align: left;
+  padding: var(--s2) var(--s3); border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text); cursor: pointer;
+}
+.picker-team:hover { background: var(--accent-soft); border-color: var(--accent); }
+.picker-team .fav { margin-left: auto; }
+.picker-close:focus-visible, .picker-team:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

@@ -13,6 +13,9 @@ const TEAMS = {
 };
 const teamName = (abbr) => TEAMS[abbr]?.[0] ?? abbr;
 
+const EAST = ["ATL", "BKN", "BOS", "CHA", "CHI", "CLE", "DET", "IND", "MIA", "MIL", "NYK", "ORL", "PHI", "TOR", "WAS"];
+const CONFERENCE_OF = Object.fromEntries(Object.keys(TEAMS).map((abbr) => [abbr, EAST.includes(abbr) ? "East" : "West"]));
+
 const pct = (p) => (p == null ? "—" : `${Math.round(p * 100)}%`);
 const pct1 = (p) => `${(p * 100).toFixed(1)}%`;
 const signed = (m) => (m > 0 ? `+${m.toFixed(1)}` : m.toFixed(1));
@@ -645,13 +648,55 @@ function renderHowExample(pred) {
     `that margin works out to a win chance of ${pct(g.win_prob)} for the ${teamName(pred.team_summary.team)}.`;
 }
 
-async function loadJson(path) {
-  const resp = await fetch(path, { cache: "no-store" });
-  if (!resp.ok) throw new Error(`${path}: HTTP ${resp.status}`);
-  return resp.json();
+// ---------------------------------------------------------------------------
+// Data loading, storage and app state
+
+// One fetch per path for the page's lifetime; a failed load is forgotten so a later call can retry.
+const jsonCache = new Map();
+function loadJson(path) {
+  if (!jsonCache.has(path)) {
+    const p = fetch(path, { cache: "no-store" }).then((resp) => {
+      if (!resp.ok) throw new Error(`${path}: HTTP ${resp.status}`);
+      return resp.json();
+    });
+    p.catch(() => jsonCache.delete(path));
+    jsonCache.set(path, p);
+  }
+  return jsonCache.get(path);
 }
 
-let state = null;
+// JSON values in localStorage. The site works without storage: reads fall back, writes are dropped.
+const store = {
+  get(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw == null ? fallback : JSON.parse(raw);
+    } catch {
+      return fallback;
+    }
+  },
+  set(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // Storage unavailable (private mode, blocked): keep going without it.
+    }
+  },
+};
+
+// Followed teams, in the order they were followed.
+function followed() {
+  const list = store.get("followed", []);
+  if (!Array.isArray(list)) return [];
+  return [...new Set(list.filter((abbr) => typeof abbr === "string" && abbr in TEAMS))];
+}
+
+function setFollowed(list) {
+  store.set("followed", [...new Set(list.filter((abbr) => abbr in TEAMS))]);
+  renderNav(route());
+}
+
+const state = { league: null };
 
 let failed = false;
 let updatedBase = "";
@@ -667,45 +712,208 @@ function guarded(name, containerId, fn) {
   }
 }
 
-function safeRender() {
-  if (!state) return;
-  failed = false;
-  const t = theme();
-  const { pred, history, backtest } = state;
-  guarded("header", "hdr-meta", () => renderHeader(pred));
-  guarded("report card", "record", () => renderRecord(pred));
-  guarded("next game", "next-card", () => renderNextGame(pred, t));
-  guarded("outlook", "outlook", () => renderOutlook(pred, history));
-  guarded("context", "context", () => renderContext(pred));
-  guarded("upcoming games", "upcoming", () => renderUpcoming(pred));
-  guarded("results", "completed", () => renderResults(pred));
-  guarded("history", "chart-history", () => renderHistory(history, t));
-  guarded("wins", "chart-wins", () => renderWins(pred, t));
-  guarded("seeds", "chart-seeds", () => renderSeeds(pred, t));
-  guarded("east", "east", () => renderEast(pred));
-  guarded("backtest", "models", () => renderBacktest(backtest, t));
-  guarded("how it works", "how-example", () => renderHowExample(pred));
-  if (failed) {
-    const u = document.getElementById("updated");
-    u.textContent = `${updatedBase} · some sections failed to draw`;
+function showStatus() {
+  document.getElementById("updated").textContent = failed ? `${updatedBase} · some sections failed to draw` : updatedBase;
+}
+
+// ---------------------------------------------------------------------------
+// Router
+
+const views = new Map();
+
+// Register a view. It renders into #view-{name}, which is created if index.html has none.
+function registerView(name, render) {
+  views.set(name, render);
+  if (!document.getElementById(`view-${name}`)) {
+    document.querySelector("main").append(el("div", { id: `view-${name}`, class: "view", hidden: "" }));
   }
 }
 
-async function main() {
-  let pred, history, backtest;
+function route() {
+  const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
+  const [view, arg] = parts;
+  if (view === "team" && arg && arg.toUpperCase() in TEAMS) return { view: "team", arg: arg.toUpperCase() };
+  if (view === "game" && arg) return { view: "game", arg };
+  if (view === "about" && parts.length === 1) return { view: "about", arg: null };
+  // Views added later (e.g. a picks page) route as #/{name} with an optional argument.
+  if (view && !["home", "team", "game", "about"].includes(view) && views.has(view)) return { view, arg: arg ?? null };
+  return { view: "home", arg: null };
+}
+
+function renderCurrent() {
+  const r = route();
+  for (const name of views.keys()) document.getElementById(`view-${name}`).hidden = name !== r.view;
+  renderNav(r);
+  failed = false;
+  const t = theme();
+  const done = () => showStatus();
   try {
-    [pred, history, backtest] = await Promise.all([
-      loadJson("data/predictions.json"),
-      loadJson("data/history.json").catch(() => []),
-      loadJson("data/backtest.json").catch(() => null),
-    ]);
+    Promise.resolve(views.get(r.view)(r.arg, t))
+      .catch((err) => viewFailed(r.view, err))
+      .finally(done);
   } catch (err) {
-    document.getElementById("updated").textContent = `Could not load predictions (${err.message}).`;
-    return;
+    viewFailed(r.view, err);
+    done();
   }
-  state = { pred, history, backtest };
-  setupTabs();
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", safeRender);
+}
+
+function viewFailed(name, err) {
+  console.error(`View "${name}" failed to draw`, err);
+  failed = true;
+  document.getElementById(`view-${name}`).replaceChildren(el("p", { class: "muted" }, "This page could not be drawn."));
+}
+
+// ---------------------------------------------------------------------------
+// Nav bar
+
+// Fixed tabs around the followed teams. A new page is one entry here plus a registerView call.
+const NAV_LEAD = [{ view: "home", label: "Home", href: "#/" }];
+const NAV_TRAIL = [{ view: "about", label: "About", href: "#/about" }];
+
+function navTab(href, current, ...children) {
+  return el("a", { class: "navtab", href, ...(current ? { "aria-current": "page" } : {}) }, ...children);
+}
+
+function renderNav(r) {
+  const fixed = (tab) => navTab(tab.href, r.view === tab.view, tab.label);
+  const teams = followed().map((abbr) =>
+    navTab(
+      `#/team/${abbr}`,
+      r.view === "team" && r.arg === abbr,
+      teamMark(abbr, 22),
+      el("span", {}, teamName(abbr)),
+      el("span", { class: "fav", "aria-hidden": "true" }, "★"),
+    ),
+  );
+  const add = el("button", { class: "navtab nav-add", type: "button", "aria-haspopup": "dialog" }, "+ Add team");
+  add.addEventListener("click", openPicker);
+  document.getElementById("nav-tabs").replaceChildren(...NAV_LEAD.map(fixed), ...teams, add, ...NAV_TRAIL.map(fixed));
+  updateThemeButton();
+}
+
+function openPicker() {
+  const dialog = document.getElementById("team-picker");
+  const mine = followed();
+  const group = (conf, title) => {
+    const abbrs = Object.keys(TEAMS).filter((a) => CONFERENCE_OF[a] === conf).sort((a, b) => teamName(a).localeCompare(teamName(b)));
+    return el(
+      "div",
+      { class: "picker-group" },
+      el("h3", {}, title),
+      el(
+        "ul",
+        { class: "picker-list" },
+        ...abbrs.map((abbr) => {
+          const btn = el(
+            "button",
+            { class: "picker-team", type: "button" },
+            teamMark(abbr, 28),
+            el("span", {}, teamName(abbr)),
+            mine.includes(abbr) ? el("span", { class: "fav", title: "Following", "aria-label": "Following" }, "★") : "",
+          );
+          btn.addEventListener("click", () => {
+            if (!mine.includes(abbr)) setFollowed([...mine, abbr]);
+            dialog.close();
+            location.hash = `#/team/${abbr}`;
+          });
+          return el("li", {}, btn);
+        }),
+      ),
+    );
+  };
+  document.getElementById("picker-body").replaceChildren(group("East", "Eastern Conference"), group("West", "Western Conference"));
+  dialog.showModal();
+}
+
+function setupPicker() {
+  const dialog = document.getElementById("team-picker");
+  document.getElementById("picker-close").addEventListener("click", () => dialog.close());
+  // A click on the backdrop lands on the dialog element itself.
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) dialog.close();
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Theme: a stored choice wins; without one the CSS follows the device setting.
+
+const prefersDark = () => matchMedia("(prefers-color-scheme: dark)").matches;
+const effectiveTheme = () => document.documentElement.dataset.theme ?? (prefersDark() ? "dark" : "light");
+
+function applyStoredTheme() {
+  const stored = store.get("theme", null);
+  if (stored === "light" || stored === "dark") document.documentElement.dataset.theme = stored;
+}
+
+function updateThemeButton() {
+  const btn = document.getElementById("theme-toggle");
+  const next = effectiveTheme() === "dark" ? "light" : "dark";
+  btn.textContent = next === "light" ? "☀" : "☾";
+  btn.setAttribute("aria-label", `Switch to ${next} theme`);
+  btn.title = `Switch to ${next} theme`;
+}
+
+function toggleTheme() {
+  const next = effectiveTheme() === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  store.set("theme", next);
+  renderCurrent();
+}
+
+// ---------------------------------------------------------------------------
+// Views. Home, team and game are placeholders until their pages land.
+
+registerView("home", (arg) => {
+  document.getElementById("view-home").replaceChildren(el("p", { class: "muted" }, `Home (${arg ?? "today"})`));
+});
+
+registerView("team", (arg) => {
+  document.getElementById("view-team").replaceChildren(el("p", { class: "muted" }, `Team: ${arg}`));
+});
+
+registerView("game", (arg) => {
+  document.getElementById("view-game").replaceChildren(el("p", { class: "muted" }, `Game: ${arg}`));
+});
+
+async function renderAbout(_arg, t) {
+  const backtest = await loadJson("data/backtest.json").catch(() => null);
+  guarded("backtest", "models", () => renderBacktest(backtest, t));
+  // "How it works" walks through the Celtics' next game.
+  let example = null;
+  try {
+    const bos = await loadJson("data/teams/BOS.json");
+    example = { ...bos, team_context: state.league?.team_context ?? {} };
+  } catch (err) {
+    console.error("Could not load the example team", err);
+  }
+  guarded("how it works", "how-example", () => {
+    if (example) renderHowExample(example);
+    else document.getElementById("how-example").hidden = true;
+  });
+}
+
+registerView("about", renderAbout);
+
+// ---------------------------------------------------------------------------
+// Bootstrap. Runs after every plain script on the page, so later scripts can register views first.
+
+async function main() {
+  applyStoredTheme();
+  setupPicker();
+  document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+  renderNav(route());
+  try {
+    state.league = await loadJson("data/league.json");
+    updatedBase = `Updated ${new Date(state.league.generated_at).toLocaleString()} · model ${state.league.model_version}`;
+  } catch (err) {
+    updatedBase = `Could not load league data (${err.message}).`;
+  }
+  window.addEventListener("hashchange", () => {
+    window.scrollTo(0, 0);
+    renderCurrent();
+  });
+  // Charts read colors from CSS, so a device theme change redraws the current view.
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderCurrent);
   let timer;
   let lastWidth = window.innerWidth;
   window.addEventListener("resize", () => {
@@ -713,9 +921,9 @@ async function main() {
     if (window.innerWidth === lastWidth) return;
     lastWidth = window.innerWidth;
     clearTimeout(timer);
-    timer = setTimeout(safeRender, 150);
+    timer = setTimeout(renderCurrent, 150);
   });
-  safeRender();
+  renderCurrent();
 }
 
-main();
+document.addEventListener("DOMContentLoaded", main);
