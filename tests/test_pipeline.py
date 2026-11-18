@@ -137,8 +137,8 @@ def test_run_update_writes_valid_outputs(repo):
     assert len(history) == 1
     HistoryEntry.model_validate(history[0])
     log = json.loads((repo.site_data / "pregame_log.json").read_text())
-    # the Nov 19 round is dated before today (Nov 20) and unplayed: frozen, never back-filled
-    assert len(log) == 66
+    # the Nov 19 round is dated before today (Nov 20) and unplayed: frozen, never back-filled (league-wide log: 30*66/2 games)
+    assert len(log) == 990
     assert (repo.model_dir / "ridge.joblib").exists()
 
 
@@ -249,7 +249,7 @@ def test_run_update_rejects_completed_games_going_backwards(repo):
 
 def test_run_update_rejects_corrupt_pregame_log(repo):
     repo.site_data.mkdir(parents=True)
-    bad = {"g1": {"win_prob": 3.0, "pred_margin": 1.0, "logged_at": "2024-11-19T14:00:00"}}
+    bad = {"g1": {"home_win_prob": 3.0, "pred_margin": 1.0, "logged_at": "2024-11-19T14:00:00"}}
     (repo.site_data / "pregame_log.json").write_text(json.dumps(bad))
     with pytest.raises(ValidationError):
         run_update(repo, TODAY, offline=True, n_sims=50)

@@ -185,7 +185,7 @@ class BacktestReport(BaseModel):
 
 
 class PregameEntry(BaseModel):
-    win_prob: Prob | None
+    home_win_prob: Prob | None
     pred_margin: float | None
     logged_at: str
 

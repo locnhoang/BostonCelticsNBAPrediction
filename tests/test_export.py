@@ -1,6 +1,7 @@
 from datetime import date
 
 import numpy as np
+import pandas as pd
 import pytest
 from pydantic import ValidationError
 
@@ -8,14 +9,13 @@ from celtics.config import FIRST_TRAIN_SEASON
 from celtics.export.build import (
     game_rows,
     history_entry,
-    live_metrics,
     read_json,
     seed_probabilities,
     team_summary,
-    update_pregame_log,
     upsert_history,
     write_json_atomic,
 )
+from celtics.export.league import update_league_pregame_log
 from celtics.export.schema import HistoryEntry, PregameLog, TeamSummary
 from celtics.features.build import FEATURES, build_features
 from celtics.models.margin import make_model
@@ -73,21 +73,20 @@ def test_game_rows_perspective_and_pregame_log(season_rows):
     away = next(r for r in upcoming if not r["home"])
     assert (away["win_prob"] > 0.5) == (away["pred_margin"] > 0)
 
-    log = update_pregame_log({}, rows, "2023-11-19T14:00:00")  # day of the next round
-    assert set(log) == {r["game_id"] for r in upcoming}
+    log = update_league_pregame_log({}, feats, model, 2023, "2023-11-19T14:00:00", "2023-11-19")
+    assert {r["game_id"] for r in upcoming} <= set(log)  # the league log covers every team's games
     first = upcoming[0]["game_id"]
-    log[first]["win_prob"] = 0.42
+    log[first]["home_win_prob"] = 0.42
     # once the game is completed the logged value is kept and shown
     feats2 = feats.copy()
     i = feats2.index[feats2["game_id"] == first][0]
     feats2.loc[i, ["home_pts", "away_pts", "completed", "margin"]] = [100.0, 90.0, True, 10.0]
     rows2 = game_rows(feats2, model, 2023, "BOS", pregame_log=log)
     shown = next(r for r in rows2 if r["game_id"] == first)
-    assert shown["completed"] and shown["pregame_win_prob"] == 0.42
-    log2 = update_pregame_log(log, rows2, "2023-11-21T14:00:00")
-    assert log2[first]["win_prob"] == 0.42
-    metrics = live_metrics(rows2)
-    assert metrics["n"] == 1
+    assert shown["completed"]
+    assert shown["pregame_win_prob"] == (0.42 if shown["home"] else 0.58)
+    log2 = update_league_pregame_log(log, feats2, model, 2023, "2023-11-21T14:00:00", "2023-11-21")
+    assert log2[first]["home_win_prob"] == 0.42  # completed: not refreshed
 
 
 def test_history_upsert_replaces_same_day():
@@ -109,39 +108,46 @@ def test_atomic_write_roundtrip(tmp_path):
     assert read_json(tmp_path / "missing.json", []) == []
 
 
+def _toy_feats(rows):
+    return pd.DataFrame(
+        [{"game_id": g, "season": 2026, "date": pd.Timestamp(d), "completed": False} for g, d in rows]
+    )
+
+
+class _FixedModel:
+    def win_prob(self, df):
+        return np.full(len(df), 0.7)
+
+    def predict_margin(self, df):
+        return np.full(len(df), 4.0)
+
+
 def test_pregame_log_tracks_latest_prediction_until_game_day_passes():
     old = {
-        "future": {"win_prob": 0.55, "pred_margin": 1.0, "logged_at": "2026-11-01T14:00:00"},
-        "past": {"win_prob": 0.55, "pred_margin": 1.0, "logged_at": "2026-11-10T14:00:00"},
+        "future": {"home_win_prob": 0.55, "pred_margin": 1.0, "logged_at": "2026-11-01T14:00:00"},
+        "past": {"home_win_prob": 0.55, "pred_margin": 1.0, "logged_at": "2026-11-10T14:00:00"},
     }
-    rows = [
-        # upcoming game: refreshed every run so the log holds the latest pre-game value
-        {"game_id": "future", "date": "2026-11-15", "completed": False, "win_prob": 0.7, "pred_margin": 4.0},
-        # game dated before today but missing its result (short game log): stays frozen
-        {"game_id": "past", "date": "2026-11-11", "completed": False, "win_prob": 0.9, "pred_margin": 9.0},
-        # game today: still refreshable
-        {"game_id": "today", "date": "2026-11-12", "completed": False, "win_prob": 0.4, "pred_margin": -2.0},
-    ]
-    out = update_pregame_log(old, rows, "2026-11-12T14:00:00")
-    assert out["future"]["win_prob"] == 0.7 and out["future"]["logged_at"] == "2026-11-12T14:00:00"
-    assert out["past"]["win_prob"] == 0.55
-    assert out["today"]["win_prob"] == 0.4
+    feats = _toy_feats([("future", "2026-11-15"), ("past", "2026-11-11"), ("today", "2026-11-12")])
+    out = update_league_pregame_log(old, feats, _FixedModel(), 2026, "2026-11-12T14:00:00", "2026-11-12")
+    assert out["future"]["home_win_prob"] == 0.7 and out["future"]["logged_at"] == "2026-11-12T14:00:00"
+    assert out["past"]["home_win_prob"] == 0.55  # frozen
+    assert out["today"]["home_win_prob"] == 0.7  # game today: still refreshable
     # a past-dated game with no entry yet is not back-filled
-    assert "past" not in update_pregame_log({}, rows, "2026-11-12T14:00:00")
+    assert "past" not in update_league_pregame_log({}, feats, _FixedModel(), 2026, "x", "2026-11-12")
 
 
 def test_pregame_log_schema_rejects_bad_entry():
-    PregameLog.validate_python({"g1": {"win_prob": 0.5, "pred_margin": None, "logged_at": "x"}})
+    PregameLog.validate_python({"g1": {"home_win_prob": 0.5, "pred_margin": None, "logged_at": "x"}})
     with pytest.raises(ValidationError):
-        PregameLog.validate_python({"g1": {"win_prob": 1.5, "pred_margin": 1.0, "logged_at": "x"}})
+        PregameLog.validate_python({"g1": {"home_win_prob": 1.5, "pred_margin": 1.0, "logged_at": "x"}})
 
 
-def test_update_pregame_log_freeze_uses_given_today_not_utc_clock():
-    rows = [{"game_id": "g", "date": "2026-11-11", "completed": False, "win_prob": 0.7, "pred_margin": 4.0}]
+def test_update_league_pregame_log_freeze_uses_given_today_not_utc_clock():
+    feats = _toy_feats([("g", "2026-11-11")])
     # UTC clock already says Nov 12 but the Eastern game day is still Nov 11: not frozen
-    out = update_pregame_log({}, rows, "2026-11-12T02:00:00", today="2026-11-11")
-    assert out["g"]["win_prob"] == 0.7
-    assert update_pregame_log({}, rows, "2026-11-12T02:00:00") == {}  # default: UTC date
+    out = update_league_pregame_log({}, feats, _FixedModel(), 2026, "2026-11-12T02:00:00", "2026-11-11")
+    assert out["g"]["home_win_prob"] == 0.7
+    assert update_league_pregame_log({}, feats, _FixedModel(), 2026, "2026-11-12T02:00:00", "2026-11-12") == {}
 
 
 def test_game_rows_drivers_sum_and_flip(season_rows):
@@ -204,13 +210,3 @@ def test_model_record_counts_only_tracked_picks():
 
     ModelRecord.model_validate(rec)
     assert model_record(rows[:1], "2026-11-18") == {"since": "2026-11-18", "correct": 0, "wrong": 0}
-
-
-def test_live_metrics_respects_tracking_start():
-    rows = [
-        _done("a", "2026-11-16", "L 105-115", 0.77),
-        _done("b", "2026-11-18", "W 110-100", 0.61),
-    ]
-    assert live_metrics(rows, since="2026-11-18")["n"] == 1
-    assert live_metrics(rows[:1], since="2026-11-18") is None
-    assert live_metrics(rows)["n"] == 2  # default: every logged pick

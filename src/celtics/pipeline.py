@@ -34,16 +34,15 @@ from celtics.export.build import (
     healthy_win_prob,
     history_entry,
     injury_teams,
-    live_metrics,
     model_record,
     read_json,
     seed_probabilities,
     team_summary,
-    update_pregame_log,
     upsert_history,
     write_json_atomic,
 )
 from celtics.export.context import team_context
+from celtics.export.league import migrate_pregame_log, update_league_pregame_log
 from celtics.export.schema import BacktestReport, DtdLog, HistoryEntry, Predictions, PregameLog
 from celtics.features.availability import (
     CURRENT_COLUMNS,
@@ -233,9 +232,11 @@ def run_update(
     )
 
     generated_at = _now(now)
-    pregame_log = read_json(paths.site_data / "pregame_log.json", {})
+    pregame_log = migrate_pregame_log(read_json(paths.site_data / "pregame_log.json", {}), games, TEAM)
+    pregame_log = update_league_pregame_log(
+        pregame_log, feats, model, season, generated_at, today.isoformat()
+    )
     rows = game_rows(feats, model, season, TEAM, pregame_log)
-    pregame_log = update_pregame_log(pregame_log, rows, generated_at, today=today.isoformat())
     upcoming = next((r for r in rows if not r["completed"]), None)
     teams: dict[str, list[dict]] = {}
     if upcoming is not None:
@@ -261,7 +262,7 @@ def run_update(
         "seed_probabilities": seed_probabilities(result, TEAM),
         "conference_table": conference_table(result, inputs, CONFERENCE_OF[TEAM]),
         "metrics": {
-            "live": live_metrics(rows, since=TRACK_PICKS_FROM),
+            "live": None,
             "record": model_record(rows, TRACK_PICKS_FROM),
         },
         "team_context": team_context(games, season),

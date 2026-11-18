@@ -9,7 +9,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from celtics.evaluate.metrics import summarize
 from celtics.injuries import normalize_name, p_out
 from celtics.models.explain import explain
 from celtics.models.margin import MarginModel
@@ -106,7 +105,9 @@ def game_rows(
             mine, theirs = (row.home_pts, row.away_pts) if home else (row.away_pts, row.home_pts)
             out["result"] = f"{'W' if mine > theirs else 'L'} {int(mine)}-{int(theirs)}"
             logged = pregame_log.get(row.game_id)
-            out["pregame_win_prob"] = logged["win_prob"] if logged else None
+            if logged and logged["home_win_prob"] is not None:
+                hp = logged["home_win_prob"]
+                out["pregame_win_prob"] = r4(hp if home else 1 - hp)
         else:
             out["win_prob"] = r4(p if home else 1 - p)
             out["pred_margin"] = round(float(m if home else -m), 1)
@@ -118,23 +119,6 @@ def game_rows(
                 ]
         rows.append(out)
     return rows
-
-
-def update_pregame_log(log: dict, rows: list[dict], now_iso: str, today: str | None = None) -> dict:
-    """`today` is the Eastern game date (ISO); defaults to the UTC date of `now_iso`."""
-    updated = dict(log)
-    today = today or now_iso[:10]
-    for r in rows:
-        # Keep the latest pre-game prediction for each game. Once a game's date has passed
-        # its entry is frozen, even if a short game log makes it look unplayed again.
-        if r["completed"] or r["date"] < today:
-            continue
-        updated[r["game_id"]] = {
-            "win_prob": r["win_prob"],
-            "pred_margin": r["pred_margin"],
-            "logged_at": now_iso,
-        }
-    return updated
 
 
 def _scored(rows: list[dict], since: str | None) -> list[dict]:
@@ -156,16 +140,6 @@ def model_record(rows: list[dict], since: str) -> dict:
     scored = _scored(rows, since)
     correct = sum(called_it(r) for r in scored)
     return {"since": since, "correct": correct, "wrong": len(scored) - correct}
-
-
-def live_metrics(rows: list[dict], since: str | None = None) -> dict | None:
-    scored = _scored(rows, since)
-    if not scored:
-        return None
-    p = [r["pregame_win_prob"] for r in scored]
-    y = [1.0 if r["result"].startswith("W") else 0.0 for r in scored]
-    s = summarize(p, y)
-    return {"n": s["n"], "log_loss": r4(s["log_loss"]), "brier": r4(s["brier"]), "accuracy": r4(s["accuracy"])}
 
 
 def history_entry(day: date, summary: dict) -> dict:
