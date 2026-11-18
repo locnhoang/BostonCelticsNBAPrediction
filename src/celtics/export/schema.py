@@ -193,6 +193,49 @@ class PregameEntry(BaseModel):
 PregameLog = TypeAdapter(dict[str, PregameEntry])
 
 
+class SlateGame(BaseModel):
+    game_id: str
+    date: str
+    home: str
+    away: str
+    home_record: str
+    away_record: str
+    completed: bool
+    home_win_prob: Prob | None
+    home_win_prob_healthy: Prob | None
+    pred_margin: float | None
+    pick: str | None
+    home_pts: int | None
+    away_pts: int | None
+    pregame_home_win_prob: Prob | None
+    correct: bool | None
+    drivers: list[Driver] | None
+    injuries: dict[str, list[InjuryPlayer]] | None
+
+
+class SlateDay(BaseModel):
+    date: str
+    games: list[SlateGame]
+
+
+class RecordCount(BaseModel):
+    correct: int = Field(ge=0)
+    wrong: int = Field(ge=0)
+
+
+class SlateRecord(BaseModel):
+    since: str
+    yesterday: RecordCount
+    total: RecordCount
+
+
+class Slate(BaseModel):
+    generated_at: str
+    model_version: str
+    days: list[SlateDay]
+    record: SlateRecord
+
+
 class DtdCase(BaseModel):
     date: str
     team: str

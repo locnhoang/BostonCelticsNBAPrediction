@@ -13,6 +13,7 @@ BACKTEST_SEASONS = list(range(2018, 2026))
 MODEL_NAME = "ridge_avail"  # adopted: beat ridge by at least AVAIL_ADOPT_MARGIN log loss in the backtest
 RETRAIN_DAYS = 7
 TRACK_PICKS_FROM = "2026-11-18"  # the model pick record counts Celtics games from this date on
+LEAGUE_TRACK_FROM = "2026-11-18"  # league banner and non-Boston team records count from here (Task 8 sets launch day)
 GAMES_PER_TEAM = 82
 
 N_SIMS = 10_000

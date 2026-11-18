@@ -1,9 +1,13 @@
 """League-wide pregame log: every game's home-side win probability, frozen once its day passes."""
 
 import logging
+from collections.abc import Callable
+from datetime import date, timedelta
 
 import pandas as pd
 
+from celtics.export.build import healthy_win_prob, r4
+from celtics.models.explain import explain
 from celtics.models.margin import MarginModel
 
 log = logging.getLogger(__name__)
@@ -50,3 +54,109 @@ def update_league_pregame_log(
             "logged_at": now_iso,
         }
     return updated
+
+
+def pick(home: str, away: str, p_home: float) -> str:
+    """The model's pick: the home team at 0.5 or better, else the away team."""
+    return home if p_home >= 0.5 else away
+
+
+def pick_record(games: list[dict], since: str, team: str | None = None) -> dict:
+    """Correct and wrong picks over completed slate games with a logged pick, dated `since` or later."""
+    correct = wrong = 0
+    for g in games:
+        if not g["completed"] or g["pregame_home_win_prob"] is None or g["date"] < since:
+            continue
+        if team is not None and team not in (g["home"], g["away"]):
+            continue
+        home_won = g["home_pts"] > g["away_pts"]
+        if (g["pregame_home_win_prob"] >= 0.5) == home_won:
+            correct += 1
+        else:
+            wrong += 1
+    return {"since": since, "correct": correct, "wrong": wrong}
+
+
+def _next_game_ids(feats: pd.DataFrame, season: int) -> set[tuple[str, str]]:
+    """(game_id, team) pairs where the game is that team's next incomplete game."""
+    left = feats[(feats["season"] == season) & ~feats["completed"]].sort_values(["date", "game_id"])
+    seen: set[str] = set()
+    ids: set[tuple[str, str]] = set()
+    for gid, home, away in zip(left["game_id"], left["home_team"], left["away_team"], strict=True):
+        for t in (home, away):
+            if t not in seen:
+                seen.add(t)
+                ids.add((gid, t))
+    return ids
+
+
+def slate_days(
+    feats: pd.DataFrame,
+    model: MarginModel,
+    pregame_log: dict,
+    team_context: dict[str, dict],
+    today: date,
+    baselines: dict[str, float],
+    injuries: Callable[[str, str, date, frozenset[str]], dict[str, list[dict]]] | None,
+) -> list[dict]:
+    """Yesterday, today and tomorrow, each with every game on that date."""
+    season = int(feats["season"].max())
+    next_pairs = _next_game_ids(feats, season)
+    dates = feats["date"].dt.date
+    days = []
+    for k in (-1, 0, 1):
+        day = today + timedelta(days=k)
+        rows = feats[dates == day].sort_values("game_id")
+        games = []
+        if not rows.empty:
+            probs = model.win_prob(rows)
+            margins = model.predict_margin(rows)
+            parts = explain(model, rows)
+        for i, row in enumerate(rows.itertuples()):
+            home, away = row.home_team, row.away_team
+            game = {
+                "game_id": row.game_id,
+                "date": day.isoformat(),
+                "home": home,
+                "away": away,
+                "home_record": f"{team_context[home]['wins']}-{team_context[home]['losses']}",
+                "away_record": f"{team_context[away]['wins']}-{team_context[away]['losses']}",
+                "completed": bool(row.completed),
+                "home_win_prob": None,
+                "home_win_prob_healthy": None,
+                "pred_margin": None,
+                "pick": None,
+                "home_pts": None,
+                "away_pts": None,
+                "pregame_home_win_prob": None,
+                "correct": None,
+                "drivers": None,
+                "injuries": None,
+            }
+            logged = pregame_log.get(row.game_id)
+            logged_p = logged["home_win_prob"] if logged else None
+            if row.completed:
+                game["home_pts"], game["away_pts"] = int(row.home_pts), int(row.away_pts)
+                if logged_p is not None:
+                    game["pregame_home_win_prob"] = logged_p
+                    game["pick"] = pick(home, away, logged_p)
+                    game["correct"] = (game["pick"] == home) == (row.home_pts > row.away_pts)
+            else:
+                p = r4(probs[i])
+                game["home_win_prob"] = p
+                game["home_win_prob_healthy"] = healthy_win_prob(feats, model, row.game_id, home, baselines)
+                game["pred_margin"] = round(float(margins[i]), 1)
+                game["pick"] = pick(home, away, p)
+                if parts is not None:
+                    game["drivers"] = [
+                        {"label": label, "value": round(float(parts.iloc[i][label]), 1)}
+                        for label in parts.columns
+                    ]
+                game["injuries"] = {"home": [], "away": []}
+                if injuries is not None:
+                    not_next = frozenset(t for t in (home, away) if (row.game_id, t) not in next_pairs)
+                    by_team = injuries(home, away, day, not_next)
+                    game["injuries"] = {"home": by_team.get(home, []), "away": by_team.get(away, [])}
+            games.append(game)
+        days.append({"date": day.isoformat(), "games": games})
+    return days

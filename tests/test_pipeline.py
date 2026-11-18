@@ -276,8 +276,7 @@ def test_run_update_publishes_injury_report(repo_players, opp_p):
     out = next(p for p in report["teams"][opp_p] if p["status"] == "Out")
     assert out["p_out"] == 1 and out["name"] == _pname(opp_p, 0)
     assert out["player_id"] == TEAM_INDEX[opp_p] * 100
-    assert len(report["teams"]["BOS"]) == 8
-    assert all(p["status"] == "Available" and p["p_out"] == 0 for p in report["teams"]["BOS"])
+    assert report["teams"]["BOS"] == []  # injured players only; BOS has none listed
     assert report["unmatched"] == []
     assert (repo_players.root / "data" / "injuries" / "2024-11-20.json").exists()
     on_disk = json.loads((repo_players.site_data / "predictions.json").read_text())

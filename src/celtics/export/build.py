@@ -203,8 +203,11 @@ def injury_teams(
     today: date,
     game_date: date,
     p_dtd: float,
+    not_next: frozenset[str] = frozenset(),
 ) -> dict[str, list[dict]]:
-    """Per-team player list for the display: roster (or recent players) plus every injured player.
+    """Per-team list of Out and Day-To-Day players for the display, Out first.
+
+    Teams in `not_next` are not playing their next game, so p_out uses the later-game rule.
 
     Players the matcher could not place keep player_id None with zero value and minutes.
     """
@@ -223,30 +226,29 @@ def injury_teams(
             mine = current[current["team"] == team]
             pool = dict(zip(mine["player_id"].astype(int), mine["player_name"], strict=True))
         by_norm = {normalize_name(n): pid for pid, n in pool.items()}
-        injured_ids = {
-            ids.get((team, n), by_norm.get(normalize_name(n))) for n in injured
-        } - {None}
-        players = [(pid, name, None) for pid, name in pool.items() if pid not in injured_ids]
+        players = []
         for name, inj in injured.items():
+            if inj.status not in ("Out", "Day-To-Day"):
+                continue
             players.append((ids.get((team, name), by_norm.get(normalize_name(name))), name, inj))
         rows = []
         for pid, name, inj in players:
             s = stats.get(pid) if pid is not None else None
-            rd = inj.return_date if inj is not None else None
-            status = inj.status if inj is not None else "Available"
+            rd = inj.return_date
+            status = inj.status
             rows.append(
                 {
                     "player_id": pid,
                     "name": name,
                     "status": status,
-                    "comment": inj.comment if inj is not None else "",
+                    "comment": inj.comment,
                     "return_date": rd.isoformat() if pd.notna(rd) else None,
-                    "p_out": r4(p_out(status, rd, game_date, today, p_dtd)),
+                    "p_out": r4(p_out(status, rd, game_date, today, p_dtd, next_game=team not in not_next)),
                     "expected_minutes": round(float(s.expected_minutes), 1) if s else 0.0,
                     "game_value": round(float(s.game_value), 2) if s else 0.0,
                     "rotation": bool(s.rotation) if s else False,
                 }
             )
-        rows.sort(key=lambda r: (not r["rotation"], -r["expected_minutes"], r["name"]))
+        rows.sort(key=lambda r: (r["status"] != "Out", -r["expected_minutes"], r["name"]))
         out[team] = rows
     return out
