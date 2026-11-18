@@ -200,8 +200,10 @@ function renderInjuries(pred, g) {
   if (teams.length) parts.push(el("div", { class: "inj-cols" }, ...teams.map(([abbr, players]) => rosterColumn(abbr, players))));
   let source = "Injury report unavailable — prediction uses each team's usual availability.";
   if (rep.available) {
-    const when = rep.as_of ? new Date(rep.as_of).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "unknown time";
-    source = `Injury report as of ${when} (ESPN)`;
+    const asOf = rep.as_of ? new Date(rep.as_of) : null;
+    source = asOf && !Number.isNaN(asOf.getTime())
+      ? `Injury report as of ${asOf.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} (ESPN)`
+      : "Injury report time unknown (ESPN)";
   }
   parts.push(el("p", { class: "muted" }, source));
   box.replaceChildren(...parts);
