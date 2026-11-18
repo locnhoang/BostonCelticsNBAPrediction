@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-18T19:24:03+00:00",
+ "generated_at": "2026-11-18T19:51:11+00:00",
  "model_version": "ridge_avail-2026-11-18",
  "season": "2026-27",
  "team_summary": {
@@ -11,52 +11,53 @@
   "proj_wins_p25": 57.0,
   "proj_wins_p75": 64.0,
   "proj_wins_p90": 67.0,
-  "p_50_wins": 0.9722,
-  "p_playoffs": 0.9994,
-  "p_top6": 0.9968,
-  "p_playin": 0.0032,
+  "p_50_wins": 0.9706,
+  "p_playoffs": 0.9993,
+  "p_top6": 0.9967,
+  "p_playin": 0.0033,
   "p_miss": 0.0,
-  "p_seed1": 0.6271,
+  "p_seed1": 0.6075,
   "win_distribution": {
-   "37": 0.0002,
-   "38": 0.0001,
+   "36": 0.0001,
+   "38": 0.0002,
    "40": 0.0002,
-   "41": 0.0001,
+   "41": 0.0003,
    "42": 0.0003,
-   "43": 0.0005,
-   "44": 0.0018,
+   "43": 0.0006,
+   "44": 0.0015,
    "45": 0.0016,
-   "46": 0.0031,
-   "47": 0.0052,
-   "48": 0.0057,
-   "49": 0.009,
-   "50": 0.0115,
-   "51": 0.017,
-   "52": 0.0229,
-   "53": 0.0322,
-   "54": 0.034,
-   "55": 0.0433,
-   "56": 0.0527,
-   "57": 0.0601,
-   "58": 0.0661,
-   "59": 0.0704,
-   "60": 0.0772,
-   "61": 0.0724,
-   "62": 0.0762,
-   "63": 0.0683,
-   "64": 0.0593,
-   "65": 0.0577,
-   "66": 0.0449,
-   "67": 0.0328,
-   "68": 0.0252,
-   "69": 0.019,
-   "70": 0.0118,
-   "71": 0.0099,
-   "72": 0.0035,
-   "73": 0.0016,
-   "74": 0.0016,
+   "46": 0.0036,
+   "47": 0.0048,
+   "48": 0.0064,
+   "49": 0.0098,
+   "50": 0.0122,
+   "51": 0.0184,
+   "52": 0.0232,
+   "53": 0.0328,
+   "54": 0.0375,
+   "55": 0.0413,
+   "56": 0.054,
+   "57": 0.0615,
+   "58": 0.0656,
+   "59": 0.0721,
+   "60": 0.0757,
+   "61": 0.0727,
+   "62": 0.0726,
+   "63": 0.0702,
+   "64": 0.0611,
+   "65": 0.0547,
+   "66": 0.0428,
+   "67": 0.0322,
+   "68": 0.0251,
+   "69": 0.0179,
+   "70": 0.0117,
+   "71": 0.0081,
+   "72": 0.0036,
+   "73": 0.0017,
+   "74": 0.0013,
    "75": 0.0004,
-   "76": 0.0002
+   "76": 0.0001,
+   "77": 0.0001
   }
  },
  "games": [
@@ -319,7 +320,7 @@
      "value": 0.4
     }
    ],
-   "win_prob_healthy": 0.6011
+   "win_prob_healthy": 0.613
   },
   {
    "game_id": "0022600279",
@@ -330,8 +331,8 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.9034,
-   "pred_margin": 17.3,
+   "win_prob": 0.901,
+   "pred_margin": 17.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -353,7 +354,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.2
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -367,8 +368,8 @@
    "opp_rest_days": 3.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.6713,
-   "pred_margin": 5.9,
+   "win_prob": 0.6582,
+   "pred_margin": 5.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -390,7 +391,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 2.0
+     "value": 1.6
     }
    ],
    "win_prob_healthy": null
@@ -404,7 +405,7 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8458,
+   "win_prob": 0.8457,
    "pred_margin": 13.6,
    "result": null,
    "pregame_win_prob": null,
@@ -427,7 +428,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.0
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -441,8 +442,8 @@
    "opp_rest_days": 4.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7575,
-   "pred_margin": 9.3,
+   "win_prob": 0.7447,
+   "pred_margin": 8.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -464,7 +465,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.7
+     "value": 0.2
     }
    ],
    "win_prob_healthy": null
@@ -478,8 +479,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.4516,
-   "pred_margin": -1.6,
+   "win_prob": 0.4403,
+   "pred_margin": -2.0,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -501,7 +502,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -515,8 +516,8 @@
    "opp_rest_days": 3.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.7004,
-   "pred_margin": 7.0,
+   "win_prob": 0.6971,
+   "pred_margin": 6.9,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -538,7 +539,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.1
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -552,8 +553,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8435,
-   "pred_margin": 13.4,
+   "win_prob": 0.8369,
+   "pred_margin": 13.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -575,7 +576,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -589,8 +590,8 @@
    "opp_rest_days": 4.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8292,
-   "pred_margin": 12.7,
+   "win_prob": 0.8223,
+   "pred_margin": 12.3,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -612,7 +613,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -626,8 +627,8 @@
    "opp_rest_days": 2.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.8921,
-   "pred_margin": 16.5,
+   "win_prob": 0.8905,
+   "pred_margin": 16.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -649,7 +650,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.1
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -663,8 +664,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.907,
-   "pred_margin": 17.6,
+   "win_prob": 0.9055,
+   "pred_margin": 17.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -686,7 +687,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.1
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -700,8 +701,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8917,
-   "pred_margin": 16.4,
+   "win_prob": 0.897,
+   "pred_margin": 16.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -723,7 +724,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -737,8 +738,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.64,
-   "pred_margin": 4.8,
+   "win_prob": 0.6257,
+   "pred_margin": 4.3,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -760,7 +761,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -774,8 +775,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7077,
-   "pred_margin": 7.3,
+   "win_prob": 0.7004,
+   "pred_margin": 7.0,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -797,7 +798,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.3
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -811,8 +812,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7502,
-   "pred_margin": 9.0,
+   "win_prob": 0.7374,
+   "pred_margin": 8.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -834,7 +835,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -848,8 +849,8 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.747,
-   "pred_margin": 8.9,
+   "win_prob": 0.7603,
+   "pred_margin": 9.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -871,7 +872,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.6
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -885,8 +886,8 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8546,
-   "pred_margin": 14.1,
+   "win_prob": 0.8534,
+   "pred_margin": 14.0,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -908,7 +909,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.1
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -922,8 +923,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8301,
-   "pred_margin": 12.7,
+   "win_prob": 0.8405,
+   "pred_margin": 13.3,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -945,7 +946,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.6
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -959,8 +960,8 @@
    "opp_rest_days": 4.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.5215,
-   "pred_margin": 0.7,
+   "win_prob": 0.5158,
+   "pred_margin": 0.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -982,7 +983,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.2
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -996,8 +997,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6835,
-   "pred_margin": 6.4,
+   "win_prob": 0.6725,
+   "pred_margin": 5.9,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1019,7 +1020,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -1033,8 +1034,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.5141,
-   "pred_margin": 0.5,
+   "win_prob": 0.5309,
+   "pred_margin": 1.0,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1056,7 +1057,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.6
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -1070,8 +1071,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7695,
-   "pred_margin": 9.8,
+   "win_prob": 0.7595,
+   "pred_margin": 9.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1093,7 +1094,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -1107,8 +1108,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6427,
-   "pred_margin": 4.9,
+   "win_prob": 0.6316,
+   "pred_margin": 4.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1130,7 +1131,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1144,8 +1145,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6607,
-   "pred_margin": 5.5,
+   "win_prob": 0.6458,
+   "pred_margin": 5.0,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1167,7 +1168,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1181,8 +1182,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8976,
-   "pred_margin": 16.9,
+   "win_prob": 0.8917,
+   "pred_margin": 16.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1204,7 +1205,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1218,7 +1219,7 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8897,
+   "win_prob": 0.8896,
    "pred_margin": 16.3,
    "result": null,
    "pregame_win_prob": null,
@@ -1241,7 +1242,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.0
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -1255,7 +1256,7 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8935,
+   "win_prob": 0.894,
    "pred_margin": 16.6,
    "result": null,
    "pregame_win_prob": null,
@@ -1278,7 +1279,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.0
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1292,8 +1293,8 @@
    "opp_rest_days": 2.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.6851,
-   "pred_margin": 6.4,
+   "win_prob": 0.6963,
+   "pred_margin": 6.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1315,7 +1316,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1329,8 +1330,8 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8725,
-   "pred_margin": 15.1,
+   "win_prob": 0.8668,
+   "pred_margin": 14.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1352,7 +1353,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1366,8 +1367,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7768,
-   "pred_margin": 10.1,
+   "win_prob": 0.7826,
+   "pred_margin": 10.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1389,7 +1390,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.3
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1403,8 +1404,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8575,
-   "pred_margin": 14.2,
+   "win_prob": 0.8489,
+   "pred_margin": 13.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1426,7 +1427,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1440,8 +1441,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8074,
-   "pred_margin": 11.6,
+   "win_prob": 0.7975,
+   "pred_margin": 11.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1463,7 +1464,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1477,8 +1478,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.685,
-   "pred_margin": 6.4,
+   "win_prob": 0.696,
+   "pred_margin": 6.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1500,7 +1501,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.4
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -1514,8 +1515,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6489,
-   "pred_margin": 5.1,
+   "win_prob": 0.6595,
+   "pred_margin": 5.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1537,7 +1538,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1551,8 +1552,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7783,
-   "pred_margin": 10.2,
+   "win_prob": 0.772,
+   "pred_margin": 9.9,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1574,7 +1575,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.3
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -1588,7 +1589,7 @@
    "opp_rest_days": 2.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.5645,
+   "win_prob": 0.5655,
    "pred_margin": 2.2,
    "result": null,
    "pregame_win_prob": null,
@@ -1625,8 +1626,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.591,
-   "pred_margin": 3.1,
+   "win_prob": 0.6085,
+   "pred_margin": 3.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1648,7 +1649,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.6
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -1662,8 +1663,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.732,
-   "pred_margin": 8.2,
+   "win_prob": 0.72,
+   "pred_margin": 7.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1685,7 +1686,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1699,8 +1700,8 @@
    "opp_rest_days": 1.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.7608,
-   "pred_margin": 9.4,
+   "win_prob": 0.7701,
+   "pred_margin": 9.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1722,7 +1723,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1736,8 +1737,8 @@
    "opp_rest_days": 3.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6328,
-   "pred_margin": 4.5,
+   "win_prob": 0.6206,
+   "pred_margin": 4.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1759,7 +1760,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1773,8 +1774,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7768,
-   "pred_margin": 10.1,
+   "win_prob": 0.7826,
+   "pred_margin": 10.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1796,7 +1797,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.3
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1810,8 +1811,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.5408,
-   "pred_margin": 1.4,
+   "win_prob": 0.5315,
+   "pred_margin": 1.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1833,7 +1834,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.3
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -1847,8 +1848,8 @@
    "opp_rest_days": 1.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.6212,
-   "pred_margin": 4.1,
+   "win_prob": 0.6379,
+   "pred_margin": 4.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1870,7 +1871,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.6
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -1884,8 +1885,8 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7502,
-   "pred_margin": 9.0,
+   "win_prob": 0.7634,
+   "pred_margin": 9.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1907,7 +1908,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.6
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -1921,8 +1922,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.536,
-   "pred_margin": 1.2,
+   "win_prob": 0.5253,
+   "pred_margin": 0.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1944,7 +1945,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -1958,8 +1959,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7822,
-   "pred_margin": 10.4,
+   "win_prob": 0.7858,
+   "pred_margin": 10.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1981,7 +1982,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.2
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -1995,8 +1996,8 @@
    "opp_rest_days": 3.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.5274,
-   "pred_margin": 0.9,
+   "win_prob": 0.5142,
+   "pred_margin": 0.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2018,7 +2019,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -2032,8 +2033,8 @@
    "opp_rest_days": 3.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7182,
-   "pred_margin": 7.7,
+   "win_prob": 0.7288,
+   "pred_margin": 8.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2055,7 +2056,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -2069,7 +2070,7 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8344,
+   "win_prob": 0.8331,
    "pred_margin": 12.9,
    "result": null,
    "pregame_win_prob": null,
@@ -2092,7 +2093,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.1
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -2106,8 +2107,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7359,
-   "pred_margin": 8.4,
+   "win_prob": 0.7459,
+   "pred_margin": 8.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2129,7 +2130,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -2143,8 +2144,8 @@
    "opp_rest_days": 2.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.5932,
-   "pred_margin": 3.1,
+   "win_prob": 0.5818,
+   "pred_margin": 2.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2166,7 +2167,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -2180,8 +2181,8 @@
    "opp_rest_days": 3.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.5292,
-   "pred_margin": 1.0,
+   "win_prob": 0.5149,
+   "pred_margin": 0.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2203,7 +2204,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -2217,8 +2218,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.9245,
-   "pred_margin": 19.1,
+   "win_prob": 0.9215,
+   "pred_margin": 18.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2240,7 +2241,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.3
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -2254,8 +2255,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8106,
-   "pred_margin": 11.7,
+   "win_prob": 0.8005,
+   "pred_margin": 11.2,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2277,7 +2278,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -2291,8 +2292,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8919,
-   "pred_margin": 16.5,
+   "win_prob": 0.8952,
+   "pred_margin": 16.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2314,7 +2315,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.2
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -2328,8 +2329,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8376,
-   "pred_margin": 13.1,
+   "win_prob": 0.831,
+   "pred_margin": 12.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2351,7 +2352,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -2365,8 +2366,8 @@
    "opp_rest_days": 3.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.5045,
-   "pred_margin": 0.1,
+   "win_prob": 0.491,
+   "pred_margin": -0.3,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2388,7 +2389,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -2402,8 +2403,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6538,
-   "pred_margin": 5.3,
+   "win_prob": 0.6408,
+   "pred_margin": 4.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2425,7 +2426,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -2439,8 +2440,8 @@
    "opp_rest_days": 2.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.776,
-   "pred_margin": 10.1,
+   "win_prob": 0.7849,
+   "pred_margin": 10.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2462,7 +2463,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.4
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -2476,8 +2477,8 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7986,
-   "pred_margin": 11.1,
+   "win_prob": 0.802,
+   "pred_margin": 11.3,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2499,7 +2500,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.2
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -2513,8 +2514,8 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6519,
-   "pred_margin": 5.2,
+   "win_prob": 0.6727,
+   "pred_margin": 6.0,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2536,7 +2537,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": -0.8
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -2550,8 +2551,8 @@
    "opp_rest_days": 3.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.7036,
-   "pred_margin": 7.1,
+   "win_prob": 0.6897,
+   "pred_margin": 6.6,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2573,7 +2574,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
@@ -2587,8 +2588,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.5456,
-   "pred_margin": 1.5,
+   "win_prob": 0.5313,
+   "pred_margin": 1.0,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2610,7 +2611,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.5
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -2624,8 +2625,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7059,
-   "pred_margin": 7.2,
+   "win_prob": 0.6949,
+   "pred_margin": 6.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2647,7 +2648,7 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": -0.0
     }
    ],
    "win_prob_healthy": null
@@ -2661,8 +2662,8 @@
    "opp_rest_days": 3.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6334,
-   "pred_margin": 4.5,
+   "win_prob": 0.6343,
+   "pred_margin": 4.6,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2698,8 +2699,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.9344,
-   "pred_margin": 20.1,
+   "win_prob": 0.9304,
+   "pred_margin": 19.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2721,22 +2722,22 @@
     },
     {
      "label": "Injuries & availability",
-     "value": 0.4
+     "value": 0.0
     }
    ],
    "win_prob_healthy": null
   }
  ],
  "seed_probabilities": {
-  "1": 0.6271,
-  "2": 0.2133,
-  "3": 0.0883,
-  "4": 0.0416,
-  "5": 0.0187,
-  "6": 0.0078,
-  "7": 0.0016,
-  "8": 0.0012,
-  "9": 0.0004,
+  "1": 0.6075,
+  "2": 0.2258,
+  "3": 0.093,
+  "4": 0.0438,
+  "5": 0.0191,
+  "6": 0.0075,
+  "7": 0.0019,
+  "8": 0.0011,
+  "9": 0.0003,
   "10": 0.0,
   "11": 0.0,
   "12": 0.0,
@@ -2749,134 +2750,134 @@
    "team": "BOS",
    "wins": 11,
    "losses": 3,
-   "proj_wins": 60.1,
-   "p_playoffs": 0.9994,
-   "p_top6": 0.9968,
-   "p_seed1": 0.6271
+   "proj_wins": 60.0,
+   "p_playoffs": 0.9993,
+   "p_top6": 0.9967,
+   "p_seed1": 0.6075
   },
   {
    "team": "DET",
    "wins": 9,
    "losses": 4,
-   "proj_wins": 54.6,
-   "p_playoffs": 0.989,
-   "p_top6": 0.9556,
-   "p_seed1": 0.1988
+   "proj_wins": 55.3,
+   "p_playoffs": 0.9912,
+   "p_top6": 0.9642,
+   "p_seed1": 0.2311
   },
   {
    "team": "NYK",
    "wins": 8,
    "losses": 6,
-   "proj_wins": 50.6,
-   "p_playoffs": 0.9631,
-   "p_top6": 0.857,
-   "p_seed1": 0.0633
+   "proj_wins": 51.2,
+   "p_playoffs": 0.9688,
+   "p_top6": 0.881,
+   "p_seed1": 0.075
   },
   {
    "team": "PHI",
    "wins": 12,
    "losses": 3,
-   "proj_wins": 50.5,
-   "p_playoffs": 0.9569,
-   "p_top6": 0.8561,
-   "p_seed1": 0.0613
+   "proj_wins": 49.5,
+   "p_playoffs": 0.9398,
+   "p_top6": 0.8134,
+   "p_seed1": 0.0417
   },
   {
    "team": "CLE",
    "wins": 8,
    "losses": 7,
-   "proj_wins": 47.8,
-   "p_playoffs": 0.9138,
-   "p_top6": 0.7344,
-   "p_seed1": 0.0259
+   "proj_wins": 46.5,
+   "p_playoffs": 0.8878,
+   "p_top6": 0.663,
+   "p_seed1": 0.0178
   },
   {
    "team": "MIA",
    "wins": 8,
    "losses": 6,
-   "proj_wins": 45.3,
-   "p_playoffs": 0.8396,
-   "p_top6": 0.5795,
-   "p_seed1": 0.0115
+   "proj_wins": 46.0,
+   "p_playoffs": 0.8641,
+   "p_top6": 0.6323,
+   "p_seed1": 0.0146
   },
   {
    "team": "ATL",
    "wins": 8,
    "losses": 6,
    "proj_wins": 44.9,
-   "p_playoffs": 0.8339,
-   "p_top6": 0.5485,
-   "p_seed1": 0.01
+   "p_playoffs": 0.8386,
+   "p_top6": 0.5573,
+   "p_seed1": 0.0102
   },
   {
    "team": "ORL",
    "wins": 6,
    "losses": 7,
-   "proj_wins": 39.7,
-   "p_playoffs": 0.5758,
-   "p_top6": 0.2242,
-   "p_seed1": 0.0013
+   "proj_wins": 40.3,
+   "p_playoffs": 0.6154,
+   "p_top6": 0.2633,
+   "p_seed1": 0.0016
   },
   {
    "team": "TOR",
    "wins": 5,
    "losses": 9,
-   "proj_wins": 39.3,
-   "p_playoffs": 0.5479,
-   "p_top6": 0.2015,
-   "p_seed1": 0.0008
-  },
-  {
-   "team": "IND",
-   "wins": 5,
-   "losses": 9,
-   "proj_wins": 31.5,
-   "p_playoffs": 0.1444,
-   "p_top6": 0.0194,
-   "p_seed1": 0.0
+   "proj_wins": 38.5,
+   "p_playoffs": 0.5102,
+   "p_top6": 0.1754,
+   "p_seed1": 0.0005
   },
   {
    "team": "CHA",
    "wins": 4,
    "losses": 10,
-   "proj_wins": 31.4,
-   "p_playoffs": 0.1517,
-   "p_top6": 0.0213,
+   "proj_wins": 31.8,
+   "p_playoffs": 0.1638,
+   "p_top6": 0.0269,
+   "p_seed1": 0.0
+  },
+  {
+   "team": "IND",
+   "wins": 5,
+   "losses": 9,
+   "proj_wins": 31.1,
+   "p_playoffs": 0.1327,
+   "p_top6": 0.0193,
    "p_seed1": 0.0
   },
   {
    "team": "CHI",
    "wins": 3,
    "losses": 10,
-   "proj_wins": 27.0,
-   "p_playoffs": 0.0427,
-   "p_top6": 0.0039,
+   "proj_wins": 27.1,
+   "p_playoffs": 0.0418,
+   "p_top6": 0.0046,
    "p_seed1": 0.0
   },
   {
    "team": "BKN",
    "wins": 3,
    "losses": 10,
-   "proj_wins": 25.4,
-   "p_playoffs": 0.0238,
-   "p_top6": 0.0013,
+   "proj_wins": 25.8,
+   "p_playoffs": 0.0284,
+   "p_top6": 0.0022,
    "p_seed1": 0.0
   },
   {
    "team": "WAS",
    "wins": 4,
    "losses": 11,
-   "proj_wins": 24.2,
-   "p_playoffs": 0.0158,
-   "p_top6": 0.0004,
+   "proj_wins": 24.1,
+   "p_playoffs": 0.0146,
+   "p_top6": 0.0003,
    "p_seed1": 0.0
   },
   {
    "team": "MIL",
    "wins": 1,
    "losses": 13,
-   "proj_wins": 19.7,
-   "p_playoffs": 0.0022,
+   "proj_wins": 20.0,
+   "p_playoffs": 0.0035,
    "p_top6": 0.0001,
    "p_seed1": 0.0
   }
@@ -3313,7 +3314,7 @@
  },
  "injury_report": {
   "available": true,
-  "as_of": "2026-11-18T19:21:33Z",
+  "as_of": "2026-11-18T19:48:33Z",
   "p_dtd": 0.5,
   "unmatched": [
    "Mouhamed Gueye (ATL)",
