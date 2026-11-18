@@ -382,3 +382,27 @@ def test_dtd_log_written_and_validated(repo_players, opp_p, monkeypatch):
     dtd = next(p for p in pred["injury_report"]["teams"][opp_p] if p["status"] == "Day-To-Day")
     assert dtd["p_out"] == 0.5
 
+
+
+def test_healthy_equals_prediction_when_no_injuries(repo_players, monkeypatch):
+    _force_avail_model(monkeypatch)
+    monkeypatch.setattr("celtics.pipeline.fetch_espn_injuries", lambda: {"injuries": []})
+    seen = {}
+    real = pipeline_module.live_avail_and_baselines
+
+    def spy(*args, **kwargs):
+        live, baselines = real(*args, **kwargs)
+        seen["baselines"], seen["live"] = baselines, live
+        return live, baselines
+
+    monkeypatch.setattr("celtics.pipeline.live_avail_and_baselines", spy)
+    pred = run_update(repo_players, TODAY, offline=True, n_sims=50)
+    row = _next_row(pred)
+    assert pred["injury_report"]["available"] is True
+    assert max(seen["baselines"].values()) > 0  # healthy is not avail 0
+    first = seen["live"][seen["live"]["game_id"] == row["game_id"]].iloc[0]
+    assert (first["home_avail"], first["away_avail"]) == (
+        seen["baselines"]["BOS"] if row["home"] else seen["baselines"][row["opponent"]],
+        seen["baselines"][row["opponent"]] if row["home"] else seen["baselines"]["BOS"],
+    )
+    assert round(row["win_prob"], 4) == round(row["win_prob_healthy"], 4)

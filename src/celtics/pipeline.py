@@ -43,7 +43,11 @@ from celtics.export.build import (
 )
 from celtics.export.context import team_context
 from celtics.export.schema import BacktestReport, DtdLog, HistoryEntry, Predictions, PregameLog
-from celtics.features.availability import CURRENT_COLUMNS, current_player_values, live_avail
+from celtics.features.availability import (
+    CURRENT_COLUMNS,
+    current_player_values,
+    live_avail_and_baselines,
+)
 from celtics.features.build import AVAIL_FEATURES, build_features, current_team_state
 from celtics.injuries import (
     INJURY_COLUMNS,
@@ -210,9 +214,10 @@ def run_update(
 
     feats = build_features(games, players)
     current = pd.DataFrame(columns=CURRENT_COLUMNS)
+    baselines: dict[str, float] = {}
     if players is not None:
         if feed is not None:  # no feed, no adjustment: incomplete games keep avail 0
-            live = live_avail(games, players, matched, season, today, p_dtd)
+            live, baselines = live_avail_and_baselines(games, players, matched, season, today, p_dtd)
             feats = _apply_live_avail(feats, live)
         current = current_player_values(games, players, season)
     model = load_or_train(feats, paths, today, force=force_train)
@@ -228,7 +233,7 @@ def run_update(
     upcoming = next((r for r in rows if not r["completed"]), None)
     teams: dict[str, list[dict]] = {}
     if upcoming is not None:
-        upcoming["win_prob_healthy"] = healthy_win_prob(feats, model, upcoming["game_id"], TEAM)
+        upcoming["win_prob_healthy"] = healthy_win_prob(feats, model, upcoming["game_id"], TEAM, baselines)
         pair = [TEAM, upcoming["opponent"]]
         game_date = date.fromisoformat(upcoming["date"])
         rosters = _fetch_rosters(pair, season)

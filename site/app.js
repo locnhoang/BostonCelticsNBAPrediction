@@ -198,7 +198,7 @@ function renderInjuries(pred, g) {
   }
   const teams = Object.entries(rep.teams ?? {});
   if (teams.length) parts.push(el("div", { class: "inj-cols" }, ...teams.map(([abbr, players]) => rosterColumn(abbr, players))));
-  let source = "Injury report unavailable — prediction uses healthy rosters.";
+  let source = "Injury report unavailable — prediction uses each team's usual availability.";
   if (rep.available) {
     const when = rep.as_of ? new Date(rep.as_of).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "unknown time";
     source = `Injury report as of ${when} (ESPN)`;

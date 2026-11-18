@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 
 from celtics.evaluate.metrics import summarize
-from celtics.features.build import AVAIL_FEATURES
 from celtics.injuries import normalize_name, p_out
 from celtics.models.explain import explain
 from celtics.models.margin import MarginModel
@@ -180,10 +179,22 @@ def write_json_atomic(path: Path, obj) -> None:
     os.replace(tmp, path)
 
 
-def healthy_win_prob(features: pd.DataFrame, model: MarginModel, game_id: str, team: str) -> float:
-    """`team`'s win probability in a game with both availability features set to 0."""
+def healthy_win_prob(
+    features: pd.DataFrame,
+    model: MarginModel,
+    game_id: str,
+    team: str,
+    baselines: dict[str, float],
+) -> float:
+    """`team`'s win probability with nobody missing on either side.
+
+    avail = baseline - missing, so missing = 0 means avail equals each team's baseline (the
+    same baselines the live prediction uses; 0 for a team without one).
+    """
     row = features[features["game_id"] == game_id].copy()
-    row[AVAIL_FEATURES] = 0.0
+    home, away = row["home_team"].iloc[0], row["away_team"].iloc[0]
+    row["home_avail"] = baselines.get(home, 0.0)
+    row["away_avail"] = baselines.get(away, 0.0)
     p = float(model.win_prob(row)[0])
     return r4(p if row["home_team"].iloc[0] == team else 1 - p)
 
