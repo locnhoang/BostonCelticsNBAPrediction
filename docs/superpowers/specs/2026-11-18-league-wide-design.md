@@ -1,7 +1,7 @@
 # League-Wide Site — Design
 
 **Date:** 2026-11-18
-**Status:** Draft, pending approval
+**Status:** Approved 2026-11-18, pending implementation plan
 **Builds on:**
 - `2026-11-12-celtics-prediction-design.md` (model, simulation, backtest)
 - `2026-11-12-frontend-refresh-design.md` (site layout, drivers)
@@ -30,7 +30,7 @@ It serves three audiences, and the user named all three:
 - Changes to the model, its features, the simulation or the backtest. The model already covers all 30 teams.
 - Playoff or bracket predictions.
 - Live in-game updates. Data still refreshes once a day.
-- Betting picks (moneyline, spread, totals, player props). The user wants a "best picks of the day" feature; it is a separate project designed after this one.
+- Betting picks (moneyline, spread, totals, player props). The user wants a "best picks of the day" feature; it is a separate project designed after this one, and it will live in its own **Best picks** tab in the top bar (user's decision). Routing and the nav should make adding that tab easy; it is not built here.
 
 ## Anti-goals
 
