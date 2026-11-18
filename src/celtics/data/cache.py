@@ -1,5 +1,6 @@
 """Local parquet cache: one file per season."""
 
+import logging
 import os
 import time
 from collections.abc import Callable
@@ -22,6 +23,8 @@ from celtics.data.parse import (
     schedule_to_games,
 )
 from celtics.data.validate import DataValidationError
+
+log = logging.getLogger(__name__)
 
 MIN_PAST_TEAMS = 30
 MIN_PAST_GAMES = 900  # covers the shortened 2019-20 (1059) and 2020-21 (1080) seasons
@@ -116,6 +119,13 @@ def refresh_players(
                 raise FetchBlockedError(f"player log for season {past} looks incomplete: {n_games} games")
             _write_parquet_atomic(players, path)
             time.sleep(pause)
-    current = _parse(playerlog_to_frame, fetch(season), season)
-    _write_parquet_atomic(current, player_season_path(raw_dir, season))
+    path = player_season_path(raw_dir, season)
+    try:
+        raw = fetch(season)
+    except Exception as exc:  # FetchBlockedError or any request failure
+        if not path.exists():
+            raise
+        log.warning("current-season player log fetch failed, keeping the cached file: %s", exc)
+    else:
+        _write_parquet_atomic(_parse(playerlog_to_frame, raw, season), path)
     return load_all_players(raw_dir)

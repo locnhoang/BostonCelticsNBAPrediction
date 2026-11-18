@@ -102,3 +102,29 @@ def test_validate_players():
 def test_every_team_has_an_nba_team_id():
     ids = nba_team_ids()
     assert set(TEAMS) <= set(ids)
+
+
+def _raising(exc):
+    def fake(season):
+        raise exc
+
+    return fake
+
+
+@pytest.mark.parametrize("exc", [FetchBlockedError("403"), ConnectionError("timed out")])
+def test_refresh_players_keeps_cached_current_season_on_fetch_failure(tmp_path, monkeypatch, exc, caplog):
+    monkeypatch.setattr("celtics.data.cache.FIRST_SEASON", 2026)
+    today = date(2026, 11, 13)
+    refresh_players(tmp_path, today, fetch=_fake_players, pause=0)
+    path = player_season_path(tmp_path, 2026)
+    before = path.read_bytes()
+    out = refresh_players(tmp_path, today, fetch=_raising(exc), pause=0)
+    assert path.read_bytes() == before
+    assert set(out["season"]) == {2026}
+    assert "cached" in caplog.text
+
+
+def test_refresh_players_without_cache_reraises_fetch_failure(tmp_path, monkeypatch):
+    monkeypatch.setattr("celtics.data.cache.FIRST_SEASON", 2026)
+    with pytest.raises(FetchBlockedError):
+        refresh_players(tmp_path, date(2026, 11, 13), fetch=_raising(FetchBlockedError("403")), pause=0)
