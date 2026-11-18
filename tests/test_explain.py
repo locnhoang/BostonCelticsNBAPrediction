@@ -24,7 +24,7 @@ def test_ridge_parts_sum_to_prediction():
     X, y = synthetic_xy()
     model = make_model("ridge").fit(X, y)
     parts = explain(model, X.iloc[:50])
-    assert list(parts.columns) == DRIVER_ORDER
+    assert list(parts.columns) == DRIVER_ORDER[:4]
     assert list(parts.index) == list(X.index[:50])
     np.testing.assert_allclose(parts.sum(axis=1), model.predict_margin(X.iloc[:50]), atol=1e-9)
 
@@ -60,6 +60,28 @@ def test_homecourt_model_explains_as_all_home_court():
     model = make_model("homecourt").fit(X, y)
     parts = explain(model, X.iloc[:4])
     assert parts["Home court"].tolist() == pytest.approx([model.mean_] * 4)
-    for col in DRIVER_ORDER:
+    for col in parts.columns:
         if col != "Home court":
             assert parts[col].abs().max() == 0
+
+
+def _avail_xy():
+    X, y = synthetic_xy()
+    X["home_avail"] = np.random.default_rng(2).normal(0, 3, len(X))
+    X["away_avail"] = np.random.default_rng(3).normal(0, 3, len(X))
+    return X, y + 0.4 * X["home_avail"] - 0.4 * X["away_avail"]
+
+
+def test_ridge_avail_has_five_drivers_summing_to_prediction():
+    X, y = _avail_xy()
+    model = make_model("ridge_avail").fit(X, y)
+    parts = explain(model, X.iloc[:50])
+    assert list(parts.columns) == DRIVER_ORDER
+    assert len(parts.columns) == 5
+    np.testing.assert_allclose(parts.sum(axis=1), model.predict_margin(X.iloc[:50]), atol=1e-9)
+
+
+def test_ridge_still_has_four_drivers():
+    X, y = _avail_xy()
+    parts = explain(make_model("ridge").fit(X, y), X.iloc[:5])
+    assert list(parts.columns) == [d for d in DRIVER_ORDER if d != "Injuries & availability"]

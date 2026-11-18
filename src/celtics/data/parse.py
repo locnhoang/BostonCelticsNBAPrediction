@@ -123,3 +123,41 @@ def merge_schedule_results(schedule: pd.DataFrame, results: pd.DataFrame) -> pd.
     if not frames:
         return empty_games()
     return _sorted(pd.concat(frames, ignore_index=True))
+
+
+PLAYER_COLUMNS = [
+    "game_id", "season", "date", "team", "player_id", "player_name",
+    "min", "pts", "fgm", "fga", "ftm", "fta", "oreb", "dreb", "ast", "stl", "blk", "tov", "pf",
+]  # fmt: skip
+_PLAYER_STATS = ["pts", "fgm", "fga", "ftm", "fta", "oreb", "dreb", "ast", "stl", "blk", "tov", "pf"]
+
+
+def empty_players() -> pd.DataFrame:
+    dtypes = {"game_id": str, "season": np.int64, "date": "datetime64[ns]", "team": str,
+              "player_id": np.int64, "player_name": str, "min": float}  # fmt: skip
+    dtypes.update({c: float for c in _PLAYER_STATS})
+    return pd.DataFrame({c: pd.Series(dtype=dtypes[c]) for c in PLAYER_COLUMNS})
+
+
+def playerlog_to_frame(raw: pd.DataFrame, season: int) -> pd.DataFrame:
+    if raw.empty:
+        return empty_players()
+    df = raw.copy()
+    df["GAME_ID"] = df["GAME_ID"].astype(str)
+    df = df[df["GAME_ID"].str.startswith("002")]
+    if df.empty:
+        return empty_players()
+    out = pd.DataFrame(
+        {
+            "game_id": df["GAME_ID"].to_numpy(),
+            "season": np.int64(season),
+            "date": pd.to_datetime(df["GAME_DATE"]).dt.normalize().to_numpy(),
+            "team": df["TEAM_ABBREVIATION"].astype(str).to_numpy(),
+            "player_id": df["PLAYER_ID"].astype("int64").to_numpy(),
+            "player_name": df["PLAYER_NAME"].astype(str).to_numpy(),
+            "min": df["MIN"].astype(float).fillna(0.0).to_numpy(),
+        }
+    )
+    for col in _PLAYER_STATS:
+        out[col] = df[col.upper()].astype(float).fillna(0.0).to_numpy()
+    return out.sort_values(["date", "game_id", "team", "player_id"]).reset_index(drop=True)[PLAYER_COLUMNS]

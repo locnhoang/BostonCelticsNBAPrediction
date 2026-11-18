@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from celtics.config import COVERAGE_CHECKPOINT_GAMES, FIRST_TRAIN_SEASON
-from celtics.features.build import FEATURES, as_of, build_features, current_team_state
+from celtics.features.build import as_of, build_features, current_team_state
 from celtics.models.margin import make_model
 from celtics.simulate.inputs import prepare_sim_inputs
 from celtics.simulate.season import simulate_season
@@ -19,13 +19,13 @@ def walk_forward(features: pd.DataFrame, model_name: str, test_seasons: list[int
         test = done[done["season"] == season]
         if train.empty or test.empty:
             continue
-        model = make_model(model_name).fit(train[FEATURES], train["margin"])
+        model = make_model(model_name).fit(train, train["margin"])
         out.append(
             pd.DataFrame(
                 {
                     "game_id": test["game_id"].to_numpy(),
                     "season": season,
-                    "prob": model.win_prob(test[FEATURES]),
+                    "prob": model.win_prob(test),
                     "outcome": (test["margin"] > 0).astype(float).to_numpy(),
                 }
             )
@@ -62,6 +62,7 @@ def season_coverage(
     team_sds: list[float],
     n_sims: int,
     seed: int = 0,
+    players: pd.DataFrame | None = None,
 ) -> dict[float, float]:
     covered = dict.fromkeys(team_sds, 0)
     total = 0
@@ -70,12 +71,16 @@ def season_coverage(
         if season_games.empty:
             continue
         actual = _final_wins(season_games)
-        view = as_of(games[games["season"] <= season], checkpoint_date(season_games))
-        feats = build_features(view)
+        cutoff = checkpoint_date(season_games)
+        view = as_of(games[games["season"] <= season], cutoff)
+        view_players = None
+        if players is not None:
+            view_players = players[(players["season"] <= season) & (players["date"] <= cutoff)]
+        feats = build_features(view, view_players)
         train = feats[
             feats["completed"] & (feats["season"] >= FIRST_TRAIN_SEASON) & (feats["season"] < season)
         ]
-        model = make_model(model_name).fit(train[FEATURES], train["margin"])
+        model = make_model(model_name).fit(train, train["margin"])
         inp = prepare_sim_inputs(feats, model, current_team_state(view), season, target_games=None)
         total += len(actual)
         for sd in team_sds:

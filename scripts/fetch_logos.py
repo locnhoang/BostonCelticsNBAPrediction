@@ -1,5 +1,8 @@
 """One-time download of 128px team logos into site/logos/{ABBR}.png.
 
+NOTE (2026-11-15): the committed logos were replaced by user-supplied artwork from
+nba_logos_2026-27/ (resized to 128px). Re-running this script would overwrite them.
+
 Team logos are trademarks of the NBA and its teams; they are shown on the site
 under the credit in the footer. Run: uv run python scripts/fetch_logos.py
 """

@@ -24,6 +24,7 @@
       <h2 id="h-next">Next game</h2>
       <p class="subtitle">Win chance from the model, and what it is based on.</p>
       <div id="next-card"></div>
+      <div id="injury-panel"></div>
       <div id="drivers-wrap">
         <h3>Why the model leans this way</h3>
         <p class="subtitle">Points each factor adds to Boston's projected margin. Green helps, gray hurts.</p>
@@ -88,6 +89,7 @@
       <p id="live" class="lead"></p>
       <p id="backtest-note" class="subtitle"></p>
       <div id="models" class="table-wrap"></div>
+      <p id="availability-note" class="subtitle" hidden></p>
       <details>
         <summary>Calibration</summary>
         <p class="subtitle">When the model says X%, does the home team win X% of the time? Points on the diagonal are perfectly calibrated.</p>
@@ -100,9 +102,9 @@
       <h2 id="h-how">How it works</h2>
       <p class="subtitle">A plain-English walkthrough of one prediction.</p>
       <p id="how-example" class="lead" hidden></p>
-      <p>Each game is predicted as a point margin from four things: season-long team strength (a margin-of-victory Elo rating), recent form (a recency-weighted net rating per 100 possessions), home court, and rest (days off, back-to-backs, three games in four nights). The margin becomes a win probability using how much NBA results vary from game to game.</p>
+      <p>Each game is predicted as a point margin from five things: season-long team strength (a margin-of-victory Elo rating), recent form (a recency-weighted net rating per 100 possessions), home court, rest (days off, back-to-backs, three games in four nights), and injuries & availability (players missing from each team's rotation compared with its recent norm, from box scores and the ESPN injury report). The margin becomes a win probability using how much NBA results vary from game to game.</p>
       <p>The rest of the league schedule is simulated 10,000 times. Each simulation shifts every team's strength by a random amount reflecting how uncertain we are about it, then plays out every game, applies tiebreakers (head-to-head, division winner, conference record), and runs the play-in.</p>
-      <p>The model is trained on every regular-season game since 2015-16 and tested walk-forward: each test season is predicted using only data from before it. It does not account for injuries yet.</p>
+      <p>The model is trained on every regular-season game since 2015-16 and tested walk-forward: each test season is predicted using only data from before it. On top of that, the live injury report adjusts each game: players listed out or day-to-day reduce the team's strength by how much they usually contribute.</p>
     </section>
 
   </main>

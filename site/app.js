@@ -87,7 +87,7 @@ const nextGame = (pred) => pred.games.find((g) => !g.completed) ?? null;
 function renderHeader(pred) {
   const team = pred.team_summary.team;
   const c = pred.team_context[team];
-  document.getElementById("hdr-logo").replaceChildren(teamMark(team, 28));
+  document.getElementById("hdr-logo").replaceChildren(teamMark(team, 64));
   document.getElementById("hdr-title").textContent = `Boston ${teamName(team)} ${pred.season}`;
   const started = c.wins + c.losses > 0;
   document.getElementById("hdr-meta").textContent = started
@@ -138,6 +138,75 @@ function renderNextGame(pred, t) {
     ),
   );
   renderDrivers(g, t);
+  guarded("injury report", "injury-panel", () => renderInjuries(pred, g));
+}
+
+const STATUS_CLASS = { Out: "out", "Day-To-Day": "dtd" };
+
+function playerRow(p) {
+  let tag = "";
+  if (p.status === "Out") tag = p.return_date ? `back ~${p.return_date}` : "";
+  else tag = `~${Math.round((p.p_out ?? 0) * 100)}% out`;
+  return el(
+    "li",
+    { class: "player" },
+    el(
+      "div",
+      { class: "prow" },
+      el("span", { class: `chip chip-${STATUS_CLASS[p.status]}` }, p.status),
+      el("span", { class: "pname" }, p.name),
+      tag ? el("span", { class: "ptag muted" }, tag) : "",
+    ),
+    p.status === "Out" && p.comment ? el("div", { class: "pcomment muted" }, p.comment) : "",
+  );
+}
+
+function rosterColumn(abbr, players) {
+  const byMinutes = (x, y) => (y.expected_minutes ?? 0) - (x.expected_minutes ?? 0);
+  const listed = [
+    ...players.filter((p) => p.status === "Out").sort(byMinutes),
+    ...players.filter((p) => p.status === "Day-To-Day").sort(byMinutes),
+  ];
+  const col = el("div", { class: "inj-col" }, el("h4", { class: "team" }, teamMark(abbr, 24), el("span", {}, teamName(abbr))));
+  if (!listed.length) {
+    col.append(el("p", { class: "muted" }, "No injuries reported."));
+    return col;
+  }
+  const list = el("ul", { class: "players", hidden: "" }, ...listed.map(playerRow));
+  list.id = `inj-list-${abbr}`;
+  const label = `Injury report (${listed.length})`;
+  const btn = el("button", { class: "inj-toggle", type: "button", "aria-expanded": "false", "aria-controls": list.id }, `▸ ${label}`);
+  btn.addEventListener("click", () => {
+    list.hidden = !list.hidden;
+    btn.setAttribute("aria-expanded", String(!list.hidden));
+    btn.textContent = `${list.hidden ? "▸" : "▾"} ${label}`;
+  });
+  col.append(btn, list);
+  return col;
+}
+
+function renderInjuries(pred, g) {
+  const box = document.getElementById("injury-panel");
+  const rep = pred.injury_report;
+  if (!rep) {
+    box.replaceChildren();
+    return;
+  }
+  const parts = [el("h3", {}, "Injury report")];
+  if (rep.available && g.win_prob_healthy != null && Math.round(g.win_prob * 100) !== Math.round(g.win_prob_healthy * 100)) {
+    parts.push(el("p", { class: "inj-line" }, `${pct(g.win_prob_healthy)} healthy roster → ${pct(g.win_prob)} after the injury report`));
+  }
+  const teams = Object.entries(rep.teams ?? {});
+  if (teams.length) parts.push(el("div", { class: "inj-cols" }, ...teams.map(([abbr, players]) => rosterColumn(abbr, players))));
+  let source = "Injury report unavailable — prediction uses each team's usual availability.";
+  if (rep.available) {
+    const asOf = rep.as_of ? new Date(rep.as_of) : null;
+    source = asOf && !Number.isNaN(asOf.getTime())
+      ? `Injury report as of ${asOf.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} (ESPN)`
+      : "Injury report time unknown (ESPN)";
+  }
+  parts.push(el("p", { class: "muted" }, source));
+  box.replaceChildren(...parts);
 }
 
 function renderDrivers(g, t) {
@@ -490,6 +559,9 @@ function renderReportCard(pred, backtest, t) {
   document.getElementById("live").textContent = scored.length
     ? `This season: called ${right} of ${scored.length} Celtics games${live ? `, log loss ${live.log_loss.toFixed(3)}` : ""}.`
     : "This season's record of picks appears once predicted games have been played.";
+  const note = document.getElementById("availability-note");
+  note.textContent = backtest?.availability_note ?? "";
+  note.hidden = !backtest?.availability_note;
   if (!backtest) {
     document.getElementById("backtest-note").textContent = "Backtest results not available yet.";
     return;

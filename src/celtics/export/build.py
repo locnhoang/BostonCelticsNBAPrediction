@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 
 from celtics.evaluate.metrics import summarize
-from celtics.features.build import FEATURES
-from celtics.models.explain import DRIVER_ORDER, explain
+from celtics.injuries import normalize_name, p_out
+from celtics.models.explain import explain
 from celtics.models.margin import MarginModel
 from celtics.simulate.inputs import SimInputs
 from celtics.simulate.season import SimResult
@@ -80,9 +80,9 @@ def game_rows(
     ].sort_values(["date", "game_id"])
     if cur.empty:
         return []
-    margins = model.predict_margin(cur[FEATURES])
-    probs = model.win_prob(cur[FEATURES])
-    parts = explain(model, cur[FEATURES])
+    margins = model.predict_margin(cur)
+    probs = model.win_prob(cur)
+    parts = explain(model, cur)
     rows = []
     for idx, row, m, p in zip(cur.index, cur.itertuples(index=False), margins, probs, strict=True):
         home = row.home_team == team
@@ -100,6 +100,7 @@ def game_rows(
             "result": None,
             "pregame_win_prob": None,
             "drivers": None,
+            "win_prob_healthy": None,
         }
         if row.completed:
             mine, theirs = (row.home_pts, row.away_pts) if home else (row.away_pts, row.home_pts)
@@ -113,7 +114,7 @@ def game_rows(
                 sign = 1.0 if home else -1.0
                 out["drivers"] = [
                     {"label": label, "value": round(sign * float(parts.at[idx, label]), 1)}
-                    for label in DRIVER_ORDER
+                    for label in parts.columns
                 ]
         rows.append(out)
     return rows
@@ -176,3 +177,81 @@ def write_json_atomic(path: Path, obj) -> None:
     with os.fdopen(fd, "w") as f:
         json.dump(obj, f, indent=1)
     os.replace(tmp, path)
+
+
+def healthy_win_prob(
+    features: pd.DataFrame,
+    model: MarginModel,
+    game_id: str,
+    team: str,
+    baselines: dict[str, float],
+) -> float:
+    """`team`'s win probability with nobody missing on either side.
+
+    avail = baseline - missing, so missing = 0 means avail equals each team's baseline (the
+    same baselines the live prediction uses; 0 for a team without one).
+    """
+    row = features[features["game_id"] == game_id].copy()
+    home, away = row["home_team"].iloc[0], row["away_team"].iloc[0]
+    row["home_avail"] = baselines.get(home, 0.0)
+    row["away_avail"] = baselines.get(away, 0.0)
+    p = float(model.win_prob(row)[0])
+    return r4(p if row["home_team"].iloc[0] == team else 1 - p)
+
+
+def injury_teams(
+    teams: list[str],
+    parsed: pd.DataFrame,
+    matched: pd.DataFrame,
+    current: pd.DataFrame,
+    rosters: dict[str, pd.DataFrame | None],
+    today: date,
+    game_date: date,
+    p_dtd: float,
+) -> dict[str, list[dict]]:
+    """Per-team player list for the display: roster (or recent players) plus every injured player.
+
+    Players the matcher could not place keep player_id None with zero value and minutes.
+    """
+    ids = {(r.team, r.name): int(r.player_id) for r in matched.itertuples()}
+    stats = {int(r.player_id): r for r in current.itertuples()}
+    out: dict[str, list[dict]] = {}
+    for team in teams:
+        injured = {
+            r.name: r for r in parsed[parsed["team"] == team].drop_duplicates("name").itertuples()
+        }
+        pool: dict[int, str] = {}
+        roster = rosters.get(team)
+        if roster is not None:
+            pool = dict(zip(roster["player_id"].astype(int), roster["player_name"], strict=True))
+        else:
+            mine = current[current["team"] == team]
+            pool = dict(zip(mine["player_id"].astype(int), mine["player_name"], strict=True))
+        by_norm = {normalize_name(n): pid for pid, n in pool.items()}
+        injured_ids = {
+            ids.get((team, n), by_norm.get(normalize_name(n))) for n in injured
+        } - {None}
+        players = [(pid, name, None) for pid, name in pool.items() if pid not in injured_ids]
+        for name, inj in injured.items():
+            players.append((ids.get((team, name), by_norm.get(normalize_name(name))), name, inj))
+        rows = []
+        for pid, name, inj in players:
+            s = stats.get(pid) if pid is not None else None
+            rd = inj.return_date if inj is not None else None
+            status = inj.status if inj is not None else "Available"
+            rows.append(
+                {
+                    "player_id": pid,
+                    "name": name,
+                    "status": status,
+                    "comment": inj.comment if inj is not None else "",
+                    "return_date": rd.isoformat() if pd.notna(rd) else None,
+                    "p_out": r4(p_out(status, rd, game_date, today, p_dtd)),
+                    "expected_minutes": round(float(s.expected_minutes), 1) if s else 0.0,
+                    "game_value": round(float(s.game_value), 2) if s else 0.0,
+                    "rotation": bool(s.rotation) if s else False,
+                }
+            )
+        rows.sort(key=lambda r: (not r["rotation"], -r["expected_minutes"], r["name"]))
+        out[team] = rows
+    return out

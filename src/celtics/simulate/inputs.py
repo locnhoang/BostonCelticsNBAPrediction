@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from celtics.features.build import FEATURES, TeamState, matchup_matrix
+from celtics.features.build import TeamState, matchup_matrix
 from celtics.models.margin import MarginModel
 from celtics.teams import IS_EAST, TEAM_INDEX, TEAMS
 
@@ -58,7 +58,7 @@ def prepare_sim_inputs(
     conf_losses = np.bincount(l_idx[same_done], minlength=n)
 
     rh, ra = _idx(rem["home_team"]), _idx(rem["away_team"])
-    rem_margin = model.predict_margin(rem[FEATURES]) if len(rem) else np.zeros(0)
+    rem_margin = model.predict_margin(rem) if len(rem) else np.zeros(0)
     scheduled = (
         current_wins + current_losses + np.bincount(rh, minlength=n) + np.bincount(ra, minlength=n)
     )

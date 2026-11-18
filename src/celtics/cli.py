@@ -6,7 +6,7 @@ from datetime import date
 from pathlib import Path
 
 from celtics.config import N_SIMS, Paths
-from celtics.data.cache import refresh
+from celtics.data.cache import refresh, refresh_players
 from celtics.data.fetch import FetchBlockedError
 from celtics.data.validate import DataValidationError
 from celtics.pipeline import run_backtest, run_train, run_update
@@ -36,7 +36,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.cmd == "fetch":
             games = refresh(paths.raw_dir, today)
-            print(f"cached {len(games)} games")
+            players = refresh_players(paths.raw_dir, today)
+            print(f"cached {len(games)} games, {len(players)} player rows")
         elif args.cmd == "train":
             run_train(paths, today)
             print("model trained")

@@ -169,3 +169,17 @@ All new fields are validated by the schema.
   - When the ESPN fetch fails, the run still publishes with `injury_report.available = false`.
   - When the player logs are invalid, the run exits with code 3.
 - **Backtest:** both models are reported, and the result is recorded in this spec. If `ridge_avail` doesn't clear the adoption rule, the live model stays `ridge` and the site shows the injury report as information only.
+
+## Results
+
+Walk-forward backtest (test seasons 2018-19 to 2025-26, n = 9519 games), run 2026-11-18:
+
+| Model | Log loss | Brier | Accuracy |
+|---|---|---|---|
+| homecourt | 0.6868 | 0.2468 | 55.7% |
+| elo | 0.6279 | 0.2192 | 64.6% |
+| ridge | 0.6193 | 0.2152 | 65.5% |
+| ridge_avail | 0.6140 | 0.2130 | 65.9% |
+| gbm | 0.6237 | 0.2172 | 65.2% |
+
+Adoption rule: `ridge_avail.log_loss <= ridge.log_loss - 0.001`. 0.6140 <= 0.6183, so the rule is met (gain 0.0053). Decision: adopted; `MODEL_NAME = "ridge_avail"`. The backtest uses actual absences, so live accuracy will be somewhat lower.

@@ -34,7 +34,9 @@ def validate_games(
     played = games["home_pts"].notna() | games["away_pts"].notna()
     incomplete = games[played & games[["home_pts", "away_pts", "poss"]].isna().any(axis=1)]
     if len(incomplete):
-        problems.append(f"completed games missing scores/possessions: {incomplete['game_id'].tolist()[:5]}")
+        problems.append(
+            f"completed games missing scores/possessions: {incomplete['game_id'].tolist()[:5]}"
+        )
 
     cur = games[games["season"] == season]
     cur_teams = set(cur["home_team"]) | set(cur["away_team"])
@@ -57,5 +59,41 @@ def validate_games(
                 f"{len(ids)} past-dated games have no result (allowing {max_stale_games} postponements): {ids[:5]}"
             )
 
+    if problems:
+        raise DataValidationError("; ".join(problems))
+
+
+def validate_players(players: pd.DataFrame, games: pd.DataFrame) -> None:
+    problems: list[str] = []
+    dup = players.duplicated(["game_id", "player_id"])
+    if dup.any():
+        problems.append(
+            f"duplicate (game_id, player_id) rows: {players.loc[dup, ['game_id', 'player_id']].values.tolist()[:5]}"
+        )
+    pairs = pd.concat(
+        [
+            games[["game_id", "home_team"]].set_axis(["game_id", "team"], axis=1),
+            games[["game_id", "away_team"]].set_axis(["game_id", "team"], axis=1),
+        ]
+    )
+    known = set(zip(pairs["game_id"], pairs["team"], strict=True))
+    seen = pd.Series(
+        list(zip(players["game_id"], players["team"], strict=True)), index=players.index
+    )
+    unknown = seen[~seen.isin(known)]
+    if len(unknown):
+        problems.append(
+            f"player rows with (game_id, team) not in games: {unknown.drop_duplicates().tolist()[:5]}"
+        )
+    have = set(zip(players["game_id"], players["team"], strict=True))
+    done = games[games["home_pts"].notna()]
+    expected = set(zip(done["game_id"], done["home_team"], strict=True)) | set(
+        zip(done["game_id"], done["away_team"], strict=True)
+    )
+    absent = sorted(expected - have)
+    if absent:
+        problems.append(f"no player rows for completed (game_id, team): {absent[:5]}")
+    if (players["min"] < 0).any():
+        problems.append("negative minutes in player log")
     if problems:
         raise DataValidationError("; ".join(problems))

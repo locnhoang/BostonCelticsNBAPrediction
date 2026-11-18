@@ -44,11 +44,64 @@ def fetch_season_gamelog(season: int) -> pd.DataFrame:
     return with_retries(call)
 
 
+def fetch_season_playerlog(season: int) -> pd.DataFrame:
+    from nba_api.stats.endpoints import leaguegamelog
+
+    def call() -> pd.DataFrame:
+        endpoint = leaguegamelog.LeagueGameLog(
+            season=season_label(season),
+            season_type_all_star="Regular Season",
+            player_or_team_abbreviation="P",
+            timeout=60,
+        )
+        return endpoint.get_data_frames()[0]
+
+    return with_retries(call)
+
+
 def fetch_schedule(season: int) -> pd.DataFrame:
     from nba_api.stats.endpoints import scheduleleaguev2
 
     def call() -> pd.DataFrame:
         endpoint = scheduleleaguev2.ScheduleLeagueV2(season=season_label(season), timeout=30)
         return endpoint.get_data_frames()[0]
+
+    return with_retries(call)
+
+
+def nba_team_ids() -> dict[str, int]:
+    """Team abbreviation -> NBA team_id."""
+    from nba_api.stats.static import teams
+
+    return {t["abbreviation"]: t["id"] for t in teams.get_teams()}
+
+
+def fetch_team_roster(team: str, season: int) -> pd.DataFrame:
+    """Players on a team's roster (columns player_id, player_name)."""
+    from nba_api.stats.endpoints import commonteamroster
+    team_ids = nba_team_ids()
+
+    def call() -> pd.DataFrame:
+        endpoint = commonteamroster.CommonTeamRoster(
+            team_id=team_ids[team], season=season_label(season), timeout=30
+        )
+        return endpoint.get_data_frames()[0]
+
+    raw = with_retries(call)
+    return pd.DataFrame(
+        {"player_id": raw["PLAYER_ID"].astype("int64"), "player_name": raw["PLAYER"].astype(str)}
+    )
+
+
+ESPN_INJURIES_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries"
+
+
+def fetch_espn_injuries() -> dict:
+    import requests
+
+    def call() -> dict:
+        resp = requests.get(ESPN_INJURIES_URL, timeout=30)
+        resp.raise_for_status()
+        return resp.json()
 
     return with_retries(call)

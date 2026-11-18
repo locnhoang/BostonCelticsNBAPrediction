@@ -10,7 +10,7 @@ FIRST_SEASON = 2014  # warm-up season for Elo / ratings
 FIRST_TRAIN_SEASON = 2015
 BACKTEST_SEASONS = list(range(2018, 2026))
 
-MODEL_NAME = "ridge"  # switch to "gbm" only if it clearly wins the backtest
+MODEL_NAME = "ridge_avail"  # adopted: beat ridge by at least AVAIL_ADOPT_MARGIN log loss in the backtest
 RETRAIN_DAYS = 7
 GAMES_PER_TEAM = 82
 
@@ -30,6 +30,17 @@ NET_DECAY = 0.97  # per-game decay of the net-rating average
 NET_PRIOR_WEIGHT = 8.0  # prior counts as this many games, decaying like a game
 NET_PRIOR_SHRINK = 0.67  # prior = 0.67 * last season's average net rating
 
+ROTATION_WINDOW = 10
+ROTATION_MIN_GAMES = 5
+ROTATION_MIN_MINUTES = 15.0
+VALUE_DECAY = 0.95
+VALUE_PRIOR_MINUTES = 100.0
+EXPECTED_MIN_WINDOW = 10
+AVAIL_BASELINE_GAMES = 10
+DTD_PRIOR = 0.5
+DTD_MIN_CASES = 100
+AVAIL_ADOPT_MARGIN = 0.001
+
 REST_CAP = 4
 DEFAULT_REST = 2
 
@@ -45,6 +56,10 @@ class Paths:
     @property
     def model_dir(self) -> Path:
         return self.root / "data" / "models"
+
+    @property
+    def injuries_dir(self) -> Path:
+        return self.root / "data" / "injuries"
 
     @property
     def site_data(self) -> Path:

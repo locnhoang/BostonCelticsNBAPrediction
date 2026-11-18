@@ -34,3 +34,11 @@ def test_walk_forward_beats_coin_flip_on_synthetic_league():
     from celtics.evaluate.metrics import log_loss
 
     assert log_loss(preds["prob"], preds["outcome"]) < 0.69
+
+
+def test_walk_forward_ridge_avail_runs_on_synthetic_league():
+    feats = build_features(make_league([2020, 2021, 2022, 2023]))
+    preds = bt.walk_forward(feats, "ridge_avail", [2023])
+    assert len(preds) > 0
+    assert preds["prob"].between(0, 1).all()
+    assert (preds["prob"] > 0).all() and (preds["prob"] < 1).all()

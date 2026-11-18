@@ -12,7 +12,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from celtics.config import ELO_HOME, ELO_PER_POINT
-from celtics.features.build import FEATURES
+from celtics.features.build import AVAIL_FEATURES, FEATURES
 
 
 def win_prob(margin, sigma: float) -> np.ndarray:
@@ -22,12 +22,13 @@ def win_prob(margin, sigma: float) -> np.ndarray:
 class MarginModel:
     name = "base"
     is_linear = False
+    features: list[str] = FEATURES
 
     def __init__(self) -> None:
         self.sigma = 12.0
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> "MarginModel":
-        self._fit(X[FEATURES], y)
+        self._fit(X[self.features], y)
         resid = np.asarray(y, dtype=float) - self.predict_margin(X)
         self.sigma = float(np.std(resid, ddof=1))
         return self
@@ -72,7 +73,12 @@ class RidgeModel(MarginModel):
         self.pipe_ = make_pipeline(StandardScaler(), Ridge(alpha=1.0)).fit(X, y)
 
     def predict_margin(self, X):
-        return self.pipe_.predict(X[FEATURES])
+        return self.pipe_.predict(X[self.features])
+
+
+class RidgeAvailModel(RidgeModel):
+    name = "ridge_avail"
+    features = FEATURES + AVAIL_FEATURES
 
 
 class GBMModel(MarginModel):
@@ -90,13 +96,14 @@ class GBMModel(MarginModel):
         ).fit(X, y)
 
     def predict_margin(self, X):
-        return self.model_.predict(X[FEATURES])
+        return self.model_.predict(X[self.features])
 
 
 MODELS: dict[str, type[MarginModel]] = {
     "homecourt": HomeCourtModel,
     "elo": EloModel,
     "ridge": RidgeModel,
+    "ridge_avail": RidgeAvailModel,
     "gbm": GBMModel,
 }
 
