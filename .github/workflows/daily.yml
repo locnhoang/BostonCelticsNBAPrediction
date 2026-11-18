@@ -1,7 +1,8 @@
 name: Daily update
 on:
-  schedule:
-    - cron: "0 14 * * *" # 9:00 ET (EST) / 10:00 ET (EDT), after all West Coast games
+  # The daily schedule is off: stats.nba.com blocks GitHub-hosted runners (fetch exits 2).
+  # The daily update runs from a Mac via launchd (scripts/install_launchd.sh) and pushes to main.
+  # Manual runs stay available here for testing.
   workflow_dispatch:
 permissions:
   contents: write
