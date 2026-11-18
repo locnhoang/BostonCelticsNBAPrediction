@@ -12,37 +12,48 @@ from celtics.config import (
     DEFAULT_TEAM_SD,
     FIRST_TRAIN_SEASON,
     GAMES_PER_TEAM,
+    LEAGUE_TRACK_FROM,
     MODEL_NAME,
     N_SIMS,
     RETRAIN_DAYS,
     TEAM,
     TEAM_SD_GRID,
-    TRACK_PICKS_FROM,
     Paths,
     current_season,
     season_label,
 )
 from celtics.data.cache import load_all, load_all_players, refresh, refresh_players
-from celtics.data.fetch import fetch_espn_injuries, fetch_team_roster
+from celtics.data.fetch import fetch_espn_injuries
 from celtics.data.parse import empty_players
 from celtics.data.validate import DataValidationError, validate_games, validate_players
 from celtics.evaluate.backtest import season_coverage, walk_forward
 from celtics.evaluate.metrics import calibration_table, summarize
 from celtics.export.build import (
-    conference_table,
-    game_rows,
-    healthy_win_prob,
     history_entry,
     injury_teams,
     read_json,
-    seed_probabilities,
-    team_summary,
     upsert_history,
     write_json_atomic,
 )
 from celtics.export.context import team_context
-from celtics.export.league import migrate_pregame_log, record_from_rows, update_league_pregame_log
-from celtics.export.schema import BacktestReport, DtdLog, HistoryEntry, Predictions, PregameLog
+from celtics.export.league import (
+    league_file,
+    migrate_pregame_log,
+    next_game_ids,
+    pick_record,
+    slate_days,
+    team_file,
+    update_league_pregame_log,
+)
+from celtics.export.schema import (
+    BacktestReport,
+    DtdLog,
+    HistoryEntry,
+    League,
+    PregameLog,
+    Slate,
+    TeamFile,
+)
 from celtics.features.availability import (
     CURRENT_COLUMNS,
     current_player_values,
@@ -60,7 +71,7 @@ from celtics.injuries import (
 from celtics.models.margin import MODELS, MarginModel, load_model, make_model, save_model
 from celtics.simulate.inputs import prepare_sim_inputs
 from celtics.simulate.season import simulate_season
-from celtics.teams import CONFERENCE_OF, TEAM_INDEX
+from celtics.teams import TEAM_INDEX
 
 log = logging.getLogger(__name__)
 
@@ -119,13 +130,30 @@ def read_team_sd(paths: Paths) -> float:
     return float(report["chosen_team_sd"]) if report else DEFAULT_TEAM_SD
 
 
-def _check_not_backwards(games, season: int, existing: dict | None) -> None:
-    """Refuse to publish if the data has fewer completed games than the last published run."""
-    if not existing or existing.get("season") != season_label(season):
+def _completed_games(games, season: int) -> int:
+    return int(games.loc[games["season"] == season, "home_pts"].notna().sum())
+
+
+def _check_not_backwards(games, season: int, league: dict | None, legacy: dict | None) -> None:
+    """Refuse to publish if the data has fewer completed games than the last published run.
+
+    Compares the league-wide count with `league.json`; before the first league file exists, falls
+    back to Boston's record in the retired `predictions.json`.
+    """
+    if league is not None:
+        if league.get("season") != season_label(season):
+            return
+        done, published = _completed_games(games, season), league["completed_games"]
+        if done < published:
+            raise DataValidationError(
+                f"completed games went backwards: the league has {done} now, {published} in last published run"
+            )
+        return
+    if not legacy or legacy.get("season") != season_label(season):
         return
     cur = games[(games["season"] == season) & ((games["home_team"] == TEAM) | (games["away_team"] == TEAM))]
     done = int(cur["home_pts"].notna().sum())
-    summary = existing["team_summary"]
+    summary = legacy["team_summary"]
     published = summary["wins"] + summary["losses"]
     if done < published:
         raise DataValidationError(
@@ -163,15 +191,83 @@ def _load_feed(paths: Paths, today: date, players, season: int):
     return parsed, matched, unmatched, as_of
 
 
-def _fetch_rosters(teams: list[str], season: int) -> dict[str, pd.DataFrame | None]:
-    rosters: dict[str, pd.DataFrame | None] = {}
-    for team in teams:
-        try:
-            rosters[team] = fetch_team_roster(team, season)
-        except Exception as exc:
-            log.warning("roster for %s unavailable, using recent players: %s", team, exc)
-            rosters[team] = None
-    return rosters
+def _injury_lookup(parsed, matched, current, today: date, p_dtd: float):
+    """`(home, away, game_date, not_next) -> {team: [injured players]}`, cached per game.
+
+    A display failure falls back to empty lists for that game; it never blocks a run.
+    """
+    cache: dict[tuple, dict[str, list[dict]]] = {}
+
+    def lookup(home: str, away: str, game_date: date, not_next: frozenset[str]) -> dict[str, list[dict]]:
+        key = (home, away, game_date, not_next)
+        if key not in cache:
+            pair = [home, away]
+            try:
+                cache[key] = injury_teams(
+                    pair, parsed, matched, current, dict.fromkeys(pair), today, game_date, p_dtd, not_next
+                )
+            except Exception as exc:
+                log.warning("injury display failed for %s @ %s, showing none: %s", away, home, exc)
+                cache[key] = {home: [], away: []}
+        return cache[key]
+
+    return lookup
+
+
+def _team_injury_report(team: str, game, next_pairs, lookup, available, as_of, p_dtd, unmatched) -> dict:
+    """The injury report for `team`'s next game (`game`, a feature row, or None if none is left)."""
+    teams: dict[str, list[dict]] = {}
+    shown = [team]
+    if game is not None:
+        home, away = game.home_team, game.away_team
+        opp = away if home == team else home
+        not_next = frozenset(t for t in (home, away) if (game.game_id, t) not in next_pairs)
+        by_team = lookup(home, away, game.date.date(), not_next)
+        teams = {team: by_team.get(team, []), opp: by_team.get(opp, [])}
+        shown.append(opp)
+    return {
+        "available": available,
+        "as_of": as_of,
+        "p_dtd": p_dtd,
+        "unmatched": [u for u in unmatched if u.endswith(tuple(f"({t})" for t in shown))],
+        "teams": teams,
+    }
+
+
+def _slate_record(slate_games: list[dict], games, season: int, pregame_log: dict) -> dict:
+    """League pick record: yesterday's slate games, and every completed game since tracking began."""
+    done = games[(games["season"] == season) & games["home_pts"].notna()]
+    finished = [
+        {
+            "completed": True,
+            "date": d,
+            "home": home,
+            "away": away,
+            "home_pts": hp,
+            "away_pts": ap,
+            "pregame_home_win_prob": pregame_log.get(gid, {}).get("home_win_prob"),
+        }
+        for gid, d, home, away, hp, ap in zip(
+            done["game_id"], done["date"].dt.strftime("%Y-%m-%d"), done["home_team"],
+            done["away_team"], done["home_pts"], done["away_pts"], strict=True,
+        )
+    ]  # fmt: skip
+
+    def counts(rec: dict) -> dict:
+        return {"correct": rec["correct"], "wrong": rec["wrong"]}
+
+    return {
+        "since": LEAGUE_TRACK_FROM,
+        "yesterday": counts(pick_record(slate_games, LEAGUE_TRACK_FROM)),
+        "total": counts(pick_record(finished, LEAGUE_TRACK_FROM)),
+    }
+
+
+def _validate(name: str, check) -> None:
+    try:
+        check()
+    except ValidationError as exc:
+        raise DataValidationError(f"{name} failed validation: {exc}") from exc
 
 
 def _apply_live_avail(feats: pd.DataFrame, live: pd.DataFrame) -> pd.DataFrame:
@@ -195,9 +291,12 @@ def run_update(
     now: datetime | None = None,
 ) -> dict:
     season = current_season(today)
+    data = paths.site_data
     games = _load_games(paths, today, offline)
     validate_games(games, season, today=today)
-    _check_not_backwards(games, season, read_json(paths.site_data / "predictions.json", None))
+    _check_not_backwards(
+        games, season, read_json(data / "league.json", None), read_json(data / "predictions.json", None)
+    )
     players = _load_players(paths, today, offline, games)
 
     feed = _load_feed(paths, today, players, season)
@@ -205,7 +304,7 @@ def run_update(
         pd.DataFrame(columns=INJURY_COLUMNS), _empty_matched(), [], None
     )
 
-    dtd_log = read_json(paths.site_data / "dtd_log.json", [])
+    dtd_log = read_json(data / "dtd_log.json", [])
     try:
         DtdLog.validate_python(dtd_log)
     except ValidationError as exc:
@@ -215,7 +314,6 @@ def run_update(
         current = current_player_values(games, players, season)
         rotation_ids = {int(p) for p in current.loc[current["rotation"], "player_id"]}
         dtd_log = update_dtd_log(dtd_log, matched, games, players, today, rotation_ids)
-    DtdLog.validate_python(dtd_log)
     p_dtd = learn_p_dtd(dtd_log)
 
     feats = build_features(games, players)
@@ -230,61 +328,65 @@ def run_update(
         inputs, n_sims=n_sims, team_sd=read_team_sd(paths), seed=int(today.strftime("%Y%m%d"))
     )
 
+    # Build every output first; nothing is written until all of them validate.
     generated_at = _now(now)
-    pregame_log = migrate_pregame_log(read_json(paths.site_data / "pregame_log.json", {}), games, TEAM)
+    model_version = f"{MODEL_NAME}-{model.trained_on}"
+    pregame_log = migrate_pregame_log(read_json(data / "pregame_log.json", {}), games, TEAM)
     pregame_log = update_league_pregame_log(
         pregame_log, feats, model, season, generated_at, today.isoformat()
     )
-    rows = game_rows(feats, model, season, TEAM, pregame_log)
-    upcoming = next((r for r in rows if not r["completed"]), None)
-    teams: dict[str, list[dict]] = {}
-    if upcoming is not None:
-        upcoming["win_prob_healthy"] = healthy_win_prob(feats, model, upcoming["game_id"], TEAM, baselines)
-        pair = [TEAM, upcoming["opponent"]]
-        game_date = date.fromisoformat(upcoming["date"])
-        rosters = _fetch_rosters(pair, season)
-        try:
-            teams = injury_teams(pair, parsed, matched, current, rosters, today, game_date, p_dtd)
-        except Exception as exc:
-            log.warning("injury display failed, falling back to recent players only: %s", exc)
-            teams = injury_teams(
-                pair, parsed.iloc[0:0], _empty_matched(), current, dict.fromkeys(pair), today, game_date, p_dtd
-            )
-    i = TEAM_INDEX[TEAM]
-    summary = team_summary(result, TEAM, inputs.current_wins[i], inputs.current_losses[i])
-    predictions = {
-        "generated_at": generated_at,
-        "model_version": f"{MODEL_NAME}-{model.trained_on}",
-        "season": season_label(season),
-        "team_summary": summary,
-        "games": rows,
-        "seed_probabilities": seed_probabilities(result, TEAM),
-        "conference_table": conference_table(result, inputs, CONFERENCE_OF[TEAM]),
-        "metrics": {
-            "live": None,
-            "record": record_from_rows(rows, TRACK_PICKS_FROM),
-        },
-        "team_context": team_context(games, season),
-        "injury_report": {
-            "available": feed is not None,
-            "as_of": as_of,
-            "p_dtd": p_dtd,
-            "unmatched": unmatched,
-            "teams": teams,
-        },
-    }
-    Predictions.model_validate(predictions)
-    PregameLog.validate_python(pregame_log)
-    entry = history_entry(today, summary)
-    HistoryEntry.model_validate(entry)
-    history = upsert_history(read_json(paths.site_data / "history.json", []), entry)
+    _validate("pregame_log.json", lambda: PregameLog.validate_python(pregame_log))
+    context = team_context(games, season)
+    lookup = _injury_lookup(parsed, matched, current, today, p_dtd)
 
-    write_json_atomic(paths.site_data / "predictions.json", predictions)
-    write_json_atomic(paths.site_data / "history.json", history)
-    write_json_atomic(paths.site_data / "pregame_log.json", pregame_log)
+    days = slate_days(feats, model, pregame_log, context, today, baselines, lookup if feed is not None else None)
+    slate = {
+        "generated_at": generated_at,
+        "model_version": model_version,
+        "days": days,
+        "record": _slate_record(days[0]["games"], games, season, pregame_log),
+    }
+    league = league_file(
+        context, generated_at, model_version, _completed_games(games, season), season_label(season)
+    )
+
+    next_pairs = next_game_ids(feats, season)
+    next_game = {team: gid for gid, team in next_pairs}
+    by_id = feats.set_index("game_id", drop=False)
+    team_files: dict[str, dict] = {}
+    histories: dict[str, list[dict]] = {}
+    for team in TEAM_INDEX:
+        gid = next_game.get(team)
+        report = _team_injury_report(
+            team, by_id.loc[gid] if gid else None, next_pairs, lookup, feed is not None, as_of, p_dtd, unmatched
+        )
+        team_files[team] = team_file(
+            team, feats, model, result, inputs, season, pregame_log, report, generated_at,
+            model_version, baselines,
+        )  # fmt: skip
+        history = read_json(data / "history" / f"{team}.json", None)
+        if history is None:  # first launch: Boston's history moves from the retired history.json
+            history = read_json(data / "history.json", []) if team == TEAM else []
+        histories[team] = upsert_history(history, history_entry(today, team_files[team]["team_summary"]))
+
+    _validate("slate.json", lambda: Slate.model_validate(slate))
+    _validate("league.json", lambda: League.model_validate(league))
+    for team in TEAM_INDEX:
+        _validate(f"teams/{team}.json", lambda t=team: TeamFile.model_validate(team_files[t]))
+        _validate(f"history/{team}.json", lambda t=team: [HistoryEntry.model_validate(h) for h in histories[t]])
+    _validate("dtd_log.json", lambda: DtdLog.validate_python(dtd_log))
+
+    for team in TEAM_INDEX:
+        write_json_atomic(data / "teams" / f"{team}.json", team_files[team], compact=True)
+        write_json_atomic(data / "history" / f"{team}.json", histories[team])
+    write_json_atomic(data / "slate.json", slate, compact=True)
+    write_json_atomic(data / "pregame_log.json", pregame_log)
     if players is not None:
-        write_json_atomic(paths.site_data / "dtd_log.json", dtd_log)
-    return predictions
+        write_json_atomic(data / "dtd_log.json", dtd_log)
+    write_json_atomic(data / "league.json", league, compact=True)
+    for retired in ("predictions.json", "history.json"):  # replaced by teams/ and history/
+        (data / retired).unlink(missing_ok=True)
+    return team_files[TEAM]
 
 
 def run_backtest(

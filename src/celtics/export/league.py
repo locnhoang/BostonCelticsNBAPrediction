@@ -88,7 +88,7 @@ def pick_record(games: list[dict], since: str, team: str | None = None) -> dict:
     return {"since": since, "correct": correct, "wrong": wrong}
 
 
-def _next_game_ids(feats: pd.DataFrame, season: int) -> set[tuple[str, str]]:
+def next_game_ids(feats: pd.DataFrame, season: int) -> set[tuple[str, str]]:
     """(game_id, team) pairs where the game is that team's next incomplete game."""
     left = feats[(feats["season"] == season) & ~feats["completed"]].sort_values(["date", "game_id"])
     seen: set[str] = set()
@@ -112,7 +112,7 @@ def slate_days(
 ) -> list[dict]:
     """Yesterday, today and tomorrow, each with every game on that date."""
     season = int(feats["season"].max())
-    next_pairs = _next_game_ids(feats, season)
+    next_pairs = next_game_ids(feats, season)
     dates = feats["date"].dt.date
     days = []
     for k in (-1, 0, 1):

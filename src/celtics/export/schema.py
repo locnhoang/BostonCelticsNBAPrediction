@@ -88,22 +88,10 @@ class ConferenceRow(BaseModel):
     p_seed1: Prob
 
 
-class LiveMetrics(BaseModel):
-    n: int
-    log_loss: float
-    brier: float
-    accuracy: Prob
-
-
 class ModelRecord(BaseModel):
     since: str
     correct: int = Field(ge=0)
     wrong: int = Field(ge=0)
-
-
-class Metrics(BaseModel):
-    live: LiveMetrics | None
-    record: ModelRecord | None = None
 
 
 class InjuryPlayer(BaseModel):
@@ -127,7 +115,7 @@ class InjuryReport(BaseModel):
 
 
 class _TeamPage(BaseModel):
-    """Fields and checks shared by a team's file and the legacy predictions file."""
+    """Fields and checks of a team's page file."""
 
     generated_at: str
     model_version: str
@@ -143,21 +131,6 @@ class _TeamPage(BaseModel):
         if list(self.seed_probabilities) != [str(k) for k in range(1, 16)]:
             raise ValueError("seed_probabilities must have keys '1'..'15'")
         _sums_to_one(self.seed_probabilities.values(), "seed_probabilities")
-        return self
-
-
-def _thirty(team_context: dict) -> None:
-    if len(team_context) != 30:
-        raise ValueError(f"team_context has {len(team_context)} teams, expected 30")
-
-
-class Predictions(_TeamPage):
-    metrics: Metrics
-    team_context: dict[str, TeamContext]
-
-    @model_validator(mode="after")
-    def _thirty_teams(self):
-        _thirty(self.team_context)
         return self
 
 
@@ -178,7 +151,8 @@ class League(BaseModel):
 
     @model_validator(mode="after")
     def _thirty_teams(self):
-        _thirty(self.team_context)
+        if len(self.team_context) != 30:
+            raise ValueError(f"team_context has {len(self.team_context)} teams, expected 30")
         return self
 
 

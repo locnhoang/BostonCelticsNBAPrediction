@@ -67,7 +67,7 @@ branch=$(git branch --show-current)
 sync_to_origin
 
 if [[ "${1:-}" != "--force" ]] && \
-   [[ -n "$(git log origin/main --since="$(date +%F) 00:00" --format=%H -- site/data/history.json)" ]]; then
+   [[ -n "$(git log origin/main --since="$(date +%F) 00:00" --format=%H -- site/data/league.json)" ]]; then
   echo "already updated today"
   exit 0
 fi

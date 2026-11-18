@@ -11,7 +11,7 @@ from celtics.config import DEFAULT_TEAM_SD, TRACK_PICKS_FROM, Paths
 from celtics.data.cache import player_season_path, season_path
 from celtics.data.fetch import FetchBlockedError
 from celtics.data.validate import DataValidationError
-from celtics.export.schema import BacktestReport, DtdLog, HistoryEntry, Predictions
+from celtics.export.schema import BacktestReport, DtdLog, HistoryEntry, League, Slate, TeamFile
 from celtics.injuries import ESPN_TEAM
 from celtics.pipeline import read_team_sd, run_backtest, run_train, run_update
 from celtics.teams import TEAM_INDEX
@@ -68,13 +68,6 @@ def _feed(team, k=0, status="Out"):
 
 def _patch_feeds(repo, monkeypatch):
     monkeypatch.setattr("celtics.pipeline.fetch_espn_injuries", lambda: _feed(_next_opponent(repo)))
-    monkeypatch.setattr(
-        "celtics.pipeline.fetch_team_roster",
-        lambda team, season: pd.DataFrame(
-            {"player_id": [TEAM_INDEX[team] * 100 + k for k in range(8)],
-             "player_name": [_pname(team, k) for k in range(8)]}
-        ),
-    )  # fmt: skip
 
 
 def _write_league(tmp_path, seasons, with_players):
@@ -91,7 +84,7 @@ def _write_league(tmp_path, seasons, with_players):
 
 @pytest.fixture
 def repo(tmp_path, monkeypatch):
-    """Four synthetic seasons with no player logs (availability 0); ESPN and rosters patched."""
+    """Four synthetic seasons with no player logs (availability 0); ESPN patched."""
     repo = _write_league(tmp_path, [2021, 2022, 2023, 2024], with_players=False)
     _patch_feeds(repo, monkeypatch)
     return repo
@@ -121,21 +114,47 @@ def _pin_ridge(monkeypatch):
     monkeypatch.setattr("celtics.pipeline.MODEL_NAME", "ridge")
 
 
+def _read(path):
+    return json.loads(path.read_text())
+
+
+def _bos(repo):
+    return _read(repo.site_data / "teams" / "BOS.json")
+
+
+def _snapshot(repo):
+    return {p.relative_to(repo.site_data): p.read_bytes() for p in repo.site_data.rglob("*") if p.is_file()}
+
+
 @pytest.mark.usefixtures("_pin_ridge")
 def test_run_update_writes_valid_outputs(repo):
-    run_update(repo, TODAY, offline=True, n_sims=200, now=datetime(2024, 11, 19, 14, 0))  # day of the next synthetic round
-    pred = json.loads((repo.site_data / "predictions.json").read_text())
-    Predictions.model_validate(pred)
-    assert len(pred["team_context"]) == 30
-    upcoming = [g for g in pred["games"] if not g["completed"]]
-    assert upcoming and all(len(g["drivers"]) == 4 for g in upcoming)
-    assert pred["season"] == "2024-25"
-    assert pred["metrics"]["record"]["since"] == TRACK_PICKS_FROM
-    assert len(pred["games"]) == 82
-    assert pred["team_summary"]["wins"] + pred["team_summary"]["losses"] == 15
-    history = json.loads((repo.site_data / "history.json").read_text())
-    assert len(history) == 1
-    HistoryEntry.model_validate(history[0])
+    returned = run_update(repo, TODAY, offline=True, n_sims=200, now=datetime(2024, 11, 19, 14, 0))  # day of the next synthetic round
+    data = repo.site_data
+    assert sorted(p.stem for p in (data / "teams").glob("*.json")) == sorted(TEAM_INDEX)
+    assert sorted(p.stem for p in (data / "history").glob("*.json")) == sorted(TEAM_INDEX)
+    slate = Slate.model_validate(_read(data / "slate.json"))
+    assert [d.date for d in slate.days] == ["2024-11-19", "2024-11-20", "2024-11-21"]
+    assert len(slate.days[0].games) == 15 and slate.days[1].games == [] and len(slate.days[2].games) == 15
+    league = League.model_validate(_read(data / "league.json"))
+    assert league.completed_games == 15 * 15 and league.season == "2024-25"
+    for name in ("slate.json", "league.json", "teams/BOS.json"):
+        assert "\n" not in (data / name).read_text()  # compact
+    bos = _bos(repo)
+    TeamFile.model_validate(bos)
+    assert returned == bos  # the CLI summary line reads the Boston file
+    assert bos["season"] == "2024-25"
+    assert bos["metrics"]["record"]["since"] == TRACK_PICKS_FROM
+    assert len(bos["games"]) == 82
+    first = next(g for g in bos["games"] if not g["completed"])
+    assert len(first["drivers"]) == 4
+    assert bos["team_summary"]["wins"] + bos["team_summary"]["losses"] == 15
+    for team in TEAM_INDEX:
+        TeamFile.model_validate(_read(data / "teams" / f"{team}.json"))
+        history = _read(data / "history" / f"{team}.json")
+        assert len(history) == 1
+        HistoryEntry.model_validate(history[0])
+    assert not (data / "predictions.json").exists()
+    assert not (data / "history.json").exists()
     log = json.loads((repo.site_data / "pregame_log.json").read_text())
     # the Nov 19 round is dated before today (Nov 20) and unplayed: frozen, never back-filled (league-wide log: 30*66/2 games)
     assert len(log) == 990
@@ -145,7 +164,7 @@ def test_run_update_writes_valid_outputs(repo):
 def test_run_update_twice_same_day_keeps_one_history_entry(repo):
     run_update(repo, TODAY, offline=True, n_sims=100)
     run_update(repo, TODAY, offline=True, n_sims=100)
-    assert len(json.loads((repo.site_data / "history.json").read_text())) == 1
+    assert len(_read(repo.site_data / "history" / "BOS.json")) == 1
 
 
 def test_run_backtest_writes_report(repo):
@@ -171,8 +190,7 @@ def test_cli_reports_blocked_fetch(repo, monkeypatch, capsys):
     monkeypatch.setattr("celtics.pipeline.refresh", blocked)
     assert main(["--date", "2024-11-20", "update"]) == 2
     assert "fetch blocked" in capsys.readouterr().err
-    for name in ("predictions.json", "history.json", "pregame_log.json"):
-        assert not (repo.site_data / name).exists()
+    assert not repo.site_data.exists() or _snapshot(repo) == {}
 
 
 def _corrupt(repo):
@@ -206,9 +224,7 @@ def test_cli_validation_failure_exits_3_and_writes_nothing(repo, monkeypatch, ca
     monkeypatch.chdir(repo.root)
     assert main(["--date", "2024-11-20", "update", "--offline"]) == 3
     assert "data validation failed" in capsys.readouterr().err
-    assert not (repo.site_data / "predictions.json").exists()
-    assert not (repo.site_data / "history.json").exists()
-    assert not (repo.site_data / "pregame_log.json").exists()
+    assert not repo.site_data.exists() or _snapshot(repo) == {}
 
 
 def test_run_backtest_rejects_invalid_data(repo):
@@ -233,34 +249,98 @@ def test_read_team_sd(repo):
     assert read_team_sd(repo) == 3.0
 
 
-def test_run_update_rejects_completed_games_going_backwards(repo):
-    run_update(repo, TODAY, offline=True, n_sims=50)
+def _erase_result(repo, involving_bos):
+    """A completed result vanishes from the cache (BOS's last one, or a non-BOS game's)."""
     path = season_path(repo.raw_dir, 2024)
     df = pd.read_parquet(path)
-    mine = df[(df["home_team"] == "BOS") | (df["away_team"] == "BOS")]
-    last_id = mine.loc[mine["home_pts"].notna(), "game_id"].iloc[-1]
-    df.loc[df["game_id"] == last_id, ["home_pts", "away_pts", "poss"]] = float("nan")  # a result vanishes
+    has_bos = (df["home_team"] == "BOS") | (df["away_team"] == "BOS")
+    pool = df[(has_bos if involving_bos else ~has_bos) & df["home_pts"].notna()]
+    df.loc[df["game_id"] == pool["game_id"].iloc[-1], ["home_pts", "away_pts", "poss"]] = float("nan")
     df.to_parquet(path, index=False)
-    before = (repo.site_data / "predictions.json").read_text()
+
+
+def test_backwards_check_league_wide(repo):
+    run_update(repo, TODAY, offline=True, n_sims=50)
+    _erase_result(repo, involving_bos=False)  # Boston's record is unchanged; the league's is not
+    before = _snapshot(repo)
     with pytest.raises(DataValidationError, match="completed games went backwards"):
         run_update(repo, TODAY, offline=True, n_sims=50)
-    assert (repo.site_data / "predictions.json").read_text() == before
+    assert _snapshot(repo) == before
+
+
+def test_backwards_check_skips_another_season(repo):
+    run_update(repo, TODAY, offline=True, n_sims=50)
+    path = repo.site_data / "league.json"
+    league = _read(path)
+    path.write_text(json.dumps({**league, "season": "2023-24", "completed_games": 10_000}))
+    run_update(repo, TODAY, offline=True, n_sims=50)
+    assert _read(path)["completed_games"] == 15 * 15
+
+
+def test_backwards_check_uses_old_predictions_before_first_league_file(repo):
+    repo.site_data.mkdir(parents=True)
+    old = {"season": "2024-25", "team_summary": {"wins": 10, "losses": 6}}  # BOS has 15 done
+    (repo.site_data / "predictions.json").write_text(json.dumps(old))
+    before = _snapshot(repo)
+    with pytest.raises(DataValidationError, match="completed games went backwards"):
+        run_update(repo, TODAY, offline=True, n_sims=50)
+    assert _snapshot(repo) == before
+
+
+def test_first_launch_migrates_old_files(repo):
+    cur = pd.read_parquet(season_path(repo.raw_dir, 2024))
+    away = cur[(cur["away_team"] == "BOS") & cur["home_pts"].notna()]
+    gid = away["game_id"].iloc[0]
+    repo.site_data.mkdir(parents=True)
+    old_log = {gid: {"win_prob": 0.6, "pred_margin": 2.0, "logged_at": "2024-10-20T14:00:00+00:00"}}
+    (repo.site_data / "pregame_log.json").write_text(json.dumps(old_log))
+    seeded = {
+        "date": "2024-11-19", "record": "9-5", "projected_wins_median": 45.0, "p10": 38.0,
+        "p90": 52.0, "playoff_prob": 0.7, "top6_prob": 0.5, "seed1_prob": 0.1,
+    }  # fmt: skip
+    (repo.site_data / "history.json").write_text(json.dumps([seeded]))
+    old = {"season": "2024-25", "team_summary": {"wins": 10, "losses": 5}}
+    (repo.site_data / "predictions.json").write_text(json.dumps(old))
+    run_update(repo, TODAY, offline=True, n_sims=50)
+    log = _read(repo.site_data / "pregame_log.json")
+    assert log[gid]["home_win_prob"] == 0.4 and log[gid]["pred_margin"] == -2.0
+    history = _read(repo.site_data / "history" / "BOS.json")
+    assert history[0] == seeded and len(history) == 2
+    assert not (repo.site_data / "predictions.json").exists()
+    assert not (repo.site_data / "history.json").exists()
+
+
+def test_invalid_output_writes_nothing(repo, monkeypatch):
+    run_update(repo, TODAY, offline=True, n_sims=50)
+    before = _snapshot(repo)
+    real = pipeline_module.team_file
+
+    def broken(team, *args, **kwargs):
+        out = real(team, *args, **kwargs)
+        if team == "NYK":
+            out["team_summary"]["p_playoffs"] = 1.5
+        return out
+
+    monkeypatch.setattr("celtics.pipeline.team_file", broken)
+    with pytest.raises(DataValidationError):
+        run_update(repo, date(2024, 11, 21), offline=True, n_sims=50)
+    assert _snapshot(repo) == before
 
 
 def test_run_update_rejects_corrupt_pregame_log(repo):
     repo.site_data.mkdir(parents=True)
     bad = {"g1": {"home_win_prob": 3.0, "pred_margin": 1.0, "logged_at": "2024-11-19T14:00:00"}}
     (repo.site_data / "pregame_log.json").write_text(json.dumps(bad))
-    with pytest.raises(ValidationError):
+    with pytest.raises(DataValidationError, match="pregame_log"):
         run_update(repo, TODAY, offline=True, n_sims=50)
 
 
 def test_schema_rejects_incomplete_team_context(repo):
     run_update(repo, TODAY, offline=True, n_sims=200, now=datetime(2024, 11, 19, 14, 0))
-    pred = json.loads((repo.site_data / "predictions.json").read_text())
-    del pred["team_context"]["NYK"]
+    league = _read(repo.site_data / "league.json")
+    del league["team_context"]["NYK"]
     with pytest.raises(ValidationError):
-        Predictions.model_validate(pred)
+        League.model_validate(league)
 
 
 def _next_row(pred):
@@ -279,9 +359,16 @@ def test_run_update_publishes_injury_report(repo_players, opp_p):
     assert report["teams"]["BOS"] == []  # injured players only; BOS has none listed
     assert report["unmatched"] == []
     assert (repo_players.root / "data" / "injuries" / "2024-11-20.json").exists()
-    on_disk = json.loads((repo_players.site_data / "predictions.json").read_text())
-    Predictions.model_validate(on_disk)
+    on_disk = _bos(repo_players)
+    TeamFile.model_validate(on_disk)
+    assert on_disk == pred
     assert _next_row(on_disk)["win_prob_healthy"] is not None
+    slate = _read(repo_players.site_data / "slate.json")
+    game = next(
+        g for d in slate["days"] for g in d["games"] if not g["completed"] and opp_p in (g["home"], g["away"])
+    )
+    side = "home" if game["home"] == opp_p else "away"
+    assert [p["name"] for p in game["injuries"][side]] == [_pname(opp_p, 0)]
 
 
 def _force_avail_model(monkeypatch):
@@ -293,7 +380,7 @@ def _boom():
 
 
 @pytest.mark.parametrize("bad", [_boom, lambda: [], lambda: {}, lambda: {"injuries": None}])
-def test_run_update_without_usable_feed_applies_no_adjustment(repo_players, monkeypatch, bad):
+def test_feed_unavailable_publishes_without_adjustment(repo_players, monkeypatch, bad):
     _force_avail_model(monkeypatch)
     seen = {}
     real = pipeline_module.prepare_sim_inputs
@@ -305,12 +392,18 @@ def test_run_update_without_usable_feed_applies_no_adjustment(repo_players, monk
     monkeypatch.setattr("celtics.pipeline.fetch_espn_injuries", bad)
     monkeypatch.setattr("celtics.pipeline.prepare_sim_inputs", spy)
     pred = run_update(repo_players, TODAY, offline=True, n_sims=50)
-    Predictions.model_validate(pred)
+    TeamFile.model_validate(pred)
     assert pred["injury_report"]["available"] is False
+    assert _bos(repo_players)["injury_report"]["available"] is False
     assert (seen["avail"] == 0).all().all() and len(seen["avail"]) > 0
     row = _next_row(pred)
     assert row["win_prob"] == row["win_prob_healthy"]
     assert [d["label"] for d in row["drivers"]][-1] == "Injuries & availability"
+    upcoming = [g for d in _read(repo_players.site_data / "slate.json")["days"] for g in d["games"] if not g["completed"]]
+    assert upcoming
+    for g in upcoming:
+        assert g["injuries"] == {"home": [], "away": []}
+        assert g["home_win_prob_healthy"] == g["home_win_prob"]
 
 
 def test_run_update_with_feed_applies_live_avail(repo_players, opp_p, monkeypatch):
@@ -351,15 +444,16 @@ def test_run_update_reports_unmatched_and_unknown_team(repo, opp, monkeypatch):
     monkeypatch.setattr("celtics.pipeline.fetch_espn_injuries", lambda: feed)
     pred = run_update(repo, TODAY, offline=True, n_sims=100)
     report = pred["injury_report"]
+    assert set(report["teams"]) == {"BOS", opp}
     assert f"Nobody Special ({opp})" in report["unmatched"]
-    assert "Seattle SuperSonics (unknown team)" in report["unmatched"]
+    assert all(u.endswith((f"({opp})", "(BOS)")) for u in report["unmatched"])  # only this game's teams
     ghost = next(p for p in report["teams"][opp] if p["name"] == "Nobody Special")
     assert ghost["player_id"] is None and ghost["game_value"] == 0 and ghost["expected_minutes"] == 0
 
 
 def test_run_update_without_player_logs_still_publishes_report(repo):
     pred = run_update(repo, TODAY, offline=True, n_sims=100)
-    Predictions.model_validate(pred)
+    TeamFile.model_validate(pred)
     row = _next_row(pred)
     assert row["win_prob"] == row["win_prob_healthy"]
     assert pred["injury_report"]["available"] is True
@@ -373,7 +467,7 @@ def test_invalid_player_log_exits_3(repo_players, monkeypatch, capsys):
     monkeypatch.chdir(repo_players.root)
     assert main(["--date", "2024-11-20", "update", "--offline"]) == 3
     assert "data validation failed" in capsys.readouterr().err
-    assert not (repo_players.site_data / "predictions.json").exists()
+    assert not repo_players.site_data.exists() or _snapshot(repo_players) == {}
 
 
 def test_dtd_log_written_and_validated(repo_players, opp_p, monkeypatch):
@@ -384,7 +478,6 @@ def test_dtd_log_written_and_validated(repo_players, opp_p, monkeypatch):
     assert pred["injury_report"]["p_dtd"] == 0.5
     dtd = next(p for p in pred["injury_report"]["teams"][opp_p] if p["status"] == "Day-To-Day")
     assert dtd["p_out"] == 0.5
-
 
 
 def test_healthy_equals_prediction_when_no_injuries(repo_players, monkeypatch):
@@ -412,10 +505,10 @@ def test_healthy_equals_prediction_when_no_injuries(repo_players, monkeypatch):
 
 
 def test_raw_feed_write_failure_keeps_the_parsed_feed(repo_players, opp_p, monkeypatch):
-    def broken(path, obj):
+    def broken(path, obj, **kwargs):
         if "injuries" in str(path):
             raise OSError("disk full")
-        return real(path, obj)
+        return real(path, obj, **kwargs)
 
     real = pipeline_module.write_json_atomic
     monkeypatch.setattr("celtics.pipeline.write_json_atomic", broken)
