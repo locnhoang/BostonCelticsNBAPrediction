@@ -150,8 +150,12 @@ def update_dtd_log(
     games: pd.DataFrame,
     players: pd.DataFrame,
     today: date,
+    rotation_ids: set[int] | None = None,
 ) -> list[dict]:
     """Log today's Day-To-Day players and resolve earlier cases against the team's next game.
+
+    With `rotation_ids`, only Day-To-Day players in the rotation are logged (the share that
+    matters for p_dtd); existing entries are kept as they are.
 
     A case resolves once the team has a completed game dated on or after the case (the log is
     written before tip-off); the player played if he has a box-score row in it.
@@ -160,6 +164,8 @@ def update_dtd_log(
     seen = {(c["date"], c["player_id"]) for c in out}
     day = today.isoformat()
     dtd = injuries_matched[injuries_matched["status"] == "Day-To-Day"]
+    if rotation_ids is not None:
+        dtd = dtd[dtd["player_id"].astype(int).isin(rotation_ids)]
     for row in dtd.itertuples():
         key = (day, int(row.player_id))
         if key in seen:

@@ -275,3 +275,13 @@ def test_duplicate_player_prefers_out_over_day_to_day():
     )
     matched, _ = match_players(inj, _players([("TOR", 9, "Kawhi Leonard")]), 2026)
     assert matched["status"].tolist() == ["Out"]
+
+
+def test_update_dtd_log_only_logs_rotation_players():
+    games, players, inj = _dtd_inputs()
+    inj = inj.assign(status="Day-To-Day")  # Brown (2) and Tatum (1)
+    log = update_dtd_log([], inj, games.iloc[0:0], players.iloc[0:0], date(2014, 11, 1), rotation_ids={1})
+    assert [c["player_id"] for c in log] == [1]
+    existing = [{"date": "2014-10-30", "team": "BOS", "player_id": 2, "name": "Brown", "played": None}]
+    kept = update_dtd_log(existing, inj, games.iloc[0:0], players.iloc[0:0], date(2014, 11, 1), rotation_ids={1})
+    assert [c["player_id"] for c in kept] == [2, 1]  # earlier entries stay

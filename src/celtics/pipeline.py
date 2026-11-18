@@ -207,19 +207,20 @@ def run_update(
         DtdLog.validate_python(dtd_log)
     except ValidationError as exc:
         raise DataValidationError(f"dtd_log.json is invalid: {exc}") from exc
+    current = pd.DataFrame(columns=CURRENT_COLUMNS)
     if players is not None:  # without box scores a case could not be resolved honestly
-        dtd_log = update_dtd_log(dtd_log, matched, games, players, today)
+        current = current_player_values(games, players, season)
+        rotation_ids = {int(p) for p in current.loc[current["rotation"], "player_id"]}
+        dtd_log = update_dtd_log(dtd_log, matched, games, players, today, rotation_ids)
     DtdLog.validate_python(dtd_log)
     p_dtd = learn_p_dtd(dtd_log)
 
     feats = build_features(games, players)
-    current = pd.DataFrame(columns=CURRENT_COLUMNS)
     baselines: dict[str, float] = {}
     if players is not None:
         if feed is not None:  # no feed, no adjustment: incomplete games keep avail 0
             live, baselines = live_avail_and_baselines(games, players, matched, season, today, p_dtd)
             feats = _apply_live_avail(feats, live)
-        current = current_player_values(games, players, season)
     model = load_or_train(feats, paths, today, force=force_train)
     inputs = prepare_sim_inputs(feats, model, current_team_state(games), season, GAMES_PER_TEAM)
     result = simulate_season(
