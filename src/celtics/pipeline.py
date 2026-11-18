@@ -34,7 +34,6 @@ from celtics.export.build import (
     healthy_win_prob,
     history_entry,
     injury_teams,
-    model_record,
     read_json,
     seed_probabilities,
     team_summary,
@@ -42,7 +41,7 @@ from celtics.export.build import (
     write_json_atomic,
 )
 from celtics.export.context import team_context
-from celtics.export.league import migrate_pregame_log, update_league_pregame_log
+from celtics.export.league import migrate_pregame_log, record_from_rows, update_league_pregame_log
 from celtics.export.schema import BacktestReport, DtdLog, HistoryEntry, Predictions, PregameLog
 from celtics.features.availability import (
     CURRENT_COLUMNS,
@@ -263,7 +262,7 @@ def run_update(
         "conference_table": conference_table(result, inputs, CONFERENCE_OF[TEAM]),
         "metrics": {
             "live": None,
-            "record": model_record(rows, TRACK_PICKS_FROM),
+            "record": record_from_rows(rows, TRACK_PICKS_FROM),
         },
         "team_context": team_context(games, season),
         "injury_report": {

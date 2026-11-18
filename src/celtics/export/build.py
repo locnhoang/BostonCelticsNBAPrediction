@@ -98,6 +98,7 @@ def game_rows(
             "pred_margin": None,
             "result": None,
             "pregame_win_prob": None,
+            "correct": None,
             "drivers": None,
             "win_prob_healthy": None,
         }
@@ -108,6 +109,9 @@ def game_rows(
             if logged and logged["home_win_prob"] is not None:
                 hp = logged["home_win_prob"]
                 out["pregame_win_prob"] = r4(hp if home else 1 - hp)
+                picked = row.home_team if hp >= 0.5 else row.away_team  # the game-level home rule
+                winner = row.home_team if row.home_pts > row.away_pts else row.away_team
+                out["correct"] = picked == winner
         else:
             out["win_prob"] = r4(p if home else 1 - p)
             out["pred_margin"] = round(float(m if home else -m), 1)
@@ -119,27 +123,6 @@ def game_rows(
                 ]
         rows.append(out)
     return rows
-
-
-def _scored(rows: list[dict], since: str | None) -> list[dict]:
-    """Completed games with a logged pre-game pick, dated on or after `since` (ISO) if given."""
-    return [
-        r
-        for r in rows
-        if r["completed"] and r["pregame_win_prob"] is not None and (since is None or r["date"] >= since)
-    ]
-
-
-def called_it(row: dict) -> bool:
-    """The model favored the winner. Exactly 0.5 counts as favoring the team (as on the site)."""
-    return (row["pregame_win_prob"] >= 0.5) == row["result"].startswith("W")
-
-
-def model_record(rows: list[dict], since: str) -> dict:
-    """The model's pick record (correct-wrong) on games dated on or after `since`."""
-    scored = _scored(rows, since)
-    correct = sum(called_it(r) for r in scored)
-    return {"since": since, "correct": correct, "wrong": len(scored) - correct}
 
 
 def history_entry(day: date, summary: dict) -> dict:
@@ -165,12 +148,15 @@ def read_json(path: Path, default):
     return json.loads(path.read_text()) if path.exists() else default
 
 
-def write_json_atomic(path: Path, obj) -> None:
+def write_json_atomic(path: Path, obj, compact: bool = False) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
     with os.fdopen(fd, "w") as f:
-        json.dump(obj, f, indent=1)
+        if compact:
+            json.dump(obj, f, separators=(",", ":"))
+        else:
+            json.dump(obj, f, indent=1)
     os.replace(tmp, path)
 
 

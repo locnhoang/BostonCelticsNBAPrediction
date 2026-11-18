@@ -73,6 +73,7 @@ class GameRow(BaseModel):
     pred_margin: float | None
     result: str | None
     pregame_win_prob: Prob | None
+    correct: bool | None = None
     drivers: list[Driver] | None
     win_prob_healthy: Prob | None = None
 
@@ -125,7 +126,9 @@ class InjuryReport(BaseModel):
     teams: dict[str, list[InjuryPlayer]]
 
 
-class Predictions(BaseModel):
+class _TeamPage(BaseModel):
+    """Fields and checks shared by a team's file and the legacy predictions file."""
+
     generated_at: str
     model_version: str
     season: str
@@ -133,8 +136,6 @@ class Predictions(BaseModel):
     games: list[GameRow]
     seed_probabilities: dict[str, Prob]
     conference_table: list[ConferenceRow]
-    metrics: Metrics
-    team_context: dict[str, TeamContext]
     injury_report: InjuryReport
 
     @model_validator(mode="after")
@@ -142,8 +143,42 @@ class Predictions(BaseModel):
         if list(self.seed_probabilities) != [str(k) for k in range(1, 16)]:
             raise ValueError("seed_probabilities must have keys '1'..'15'")
         _sums_to_one(self.seed_probabilities.values(), "seed_probabilities")
-        if len(self.team_context) != 30:
-            raise ValueError(f"team_context has {len(self.team_context)} teams, expected 30")
+        return self
+
+
+def _thirty(team_context: dict) -> None:
+    if len(team_context) != 30:
+        raise ValueError(f"team_context has {len(team_context)} teams, expected 30")
+
+
+class Predictions(_TeamPage):
+    metrics: Metrics
+    team_context: dict[str, TeamContext]
+
+    @model_validator(mode="after")
+    def _thirty_teams(self):
+        _thirty(self.team_context)
+        return self
+
+
+class TeamMetrics(BaseModel):
+    record: ModelRecord
+
+
+class TeamFile(_TeamPage):
+    metrics: TeamMetrics
+
+
+class League(BaseModel):
+    generated_at: str
+    model_version: str
+    season: str
+    completed_games: int = Field(ge=0)
+    team_context: dict[str, TeamContext]
+
+    @model_validator(mode="after")
+    def _thirty_teams(self):
+        _thirty(self.team_context)
         return self
 
 

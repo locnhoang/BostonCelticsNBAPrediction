@@ -6,9 +6,20 @@ from datetime import date, timedelta
 
 import pandas as pd
 
-from celtics.export.build import healthy_win_prob, r4
+from celtics.config import LEAGUE_TRACK_FROM, TRACK_PICKS_FROM, season_label
+from celtics.export.build import (
+    conference_table,
+    game_rows,
+    healthy_win_prob,
+    r4,
+    seed_probabilities,
+    team_summary,
+)
 from celtics.models.explain import explain
 from celtics.models.margin import MarginModel
+from celtics.simulate.inputs import SimInputs
+from celtics.simulate.season import SimResult
+from celtics.teams import CONFERENCE_OF, TEAM_INDEX
 
 log = logging.getLogger(__name__)
 
@@ -160,3 +171,68 @@ def slate_days(
             games.append(game)
         days.append({"date": day.isoformat(), "games": games})
     return days
+
+
+def record_since(team: str) -> str:
+    """The date a team's pick record starts counting."""
+    return TRACK_PICKS_FROM if team == "BOS" else LEAGUE_TRACK_FROM
+
+
+def record_from_rows(rows: list[dict], since: str) -> dict:
+    """Pick record from a team's game rows: their `correct` flags on games dated `since` or later."""
+    flags = [r["correct"] for r in rows if r["correct"] is not None and r["date"] >= since]
+    correct = sum(flags)
+    return {"since": since, "correct": correct, "wrong": len(flags) - correct}
+
+
+def team_file(
+    team: str,
+    feats: pd.DataFrame,
+    model: MarginModel,
+    result: SimResult,
+    inputs: SimInputs,
+    season: int,
+    pregame_log: dict,
+    injury_report: dict,
+    generated_at: str,
+    model_version: str,
+    baselines: dict[str, float] | None = None,
+) -> dict:
+    """One team's page data: summary, schedule with picks, seeds, conference and injuries."""
+    rows = game_rows(feats, model, season, team, pregame_log)
+    upcoming = next((r for r in rows if not r["completed"]), None)
+    for r in rows:
+        if r is not upcoming:
+            r["drivers"] = None
+    if upcoming is not None:
+        upcoming["win_prob_healthy"] = healthy_win_prob(
+            feats, model, upcoming["game_id"], team, baselines or {}
+        )
+    i = TEAM_INDEX[team]
+    return {
+        "generated_at": generated_at,
+        "model_version": model_version,
+        "season": season_label(season),
+        "team_summary": team_summary(result, team, inputs.current_wins[i], inputs.current_losses[i]),
+        "games": rows,
+        "seed_probabilities": seed_probabilities(result, team),
+        "conference_table": conference_table(result, inputs, CONFERENCE_OF[team]),
+        "metrics": {"record": record_from_rows(rows, record_since(team))},
+        "injury_report": injury_report,
+    }
+
+
+def league_file(
+    team_context: dict[str, dict],
+    generated_at: str,
+    model_version: str,
+    completed_games: int,
+    season: str,
+) -> dict:
+    return {
+        "generated_at": generated_at,
+        "model_version": model_version,
+        "season": season,
+        "completed_games": completed_games,
+        "team_context": team_context,
+    }
