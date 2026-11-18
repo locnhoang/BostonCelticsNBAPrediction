@@ -115,12 +115,13 @@ def opp_p(repo_players):
     return _next_opponent(repo_players)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def _pin_ridge(monkeypatch):
-    # these tests exercise the baseline path; tests that need ridge_avail call _force_avail_model
+    """For tests asserting ridge-specific artifacts (model file names, exactly 4 drivers)."""
     monkeypatch.setattr("celtics.pipeline.MODEL_NAME", "ridge")
 
 
+@pytest.mark.usefixtures("_pin_ridge")
 def test_run_update_writes_valid_outputs(repo):
     run_update(repo, TODAY, offline=True, n_sims=200, now=datetime(2024, 11, 19, 14, 0))  # day of the next synthetic round
     pred = json.loads((repo.site_data / "predictions.json").read_text())
@@ -183,6 +184,7 @@ def _meta(repo):
     return json.loads((repo.model_dir / "ridge.json").read_text())["trained_on"]
 
 
+@pytest.mark.usefixtures("_pin_ridge")
 def test_refit_cadence(repo, monkeypatch):
     # The synthetic league does not advance with the later dates below, so skip the stale check.
     monkeypatch.setattr("celtics.pipeline.validate_games", lambda *a, **k: None)
@@ -215,6 +217,7 @@ def test_run_backtest_rejects_invalid_data(repo):
     assert not (repo.site_data / "backtest.json").exists()
 
 
+@pytest.mark.usefixtures("_pin_ridge")
 def test_run_train_rejects_invalid_data(repo):
     _corrupt(repo)
     with pytest.raises(DataValidationError):
