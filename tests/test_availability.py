@@ -11,6 +11,7 @@ from celtics.features.availability import (
     game_score,
     historical_avail,
     live_avail,
+    live_avail_and_baselines,
     player_states,
     season_baselines,
     team_missing,
@@ -306,3 +307,35 @@ def test_opening_day_ignores_last_season_rotation():
     assert current_player_values(games, players, S + 1).empty
     live = live_avail(games, players, _inj([("BOS", "A", "Out", None, 1)]), S + 1, date(S + 1, 10, 24), 0.5)
     assert live.iloc[0]["home_avail"] == 0.0 and live.iloc[0]["away_avail"] == 0.0
+
+
+def _skipping_setup():
+    games, _ = _live_setup()
+    rows = _rows(S, 12, pts=20, skip={11, 12}) + _rows(S, 12, pts=10, name="B", pid=2)
+    rows += _rows(S, 12, pts=0, name="C", pid=3, minutes=10)
+    return games, _frame(rows)
+
+
+def test_later_games_assume_usual_absences_continue():
+    games, players = _skipping_setup()
+    live, baselines = live_avail_and_baselines(games, players, _inj([]), S, TODAY, 0.5)
+    assert baselines["BOS"] > 0 and baselines["NYK"] == 0.0
+    assert _avail(live, 13)["home_avail"] == pytest.approx(baselines["BOS"])  # next game: baseline
+    assert _avail(live, 14)["home_avail"] == 0.0  # not baseline again
+    assert _avail(live, 15)["home_avail"] == 0.0
+
+
+def test_later_games_only_known_out_beyond_baseline_lowers_avail():
+    games, players = _skipping_setup()
+    inj = _inj([("BOS", "A", "Out", date(S, 12, 1), 1)])
+    live, baselines = live_avail_and_baselines(games, players, inj, S, TODAY, 0.5)
+    g1 = current_player_values(games, players, S).set_index("player_id").loc[1, "game_value"]
+    assert g1 > baselines["BOS"] > 0
+    assert _avail(live, 14)["home_avail"] == pytest.approx(-(g1 - baselines["BOS"]))
+    assert _avail(live, 15)["home_avail"] == 0.0  # back on Dec 1
+
+
+def test_live_avail_matches_the_pair_function():
+    games, players = _skipping_setup()
+    pair, _ = live_avail_and_baselines(games, players, _inj([]), S, TODAY, 0.5)
+    assert live_avail(games, players, _inj([]), S, TODAY, 0.5).equals(pair)

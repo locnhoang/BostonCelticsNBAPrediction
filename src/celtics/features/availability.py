@@ -327,19 +327,34 @@ def live_avail(
     today: date,
     p_dtd: float,
 ) -> pd.DataFrame:
-    """avail (baseline - missing) for the season's incomplete games, from the injury report.
+    """The avail frame of `live_avail_and_baselines`."""
+    return live_avail_and_baselines(games, players, injuries_matched, season, today, p_dtd)[0]
 
-    A team's next game counts Out players fully and Day-To-Day players at p_dtd. Later games
-    count only Out players whose return_date is after the game. An Out player with no return
-    date, or one already past, therefore counts for the next game only. Like the historical
-    feature, only rotation players contribute.
+
+def live_avail_and_baselines(
+    games: pd.DataFrame,
+    players: pd.DataFrame,
+    injuries_matched: pd.DataFrame,
+    season: int,
+    today: date,
+    p_dtd: float,
+) -> tuple[pd.DataFrame, dict[str, float]]:
+    """avail for the season's incomplete games from the injury report, plus each team's baseline.
+
+    A team's next game is baseline - missing, counting Out players fully and Day-To-Day players
+    at p_dtd. A team is healthy when missing = 0, i.e. avail equals its baseline. Later games
+    assume the usual absences continue and only lower avail for known Out value beyond the
+    baseline: avail = -max(0, known_out - baseline), where known_out counts Out players whose
+    return_date is after the game. An Out player with no return date, or one already past,
+    therefore counts for the next game only. Like the historical feature, only rotation players
+    contribute.
     """
     columns = ["game_id", "home_avail", "away_avail"]
     upcoming = games[games["home_pts"].isna() & (games["season"] == season)].sort_values(
         ["date", "game_id"]
     )
     if upcoming.empty:
-        return pd.DataFrame(columns=columns)
+        return pd.DataFrame(columns=columns), {}
 
     current = current_player_values(games, players, season)
     value = {
@@ -383,6 +398,12 @@ def live_avail(
             )
         return total
 
+    def avail_for(team: str, gid: str, game_date: date) -> float:
+        missing = missing_for(team, gid, game_date)
+        if next_game[team] == gid:
+            return baseline[team] - missing
+        return -max(0.0, missing - baseline[team])
+
     out = []
     for gid, d, home, away in zip(
         upcoming["game_id"],
@@ -395,8 +416,8 @@ def live_avail(
         out.append(
             (
                 gid,
-                baseline[home] - missing_for(home, gid, game_date),
-                baseline[away] - missing_for(away, gid, game_date),
+                avail_for(home, gid, game_date),
+                avail_for(away, gid, game_date),
             )
         )
-    return pd.DataFrame(out, columns=columns)
+    return pd.DataFrame(out, columns=columns), baseline
