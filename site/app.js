@@ -342,6 +342,36 @@ function probBar(p) {
 const whereCell = (g) => el("span", { class: "team" }, el("span", { class: "muted" }, g.home ? "vs" : "@"), teamMark(g.opponent, 20), el("span", {}, g.opponent));
 // Exactly 0.5 counts as favoring Boston.
 const calledIt = (g) => (g.pregame_win_prob >= 0.5) === g.result.startsWith("W");
+// The pick record counts games from metrics.record.since on (older files have no record).
+const tracked = (pred, g) => pred.metrics.record != null && g.date >= pred.metrics.record.since;
+const shortDate = (iso) =>
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+
+function renderRecord(pred) {
+  const box = document.getElementById("record");
+  const rec = pred.metrics.record;
+  if (!rec) {
+    box.replaceChildren(el("p", { class: "muted" }, "The model's pick record appears once predicted games have been played."));
+    return;
+  }
+  const n = rec.correct + rec.wrong;
+  const since = shortDate(rec.since);
+  box.replaceChildren(
+    el(
+      "div",
+      { class: "record" },
+      el("span", { class: "big" }, `${rec.correct}-${rec.wrong}`),
+      el(
+        "span",
+        { class: "sub" },
+        n
+          ? `Right-wrong picking Celtics games since ${since} · ${Math.round((100 * rec.correct) / n)}% correct`
+          : `Right-wrong picking Celtics games since ${since} · first pick graded after the next game`,
+      ),
+    ),
+    el("p", { class: "muted record-note" }, "A pick is the side the model favored before tip-off."),
+  );
+}
 
 function renderUpcoming(pred) {
   const rest = (g) => (g.b2b ? "Back-to-back" : `${Math.round(g.rest_days)}d rest`);
@@ -414,7 +444,7 @@ function renderUpcoming(pred) {
 function renderResults(pred) {
   const done = pred.games.filter((g) => g.completed).reverse();
   const mark = (g) => {
-    if (g.pregame_win_prob == null) return "";
+    if (g.pregame_win_prob == null || !tracked(pred, g)) return "";
     const ok = calledIt(g);
     const label = ok ? "Model favored the winner" : "Model favored the loser";
     return el("span", { title: label, "aria-label": label, role: "img" }, ok ? "✓" : "✗");
@@ -552,13 +582,7 @@ function renderEast(pred) {
 
 const MODEL_NAMES = { homecourt: "Home court only", elo: "Elo only", ridge: "Ridge regression", gbm: "Gradient boosting" };
 
-function renderReportCard(pred, backtest, t) {
-  const scored = pred.games.filter((g) => g.completed && g.pregame_win_prob != null);
-  const right = scored.filter(calledIt).length;
-  const live = pred.metrics.live;
-  document.getElementById("live").textContent = scored.length
-    ? `This season: called ${right} of ${scored.length} Celtics games${live ? `, log loss ${live.log_loss.toFixed(3)}` : ""}.`
-    : "This season's record of picks appears once predicted games have been played.";
+function renderBacktest(backtest, t) {
   const note = document.getElementById("availability-note");
   note.textContent = backtest?.availability_note ?? "";
   note.hidden = !backtest?.availability_note;
@@ -649,6 +673,7 @@ function safeRender() {
   const t = theme();
   const { pred, history, backtest } = state;
   guarded("header", "hdr-meta", () => renderHeader(pred));
+  guarded("report card", "record", () => renderRecord(pred));
   guarded("next game", "next-card", () => renderNextGame(pred, t));
   guarded("outlook", "outlook", () => renderOutlook(pred, history));
   guarded("context", "context", () => renderContext(pred));
@@ -658,7 +683,7 @@ function safeRender() {
   guarded("wins", "chart-wins", () => renderWins(pred, t));
   guarded("seeds", "chart-seeds", () => renderSeeds(pred, t));
   guarded("east", "east", () => renderEast(pred));
-  guarded("report card", "models", () => renderReportCard(pred, backtest, t));
+  guarded("backtest", "models", () => renderBacktest(backtest, t));
   guarded("how it works", "how-example", () => renderHowExample(pred));
   if (failed) {
     const u = document.getElementById("updated");

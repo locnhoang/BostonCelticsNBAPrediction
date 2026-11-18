@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 import celtics.pipeline as pipeline_module
 from celtics.cli import main
-from celtics.config import DEFAULT_TEAM_SD, Paths
+from celtics.config import DEFAULT_TEAM_SD, TRACK_PICKS_FROM, Paths
 from celtics.data.cache import player_season_path, season_path
 from celtics.data.fetch import FetchBlockedError
 from celtics.data.validate import DataValidationError
@@ -130,6 +130,7 @@ def test_run_update_writes_valid_outputs(repo):
     upcoming = [g for g in pred["games"] if not g["completed"]]
     assert upcoming and all(len(g["drivers"]) == 4 for g in upcoming)
     assert pred["season"] == "2024-25"
+    assert pred["metrics"]["record"]["since"] == TRACK_PICKS_FROM
     assert len(pred["games"]) == 82
     assert pred["team_summary"]["wins"] + pred["team_summary"]["losses"] == 15
     history = json.loads((repo.site_data / "history.json").read_text())

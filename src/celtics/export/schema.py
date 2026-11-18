@@ -94,8 +94,15 @@ class LiveMetrics(BaseModel):
     accuracy: Prob
 
 
+class ModelRecord(BaseModel):
+    since: str
+    correct: int = Field(ge=0)
+    wrong: int = Field(ge=0)
+
+
 class Metrics(BaseModel):
     live: LiveMetrics | None
+    record: ModelRecord | None = None
 
 
 class InjuryPlayer(BaseModel):

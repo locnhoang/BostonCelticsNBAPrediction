@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-18T20:00:20+00:00",
+ "generated_at": "2026-11-18T20:15:43+00:00",
  "model_version": "ridge_avail-2026-11-18",
  "season": "2026-27",
  "team_summary": {
@@ -2883,11 +2883,11 @@
   }
  ],
  "metrics": {
-  "live": {
-   "n": 2,
-   "log_loss": 0.8305,
-   "brier": 0.3122,
-   "accuracy": 0.5
+  "live": null,
+  "record": {
+   "since": "2026-11-18",
+   "correct": 0,
+   "wrong": 0
   }
  },
  "team_context": {
@@ -3314,7 +3314,7 @@
  },
  "injury_report": {
   "available": true,
-  "as_of": "2026-11-18T19:57:43Z",
+  "as_of": "2026-11-18T20:13:02Z",
   "p_dtd": 0.5,
   "unmatched": [
    "Mouhamed Gueye (ATL)",
@@ -3346,7 +3346,6 @@
    "Tobias Harris (SAS)",
    "Jayden Quaintance (SAS)",
    "Nate Bittle (TOR)",
-   "Kevin McCullar Jr. (TOR)",
    "Jusuf Nurkic (UTA)",
    "Tristan Vukcevic (WAS)",
    "Jamir Watkins (WAS)"

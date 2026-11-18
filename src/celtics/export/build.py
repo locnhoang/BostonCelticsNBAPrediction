@@ -137,8 +137,29 @@ def update_pregame_log(log: dict, rows: list[dict], now_iso: str, today: str | N
     return updated
 
 
-def live_metrics(rows: list[dict]) -> dict | None:
-    scored = [r for r in rows if r["completed"] and r["pregame_win_prob"] is not None]
+def _scored(rows: list[dict], since: str | None) -> list[dict]:
+    """Completed games with a logged pre-game pick, dated on or after `since` (ISO) if given."""
+    return [
+        r
+        for r in rows
+        if r["completed"] and r["pregame_win_prob"] is not None and (since is None or r["date"] >= since)
+    ]
+
+
+def called_it(row: dict) -> bool:
+    """The model favored the winner. Exactly 0.5 counts as favoring the team (as on the site)."""
+    return (row["pregame_win_prob"] >= 0.5) == row["result"].startswith("W")
+
+
+def model_record(rows: list[dict], since: str) -> dict:
+    """The model's pick record (correct-wrong) on games dated on or after `since`."""
+    scored = _scored(rows, since)
+    correct = sum(called_it(r) for r in scored)
+    return {"since": since, "correct": correct, "wrong": len(scored) - correct}
+
+
+def live_metrics(rows: list[dict], since: str | None = None) -> dict | None:
+    scored = _scored(rows, since)
     if not scored:
         return None
     p = [r["pregame_win_prob"] for r in scored]

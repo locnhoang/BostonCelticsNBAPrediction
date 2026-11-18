@@ -96,6 +96,10 @@ section {
 .next-prob .big { display: block; font-size: 40px; font-weight: 700; line-height: 1.1; }
 .next-prob .sub { color: var(--text-secondary); font-size: 14px; }
 .next-opp { text-align: center; }
+.record { text-align: center; }
+.record .big { display: block; font-size: 40px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.record .sub { color: var(--text-secondary); font-size: 14px; }
+.record-note { text-align: center; margin-bottom: 0; }
 
 /* tiles */
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--s3); }
