@@ -136,7 +136,6 @@ function renderNextGame(pred, t) {
         ? `${teamName(g.opponent)}: ${opp.wins}-${opp.losses}`
         : `${teamName(g.opponent)}: ${opp.wins}-${opp.losses}, net rating ${ord(opp.net_rank)} of 30, last 10 ${opp.last10}`,
     ),
-    ...(pred.metrics.record ? [el("p", { class: "muted pick-record" }, recordText(pred.metrics.record))] : []),
   );
   renderDrivers(g, t);
   guarded("injury report", "injury-panel", () => renderInjuries(pred, g));
@@ -348,12 +347,30 @@ const tracked = (pred, g) => pred.metrics.record != null && g.date >= pred.metri
 const shortDate = (iso) =>
   new Date(`${iso}T12:00:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
 
-function recordText(rec) {
+function renderRecord(pred) {
+  const box = document.getElementById("record");
+  const rec = pred.metrics.record;
+  if (!rec) {
+    box.replaceChildren(el("p", { class: "muted" }, "The model's pick record appears once predicted games have been played."));
+    return;
+  }
   const n = rec.correct + rec.wrong;
   const since = shortDate(rec.since);
-  return n
-    ? `Model pick record since ${since}: ${rec.correct}-${rec.wrong} (${Math.round((100 * rec.correct) / n)}% correct)`
-    : `Model pick record since ${since}: 0-0, first pick graded after the next game`;
+  box.replaceChildren(
+    el(
+      "div",
+      { class: "record" },
+      el("span", { class: "big" }, `${rec.correct}-${rec.wrong}`),
+      el(
+        "span",
+        { class: "sub" },
+        n
+          ? `Right-wrong picking Celtics games since ${since} · ${Math.round((100 * rec.correct) / n)}% correct`
+          : `Right-wrong picking Celtics games since ${since} · first pick graded after the next game`,
+      ),
+    ),
+    el("p", { class: "muted record-note" }, "A pick is the side the model favored before tip-off."),
+  );
 }
 
 function renderUpcoming(pred) {
@@ -565,12 +582,7 @@ function renderEast(pred) {
 
 const MODEL_NAMES = { homecourt: "Home court only", elo: "Elo only", ridge: "Ridge regression", gbm: "Gradient boosting" };
 
-function renderReportCard(pred, backtest, t) {
-  const rec = pred.metrics.record;
-  const live = pred.metrics.live;
-  document.getElementById("live").textContent = rec
-    ? `${recordText(rec)}${live ? `, log loss ${live.log_loss.toFixed(3)}` : ""}. A pick is the side the model favored before tip-off.`
-    : "The model's pick record appears once predicted games have been played.";
+function renderBacktest(backtest, t) {
   const note = document.getElementById("availability-note");
   note.textContent = backtest?.availability_note ?? "";
   note.hidden = !backtest?.availability_note;
@@ -661,6 +673,7 @@ function safeRender() {
   const t = theme();
   const { pred, history, backtest } = state;
   guarded("header", "hdr-meta", () => renderHeader(pred));
+  guarded("report card", "record", () => renderRecord(pred));
   guarded("next game", "next-card", () => renderNextGame(pred, t));
   guarded("outlook", "outlook", () => renderOutlook(pred, history));
   guarded("context", "context", () => renderContext(pred));
@@ -670,7 +683,7 @@ function safeRender() {
   guarded("wins", "chart-wins", () => renderWins(pred, t));
   guarded("seeds", "chart-seeds", () => renderSeeds(pred, t));
   guarded("east", "east", () => renderEast(pred));
-  guarded("report card", "models", () => renderReportCard(pred, backtest, t));
+  guarded("backtest", "models", () => renderBacktest(backtest, t));
   guarded("how it works", "how-example", () => renderHowExample(pred));
   if (failed) {
     const u = document.getElementById("updated");
