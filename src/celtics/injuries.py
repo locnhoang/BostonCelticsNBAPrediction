@@ -138,7 +138,9 @@ def match_players(
 
     out = injuries.copy()
     out["player_id"] = pd.array(ids, dtype="Int64")
-    matched = out[out["player_id"].notna()].drop_duplicates("player_id", keep="first")
+    matched = out[out["player_id"].notna()]
+    matched = matched.sort_values("status", key=lambda c: c != "Out", kind="stable")  # Out wins
+    matched = matched.drop_duplicates("player_id", keep="first")
     return matched.reset_index(drop=True), unmatched
 
 

@@ -260,3 +260,18 @@ def test_p_out_rules():
     assert p_out("Out", date(2024, 11, 25), game, today, 0.4, next_game=False) == 1.0
     assert p_out("Out", None, game, today, 0.4, next_game=False) == 0.0
     assert p_out("Day-To-Day", None, game, today, 0.4, next_game=False) == 0.0
+
+
+def test_duplicate_player_prefers_out_over_day_to_day():
+    inj = pd.DataFrame(
+        {
+            "team": ["TOR", "TOR"],
+            "name": ["Kawhi Leonard", "Kawhi Leonard"],
+            "status": ["Day-To-Day", "Out"],
+            "comment": ["", ""],
+            "return_date": [None, None],
+            "reported_at": [pd.NaT, pd.NaT],
+        }
+    )
+    matched, _ = match_players(inj, _players([("TOR", 9, "Kawhi Leonard")]), 2026)
+    assert matched["status"].tolist() == ["Out"]
