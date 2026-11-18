@@ -1,60 +1,62 @@
 {
- "generated_at": "2026-11-13T17:02:50+00:00",
- "model_version": "ridge-2026-11-12",
+ "generated_at": "2026-11-18T19:24:03+00:00",
+ "model_version": "ridge_avail-2026-11-18",
  "season": "2026-27",
  "team_summary": {
   "team": "BOS",
-  "wins": 10,
-  "losses": 2,
-  "proj_wins_median": 61.0,
+  "wins": 11,
+  "losses": 3,
+  "proj_wins_median": 60.0,
   "proj_wins_p10": 53.0,
   "proj_wins_p25": 57.0,
   "proj_wins_p75": 64.0,
   "proj_wins_p90": 67.0,
-  "p_50_wins": 0.9753,
-  "p_playoffs": 0.9998,
-  "p_top6": 0.9979,
-  "p_playin": 0.0021,
+  "p_50_wins": 0.9722,
+  "p_playoffs": 0.9994,
+  "p_top6": 0.9968,
+  "p_playin": 0.0032,
   "p_miss": 0.0,
-  "p_seed1": 0.6148,
+  "p_seed1": 0.6271,
   "win_distribution": {
-   "39": 0.0001,
-   "41": 0.0003,
-   "42": 0.0004,
+   "37": 0.0002,
+   "38": 0.0001,
+   "40": 0.0002,
+   "41": 0.0001,
+   "42": 0.0003,
    "43": 0.0005,
-   "44": 0.001,
-   "45": 0.0017,
-   "46": 0.0027,
-   "47": 0.0046,
-   "48": 0.0055,
-   "49": 0.0079,
-   "50": 0.0122,
-   "51": 0.0158,
-   "52": 0.02,
-   "53": 0.0278,
-   "54": 0.0316,
-   "55": 0.0412,
-   "56": 0.0466,
-   "57": 0.0594,
-   "58": 0.059,
-   "59": 0.0752,
-   "60": 0.0692,
-   "61": 0.0713,
-   "62": 0.0744,
-   "63": 0.0717,
-   "64": 0.0657,
-   "65": 0.0544,
-   "66": 0.051,
-   "67": 0.0404,
-   "68": 0.0307,
-   "69": 0.0206,
-   "70": 0.0161,
-   "71": 0.0092,
-   "72": 0.0063,
-   "73": 0.0035,
-   "74": 0.0012,
-   "75": 0.0007,
-   "78": 0.0001
+   "44": 0.0018,
+   "45": 0.0016,
+   "46": 0.0031,
+   "47": 0.0052,
+   "48": 0.0057,
+   "49": 0.009,
+   "50": 0.0115,
+   "51": 0.017,
+   "52": 0.0229,
+   "53": 0.0322,
+   "54": 0.034,
+   "55": 0.0433,
+   "56": 0.0527,
+   "57": 0.0601,
+   "58": 0.0661,
+   "59": 0.0704,
+   "60": 0.0772,
+   "61": 0.0724,
+   "62": 0.0762,
+   "63": 0.0683,
+   "64": 0.0593,
+   "65": 0.0577,
+   "66": 0.0449,
+   "67": 0.0328,
+   "68": 0.0252,
+   "69": 0.019,
+   "70": 0.0118,
+   "71": 0.0099,
+   "72": 0.0035,
+   "73": 0.0016,
+   "74": 0.0016,
+   "75": 0.0004,
+   "76": 0.0002
   }
  },
  "games": [
@@ -71,7 +73,8 @@
    "pred_margin": null,
    "result": "L 113-121",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600008",
@@ -86,7 +89,8 @@
    "pred_margin": null,
    "result": "W 107-103",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600121",
@@ -101,7 +105,8 @@
    "pred_margin": null,
    "result": "W 134-99",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600128",
@@ -116,7 +121,8 @@
    "pred_margin": null,
    "result": "W 125-124",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600016",
@@ -131,7 +137,8 @@
    "pred_margin": null,
    "result": "W 125-111",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600154",
@@ -146,7 +153,8 @@
    "pred_margin": null,
    "result": "W 108-97",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600167",
@@ -161,7 +169,8 @@
    "pred_margin": null,
    "result": "L 93-109",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600175",
@@ -176,7 +185,8 @@
    "pred_margin": null,
    "result": "W 109-102",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600026",
@@ -191,7 +201,8 @@
    "pred_margin": null,
    "result": "W 119-80",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600200",
@@ -206,7 +217,8 @@
    "pred_margin": null,
    "result": "W 117-97",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600212",
@@ -221,7 +233,8 @@
    "pred_margin": null,
    "result": "W 123-101",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600219",
@@ -236,7 +249,8 @@
    "pred_margin": null,
    "result": "W 98-93",
    "pregame_win_prob": null,
-   "drivers": null
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600240",
@@ -246,29 +260,13 @@
    "rest_days": 4.0,
    "opp_rest_days": 1.0,
    "b2b": false,
-   "completed": false,
-   "win_prob": 0.8387,
-   "pred_margin": 13.2,
-   "result": null,
-   "pregame_win_prob": null,
-   "drivers": [
-    {
-     "label": "Season strength",
-     "value": 4.5
-    },
-    {
-     "label": "Recent form",
-     "value": 3.8
-    },
-    {
-     "label": "Home court",
-     "value": 1.9
-    },
-    {
-     "label": "Rest & schedule",
-     "value": 3.0
-    }
-   ]
+   "completed": true,
+   "win_prob": null,
+   "pred_margin": null,
+   "result": "W 131-94",
+   "pregame_win_prob": 0.8387,
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600245",
@@ -278,29 +276,13 @@
    "rest_days": 1.0,
    "opp_rest_days": 3.0,
    "b2b": true,
-   "completed": false,
-   "win_prob": 0.7735,
-   "pred_margin": 10.0,
-   "result": null,
-   "pregame_win_prob": null,
-   "drivers": [
-    {
-     "label": "Season strength",
-     "value": 3.6
-    },
-    {
-     "label": "Recent form",
-     "value": 6.2
-    },
-    {
-     "label": "Home court",
-     "value": 1.9
-    },
-    {
-     "label": "Rest & schedule",
-     "value": -1.7
-    }
-   ]
+   "completed": true,
+   "win_prob": null,
+   "pred_margin": null,
+   "result": "L 105-115",
+   "pregame_win_prob": 0.7735,
+   "drivers": null,
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600266",
@@ -311,28 +293,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.5841,
-   "pred_margin": 2.8,
+   "win_prob": 0.613,
+   "pred_margin": 3.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.8
+     "value": 1.7
     },
     {
      "label": "Recent form",
-     "value": 3.7
+     "value": 4.2
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": 0.6011
   },
   {
    "game_id": "0022600279",
@@ -343,8 +330,8 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8931,
-   "pred_margin": 16.6,
+   "win_prob": 0.9034,
+   "pred_margin": 17.3,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -354,17 +341,22 @@
     },
     {
      "label": "Recent form",
-     "value": 9.8
+     "value": 10.5
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": 2.2
+     "value": 1.9
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.2
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600286",
@@ -375,28 +367,33 @@
    "opp_rest_days": 3.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.5287,
-   "pred_margin": 1.0,
+   "win_prob": 0.6713,
+   "pred_margin": 5.9,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.0
+     "value": 3.2
     },
     {
      "label": "Recent form",
-     "value": 1.9
+     "value": 4.3
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -2.1
+     "value": -1.9
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 2.0
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600053",
@@ -407,28 +404,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8218,
-   "pred_margin": 12.3,
+   "win_prob": 0.8458,
+   "pred_margin": 13.6,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 6.6
+     "value": 6.8
     },
     {
      "label": "Recent form",
-     "value": 8.3
+     "value": 9.3
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.0
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600068",
@@ -439,28 +441,33 @@
    "opp_rest_days": 4.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7333,
-   "pred_margin": 8.3,
+   "win_prob": 0.7575,
+   "pred_margin": 9.3,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 2.3
+     "value": 2.2
     },
     {
      "label": "Recent form",
-     "value": 3.9
+     "value": 4.3
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": 0.2
+     "value": 0.3
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.7
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600303",
@@ -471,28 +478,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.4386,
-   "pred_margin": -2.1,
+   "win_prob": 0.4516,
+   "pred_margin": -1.6,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": -0.2
+     "value": -0.3
     },
     {
      "label": "Recent form",
-     "value": -0.0
+     "value": 0.1
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600316",
@@ -503,28 +515,33 @@
    "opp_rest_days": 3.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.6063,
-   "pred_margin": 3.6,
+   "win_prob": 0.7004,
+   "pred_margin": 7.0,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 4.5
+     "value": 4.6
     },
     {
      "label": "Recent form",
-     "value": 3.8
+     "value": 6.7
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -2.9
+     "value": -2.6
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.1
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600329",
@@ -535,8 +552,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8332,
-   "pred_margin": 12.9,
+   "win_prob": 0.8435,
+   "pred_margin": 13.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -546,17 +563,22 @@
     },
     {
      "label": "Recent form",
-     "value": 7.9
+     "value": 8.1
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -0.5
+     "value": -0.4
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600349",
@@ -567,8 +589,8 @@
    "opp_rest_days": 4.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8043,
-   "pred_margin": 11.5,
+   "win_prob": 0.8292,
+   "pred_margin": 12.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -578,17 +600,22 @@
     },
     {
      "label": "Recent form",
-     "value": 7.5
+     "value": 8.3
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -0.3
+     "value": -0.4
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600358",
@@ -599,28 +626,33 @@
    "opp_rest_days": 2.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.8701,
-   "pred_margin": 15.1,
+   "win_prob": 0.8921,
+   "pred_margin": 16.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 6.6
+     "value": 6.8
     },
     {
      "label": "Recent form",
-     "value": 8.3
+     "value": 9.3
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -1.7
+     "value": -1.5
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.1
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600368",
@@ -631,28 +663,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8891,
-   "pred_margin": 16.4,
+   "win_prob": 0.907,
+   "pred_margin": 17.6,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 6.6
+     "value": 6.8
     },
     {
      "label": "Recent form",
-     "value": 8.3
+     "value": 9.3
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -0.5
+     "value": -0.4
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.1
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600387",
@@ -663,28 +700,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.9186,
-   "pred_margin": 18.7,
+   "win_prob": 0.8917,
+   "pred_margin": 16.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 7.4
+     "value": 6.4
     },
     {
      "label": "Recent form",
-     "value": 9.5
+     "value": 8.6
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600407",
@@ -695,28 +737,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6099,
-   "pred_margin": 3.7,
+   "win_prob": 0.64,
+   "pred_margin": 4.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 0.6
+     "value": 0.2
     },
     {
      "label": "Recent form",
-     "value": 1.3
+     "value": 2.3
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600426",
@@ -727,28 +774,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6942,
-   "pred_margin": 6.8,
+   "win_prob": 0.7077,
+   "pred_margin": 7.3,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 2.2
+     "value": 2.0
     },
     {
      "label": "Recent form",
-     "value": 2.6
+     "value": 3.1
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.1
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.3
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600011",
@@ -759,28 +811,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7941,
-   "pred_margin": 11.0,
+   "win_prob": 0.7502,
+   "pred_margin": 9.0,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.5
+     "value": 2.4
     },
     {
      "label": "Recent form",
-     "value": 5.6
+     "value": 4.3
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600459",
@@ -791,28 +848,33 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7679,
-   "pred_margin": 9.8,
+   "win_prob": 0.747,
+   "pred_margin": 8.9,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 2.1
-    },
-    {
-     "label": "Recent form",
-     "value": 3.7
-    },
-    {
-     "label": "Home court",
      "value": 1.9
     },
     {
+     "label": "Recent form",
+     "value": 3.9
+    },
+    {
+     "label": "Home court",
+     "value": 1.8
+    },
+    {
      "label": "Rest & schedule",
-     "value": 2.1
+     "value": 1.9
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.6
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600473",
@@ -823,28 +885,33 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.882,
-   "pred_margin": 15.9,
+   "win_prob": 0.8546,
+   "pred_margin": 14.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 6.1
+     "value": 5.3
     },
     {
      "label": "Recent form",
-     "value": 9.8
+     "value": 9.0
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": 1.7
+     "value": 1.5
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.1
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600491",
@@ -855,28 +922,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8685,
-   "pred_margin": 15.0,
+   "win_prob": 0.8301,
+   "pred_margin": 12.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 7.4
+     "value": 6.4
     },
     {
      "label": "Recent form",
-     "value": 9.5
+     "value": 8.6
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.6
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600501",
@@ -887,28 +959,33 @@
    "opp_rest_days": 4.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.4989,
-   "pred_margin": -0.0,
+   "win_prob": 0.5215,
+   "pred_margin": 0.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 2.2
+     "value": 2.0
     },
     {
      "label": "Recent form",
-     "value": 2.6
+     "value": 3.1
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -3.0
+     "value": -2.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.2
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600513",
@@ -919,28 +996,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6929,
-   "pred_margin": 6.7,
+   "win_prob": 0.6835,
+   "pred_margin": 6.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.3
+     "value": 2.7
     },
     {
      "label": "Recent form",
-     "value": 6.1
+     "value": 5.8
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600540",
@@ -951,28 +1033,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.5378,
-   "pred_margin": 1.3,
+   "win_prob": 0.5141,
+   "pred_margin": 0.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.2
+     "value": 0.7
     },
     {
      "label": "Recent form",
-     "value": 2.0
+     "value": 2.2
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -0.0
+     "value": -0.1
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.6
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600555",
@@ -983,28 +1070,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7382,
-   "pred_margin": 8.5,
+   "win_prob": 0.7695,
+   "pred_margin": 9.8,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.9
+     "value": 4.2
     },
     {
      "label": "Recent form",
-     "value": 6.5
+     "value": 6.9
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600566",
@@ -1015,28 +1107,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6272,
-   "pred_margin": 4.3,
+   "win_prob": 0.6427,
+   "pred_margin": 4.9,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.2
+     "value": 1.0
     },
     {
      "label": "Recent form",
-     "value": 1.3
+     "value": 1.7
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600579",
@@ -1047,28 +1144,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6473,
-   "pred_margin": 5.1,
+   "win_prob": 0.6607,
+   "pred_margin": 5.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.7
+     "value": 1.3
     },
     {
      "label": "Recent form",
-     "value": 1.5
+     "value": 1.9
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600602",
@@ -1079,8 +1181,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8782,
-   "pred_margin": 15.6,
+   "win_prob": 0.8976,
+   "pred_margin": 16.9,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1090,17 +1192,22 @@
     },
     {
      "label": "Recent form",
-     "value": 7.5
+     "value": 8.3
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.1
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600614",
@@ -1111,28 +1218,33 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8738,
-   "pred_margin": 15.3,
+   "win_prob": 0.8897,
+   "pred_margin": 16.3,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 6.6
+     "value": 6.8
     },
     {
      "label": "Recent form",
-     "value": 8.3
+     "value": 9.3
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": 2.2
+     "value": 2.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.0
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600626",
@@ -1143,28 +1255,33 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8992,
-   "pred_margin": 17.1,
+   "win_prob": 0.8935,
+   "pred_margin": 16.6,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 5.9
+     "value": 5.6
     },
     {
      "label": "Recent form",
-     "value": 6.5
+     "value": 6.7
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": 2.8
+     "value": 2.5
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.0
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600634",
@@ -1175,28 +1292,33 @@
    "opp_rest_days": 2.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.7203,
-   "pred_margin": 7.8,
+   "win_prob": 0.6851,
+   "pred_margin": 6.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 2.7
+     "value": 2.1
     },
     {
      "label": "Recent form",
-     "value": 4.7
+     "value": 4.1
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -1.4
+     "value": -1.2
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600651",
@@ -1207,8 +1329,8 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8682,
-   "pred_margin": 15.0,
+   "win_prob": 0.8725,
+   "pred_margin": 15.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1218,17 +1340,22 @@
     },
     {
      "label": "Recent form",
-     "value": 7.9
+     "value": 8.1
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": 1.6
+     "value": 1.3
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600662",
@@ -1239,28 +1366,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7551,
-   "pred_margin": 9.2,
+   "win_prob": 0.7768,
+   "pred_margin": 10.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.2
+     "value": 3.3
     },
     {
      "label": "Recent form",
-     "value": 4.2
+     "value": 5.3
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.3
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600679",
@@ -1271,28 +1403,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8345,
-   "pred_margin": 13.0,
+   "win_prob": 0.8575,
+   "pred_margin": 14.2,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.9
+     "value": 4.2
     },
     {
      "label": "Recent form",
-     "value": 6.5
+     "value": 6.9
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600695",
@@ -1303,28 +1440,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8149,
-   "pred_margin": 12.0,
+   "win_prob": 0.8074,
+   "pred_margin": 11.6,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.3
+     "value": 2.7
     },
     {
      "label": "Recent form",
-     "value": 6.1
+     "value": 5.8
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600710",
@@ -1335,28 +1477,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6606,
-   "pred_margin": 5.5,
+   "win_prob": 0.685,
+   "pred_margin": 6.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.2
+     "value": 3.3
     },
     {
      "label": "Recent form",
-     "value": 4.2
+     "value": 5.3
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600726",
@@ -1367,28 +1514,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6673,
-   "pred_margin": 5.8,
+   "win_prob": 0.6489,
+   "pred_margin": 5.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.2
+     "value": 0.7
     },
     {
      "label": "Recent form",
-     "value": 2.0
+     "value": 2.2
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600739",
@@ -1399,8 +1551,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7658,
-   "pred_margin": 9.7,
+   "win_prob": 0.7783,
+   "pred_margin": 10.2,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1410,17 +1562,22 @@
     },
     {
      "label": "Recent form",
-     "value": 7.9
+     "value": 8.1
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.3
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600747",
@@ -1431,28 +1588,33 @@
    "opp_rest_days": 2.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.5486,
-   "pred_margin": 1.6,
+   "win_prob": 0.5645,
+   "pred_margin": 2.2,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 2.3
+     "value": 2.2
     },
     {
      "label": "Recent form",
-     "value": 3.9
+     "value": 4.3
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -2.8
+     "value": -2.5
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.0
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600767",
@@ -1463,28 +1625,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6391,
-   "pred_margin": 4.8,
+   "win_prob": 0.591,
+   "pred_margin": 3.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 2.7
+     "value": 2.1
     },
     {
      "label": "Recent form",
-     "value": 4.7
+     "value": 4.1
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.6
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600778",
@@ -1495,28 +1662,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7077,
-   "pred_margin": 7.3,
+   "win_prob": 0.732,
+   "pred_margin": 8.2,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.8
+     "value": 1.7
     },
     {
      "label": "Recent form",
-     "value": 3.7
+     "value": 4.2
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600790",
@@ -1527,28 +1699,33 @@
    "opp_rest_days": 1.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.7097,
-   "pred_margin": 7.4,
+   "win_prob": 0.7608,
+   "pred_margin": 9.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.0
+     "value": 3.2
     },
     {
      "label": "Recent form",
-     "value": 1.9
+     "value": 4.3
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": 0.6
+     "value": 0.5
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600805",
@@ -1559,28 +1736,33 @@
    "opp_rest_days": 3.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6185,
-   "pred_margin": 4.0,
+   "win_prob": 0.6328,
+   "pred_margin": 4.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.6
+     "value": 1.5
     },
     {
      "label": "Recent form",
-     "value": 1.0
+     "value": 1.2
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -0.4
+     "value": -0.3
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600817",
@@ -1591,28 +1773,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7551,
-   "pred_margin": 9.2,
+   "win_prob": 0.7768,
+   "pred_margin": 10.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.2
+     "value": 3.3
     },
     {
      "label": "Recent form",
-     "value": 4.2
+     "value": 5.3
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.3
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600841",
@@ -1623,28 +1810,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.5434,
-   "pred_margin": 1.5,
+   "win_prob": 0.5408,
+   "pred_margin": 1.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.1
+     "value": 0.7
     },
     {
      "label": "Recent form",
-     "value": 2.3
+     "value": 2.2
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -0.0
+     "value": -0.1
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.3
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600846",
@@ -1655,28 +1847,33 @@
    "opp_rest_days": 1.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.7002,
-   "pred_margin": 7.0,
+   "win_prob": 0.6212,
+   "pred_margin": 4.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 4.8
+     "value": 3.8
     },
     {
      "label": "Recent form",
-     "value": 3.9
+     "value": 2.4
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.2
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.6
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600859",
@@ -1687,28 +1884,33 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7705,
-   "pred_margin": 9.9,
+   "win_prob": 0.7502,
+   "pred_margin": 9.0,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 2.1
-    },
-    {
-     "label": "Recent form",
-     "value": 3.7
-    },
-    {
-     "label": "Home court",
      "value": 1.9
     },
     {
+     "label": "Recent form",
+     "value": 3.9
+    },
+    {
+     "label": "Home court",
+     "value": 1.8
+    },
+    {
      "label": "Rest & schedule",
-     "value": 2.2
+     "value": 2.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.6
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600877",
@@ -1719,28 +1921,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.5224,
-   "pred_margin": 0.8,
+   "win_prob": 0.536,
+   "pred_margin": 1.2,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.6
+     "value": 1.5
     },
     {
      "label": "Recent form",
-     "value": 1.0
+     "value": 1.2
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600887",
@@ -1751,28 +1958,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7858,
-   "pred_margin": 10.6,
+   "win_prob": 0.7822,
+   "pred_margin": 10.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 5.9
+     "value": 5.6
     },
     {
      "label": "Recent form",
-     "value": 6.5
+     "value": 6.7
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.2
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600911",
@@ -1783,28 +1995,33 @@
    "opp_rest_days": 3.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.4962,
-   "pred_margin": -0.1,
+   "win_prob": 0.5274,
+   "pred_margin": 0.9,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 0.6
+     "value": 0.2
     },
     {
      "label": "Recent form",
-     "value": 1.3
+     "value": 2.3
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.2
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600924",
@@ -1815,28 +2032,33 @@
    "opp_rest_days": 3.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7561,
-   "pred_margin": 9.3,
+   "win_prob": 0.7182,
+   "pred_margin": 7.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 2.7
+     "value": 2.1
     },
     {
      "label": "Recent form",
-     "value": 4.7
+     "value": 4.1
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": 0.0
+     "value": 0.1
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600941",
@@ -1847,28 +2069,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8622,
-   "pred_margin": 14.6,
+   "win_prob": 0.8344,
+   "pred_margin": 12.9,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 6.1
+     "value": 5.3
     },
     {
      "label": "Recent form",
-     "value": 9.8
+     "value": 9.0
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": 0.5
+     "value": 0.4
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.1
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600955",
@@ -1879,28 +2106,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8012,
-   "pred_margin": 11.3,
+   "win_prob": 0.7359,
+   "pred_margin": 8.4,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 4.8
+     "value": 3.8
     },
     {
      "label": "Recent form",
-     "value": 3.9
+     "value": 2.4
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600962",
@@ -1911,28 +2143,33 @@
    "opp_rest_days": 2.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.5888,
-   "pred_margin": 3.0,
+   "win_prob": 0.5932,
+   "pred_margin": 3.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.1
+     "value": 0.7
     },
     {
      "label": "Recent form",
-     "value": 2.3
+     "value": 2.2
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -2.2
+     "value": -2.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600976",
@@ -1943,28 +2180,33 @@
    "opp_rest_days": 3.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.5141,
-   "pred_margin": 0.5,
+   "win_prob": 0.5292,
+   "pred_margin": 1.0,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.7
+     "value": 1.3
     },
     {
      "label": "Recent form",
-     "value": 1.5
+     "value": 1.9
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.9
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022600989",
@@ -1975,8 +2217,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.9129,
-   "pred_margin": 18.2,
+   "win_prob": 0.9245,
+   "pred_margin": 19.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -1986,17 +2228,22 @@
     },
     {
      "label": "Recent form",
-     "value": 9.8
+     "value": 10.5
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.3
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601008",
@@ -2007,28 +2254,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.825,
-   "pred_margin": 12.5,
+   "win_prob": 0.8106,
+   "pred_margin": 11.7,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.6
+     "value": 2.9
     },
     {
      "label": "Recent form",
-     "value": 6.2
+     "value": 5.8
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601028",
@@ -2039,28 +2291,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8949,
-   "pred_margin": 16.8,
+   "win_prob": 0.8919,
+   "pred_margin": 16.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 5.8
+     "value": 5.7
     },
     {
      "label": "Recent form",
-     "value": 8.2
+     "value": 8.3
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.9
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.2
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601043",
@@ -2071,8 +2328,8 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8109,
-   "pred_margin": 11.8,
+   "win_prob": 0.8376,
+   "pred_margin": 13.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
@@ -2082,17 +2339,22 @@
     },
     {
      "label": "Recent form",
-     "value": 7.5
+     "value": 8.3
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601052",
@@ -2103,28 +2365,33 @@
    "opp_rest_days": 3.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.4845,
-   "pred_margin": -0.5,
+   "win_prob": 0.5045,
+   "pred_margin": 0.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": -0.2
+     "value": -0.3
     },
     {
      "label": "Recent form",
-     "value": -0.0
+     "value": 0.1
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -2.2
+     "value": -1.9
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601076",
@@ -2135,28 +2402,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7057,
-   "pred_margin": 7.2,
+   "win_prob": 0.6538,
+   "pred_margin": 5.3,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.5
+     "value": 2.4
     },
     {
      "label": "Recent form",
-     "value": 5.6
+     "value": 4.3
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -0.0
+     "value": -0.1
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601085",
@@ -2167,28 +2439,33 @@
    "opp_rest_days": 2.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.7761,
-   "pred_margin": 10.2,
+   "win_prob": 0.776,
+   "pred_margin": 10.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 5.8
+     "value": 5.7
     },
     {
      "label": "Recent form",
-     "value": 8.2
+     "value": 8.3
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -2.0
+     "value": -1.7
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601098",
@@ -2199,28 +2476,33 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.8061,
-   "pred_margin": 11.6,
+   "win_prob": 0.7986,
+   "pred_margin": 11.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 5.9
+     "value": 5.6
     },
     {
      "label": "Recent form",
-     "value": 6.5
+     "value": 6.7
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": 1.0
+     "value": 0.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.2
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601113",
@@ -2231,28 +2513,33 @@
    "opp_rest_days": 1.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6773,
-   "pred_margin": 6.2,
+   "win_prob": 0.6519,
+   "pred_margin": 5.2,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 2.1
+     "value": 1.9
     },
     {
      "label": "Recent form",
-     "value": 3.7
+     "value": 3.9
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": 2.2
+     "value": 2.0
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.8
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601118",
@@ -2263,28 +2550,33 @@
    "opp_rest_days": 3.0,
    "b2b": true,
    "completed": false,
-   "win_prob": 0.7453,
-   "pred_margin": 8.8,
+   "win_prob": 0.7036,
+   "pred_margin": 7.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.5
+     "value": 2.4
     },
     {
      "label": "Recent form",
-     "value": 5.6
+     "value": 4.3
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -2.2
+     "value": -1.9
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601142",
@@ -2295,28 +2587,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.5313,
-   "pred_margin": 1.1,
+   "win_prob": 0.5456,
+   "pred_margin": 1.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 1.7
+     "value": 1.3
     },
     {
      "label": "Recent form",
-     "value": 1.5
+     "value": 1.9
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -0.3
+     "value": -0.4
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.5
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601159",
@@ -2327,28 +2624,33 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.7247,
-   "pred_margin": 8.0,
+   "win_prob": 0.7059,
+   "pred_margin": 7.2,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 3.6
+     "value": 2.9
     },
     {
      "label": "Recent form",
-     "value": 6.2
+     "value": 5.8
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
-     "value": -0.0
+     "value": -0.1
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601172",
@@ -2359,28 +2661,33 @@
    "opp_rest_days": 3.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.6264,
-   "pred_margin": 4.3,
+   "win_prob": 0.6334,
+   "pred_margin": 4.5,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 2.3
+     "value": 2.2
     },
     {
      "label": "Recent form",
-     "value": 3.9
+     "value": 4.3
     },
     {
      "label": "Home court",
-     "value": -1.9
+     "value": -1.8
     },
     {
      "label": "Rest & schedule",
      "value": -0.1
+    },
+    {
+     "label": "Injuries & availability",
+     "value": -0.0
     }
-   ]
+   ],
+   "win_prob_healthy": null
   },
   {
    "game_id": "0022601186",
@@ -2391,14 +2698,14 @@
    "opp_rest_days": 2.0,
    "b2b": false,
    "completed": false,
-   "win_prob": 0.9306,
-   "pred_margin": 19.8,
+   "win_prob": 0.9344,
+   "pred_margin": 20.1,
    "result": null,
    "pregame_win_prob": null,
    "drivers": [
     {
      "label": "Season strength",
-     "value": 6.7
+     "value": 6.6
     },
     {
      "label": "Recent form",
@@ -2406,26 +2713,31 @@
     },
     {
      "label": "Home court",
-     "value": 1.9
+     "value": 1.8
     },
     {
      "label": "Rest & schedule",
      "value": 0.8
+    },
+    {
+     "label": "Injuries & availability",
+     "value": 0.4
     }
-   ]
+   ],
+   "win_prob_healthy": null
   }
  ],
  "seed_probabilities": {
-  "1": 0.6148,
-  "2": 0.2564,
-  "3": 0.0808,
-  "4": 0.03,
-  "5": 0.0113,
-  "6": 0.0046,
-  "7": 0.0017,
-  "8": 0.0002,
-  "9": 0.0001,
-  "10": 0.0001,
+  "1": 0.6271,
+  "2": 0.2133,
+  "3": 0.0883,
+  "4": 0.0416,
+  "5": 0.0187,
+  "6": 0.0078,
+  "7": 0.0016,
+  "8": 0.0012,
+  "9": 0.0004,
+  "10": 0.0,
   "11": 0.0,
   "12": 0.0,
   "13": 0.0,
@@ -2435,563 +2747,988 @@
  "conference_table": [
   {
    "team": "BOS",
-   "wins": 10,
-   "losses": 2,
-   "proj_wins": 60.5,
-   "p_playoffs": 0.9998,
-   "p_top6": 0.9979,
-   "p_seed1": 0.6148
+   "wins": 11,
+   "losses": 3,
+   "proj_wins": 60.1,
+   "p_playoffs": 0.9994,
+   "p_top6": 0.9968,
+   "p_seed1": 0.6271
   },
   {
    "team": "DET",
-   "wins": 7,
-   "losses": 3,
-   "proj_wins": 56.3,
-   "p_playoffs": 0.9961,
-   "p_top6": 0.9822,
-   "p_seed1": 0.2704
+   "wins": 9,
+   "losses": 4,
+   "proj_wins": 54.6,
+   "p_playoffs": 0.989,
+   "p_top6": 0.9556,
+   "p_seed1": 0.1988
   },
   {
    "team": "NYK",
-   "wins": 6,
-   "losses": 5,
-   "proj_wins": 50.9,
-   "p_playoffs": 0.9738,
-   "p_top6": 0.902,
-   "p_seed1": 0.0666
+   "wins": 8,
+   "losses": 6,
+   "proj_wins": 50.6,
+   "p_playoffs": 0.9631,
+   "p_top6": 0.857,
+   "p_seed1": 0.0633
   },
   {
    "team": "PHI",
-   "wins": 9,
+   "wins": 12,
    "losses": 3,
-   "proj_wins": 46.3,
-   "p_playoffs": 0.8862,
-   "p_top6": 0.7117,
-   "p_seed1": 0.0172
+   "proj_wins": 50.5,
+   "p_playoffs": 0.9569,
+   "p_top6": 0.8561,
+   "p_seed1": 0.0613
   },
   {
    "team": "CLE",
-   "wins": 6,
+   "wins": 8,
+   "losses": 7,
+   "proj_wins": 47.8,
+   "p_playoffs": 0.9138,
+   "p_top6": 0.7344,
+   "p_seed1": 0.0259
+  },
+  {
+   "team": "MIA",
+   "wins": 8,
    "losses": 6,
-   "proj_wins": 46.2,
-   "p_playoffs": 0.8992,
-   "p_top6": 0.7117,
-   "p_seed1": 0.0116
+   "proj_wins": 45.3,
+   "p_playoffs": 0.8396,
+   "p_top6": 0.5795,
+   "p_seed1": 0.0115
   },
   {
    "team": "ATL",
-   "wins": 7,
-   "losses": 5,
-   "proj_wins": 46.0,
-   "p_playoffs": 0.8973,
-   "p_top6": 0.6947,
-   "p_seed1": 0.0131
+   "wins": 8,
+   "losses": 6,
+   "proj_wins": 44.9,
+   "p_playoffs": 0.8339,
+   "p_top6": 0.5485,
+   "p_seed1": 0.01
+  },
+  {
+   "team": "ORL",
+   "wins": 6,
+   "losses": 7,
+   "proj_wins": 39.7,
+   "p_playoffs": 0.5758,
+   "p_top6": 0.2242,
+   "p_seed1": 0.0013
   },
   {
    "team": "TOR",
    "wins": 5,
-   "losses": 6,
-   "proj_wins": 41.9,
-   "p_playoffs": 0.7351,
-   "p_top6": 0.4273,
-   "p_seed1": 0.0044
+   "losses": 9,
+   "proj_wins": 39.3,
+   "p_playoffs": 0.5479,
+   "p_top6": 0.2015,
+   "p_seed1": 0.0008
   },
   {
-   "team": "MIA",
+   "team": "IND",
    "wins": 5,
-   "losses": 6,
-   "proj_wins": 39.8,
-   "p_playoffs": 0.6214,
-   "p_top6": 0.2972,
-   "p_seed1": 0.0012
-  },
-  {
-   "team": "ORL",
-   "wins": 4,
-   "losses": 7,
-   "proj_wins": 37.2,
-   "p_playoffs": 0.4647,
-   "p_top6": 0.1735,
-   "p_seed1": 0.0007
+   "losses": 9,
+   "proj_wins": 31.5,
+   "p_playoffs": 0.1444,
+   "p_top6": 0.0194,
+   "p_seed1": 0.0
   },
   {
    "team": "CHA",
    "wins": 4,
-   "losses": 7,
-   "proj_wins": 33.3,
-   "p_playoffs": 0.246,
-   "p_top6": 0.061,
+   "losses": 10,
+   "proj_wins": 31.4,
+   "p_playoffs": 0.1517,
+   "p_top6": 0.0213,
    "p_seed1": 0.0
   },
   {
-   "team": "IND",
-   "wins": 4,
-   "losses": 8,
-   "proj_wins": 30.8,
-   "p_playoffs": 0.1368,
-   "p_top6": 0.0237,
+   "team": "CHI",
+   "wins": 3,
+   "losses": 10,
+   "proj_wins": 27.0,
+   "p_playoffs": 0.0427,
+   "p_top6": 0.0039,
    "p_seed1": 0.0
   },
   {
    "team": "BKN",
    "wins": 3,
-   "losses": 8,
-   "proj_wins": 28.3,
-   "p_playoffs": 0.0768,
-   "p_top6": 0.0107,
+   "losses": 10,
+   "proj_wins": 25.4,
+   "p_playoffs": 0.0238,
+   "p_top6": 0.0013,
    "p_seed1": 0.0
   },
   {
    "team": "WAS",
    "wins": 4,
-   "losses": 8,
-   "proj_wins": 27.0,
-   "p_playoffs": 0.0487,
-   "p_top6": 0.0057,
-   "p_seed1": 0.0
-  },
-  {
-   "team": "CHI",
-   "wins": 1,
-   "losses": 9,
-   "proj_wins": 22.7,
-   "p_playoffs": 0.0137,
-   "p_top6": 0.0005,
+   "losses": 11,
+   "proj_wins": 24.2,
+   "p_playoffs": 0.0158,
+   "p_top6": 0.0004,
    "p_seed1": 0.0
   },
   {
    "team": "MIL",
    "wins": 1,
-   "losses": 11,
-   "proj_wins": 20.7,
-   "p_playoffs": 0.0044,
-   "p_top6": 0.0002,
+   "losses": 13,
+   "proj_wins": 19.7,
+   "p_playoffs": 0.0022,
+   "p_top6": 0.0001,
    "p_seed1": 0.0
   }
  ],
  "metrics": {
-  "live": null
+  "live": {
+   "n": 2,
+   "log_loss": 0.8305,
+   "brier": 0.3122,
+   "accuracy": 0.5
+  }
  },
  "team_context": {
   "ATL": {
-   "wins": 7,
-   "losses": 5,
+   "wins": 8,
+   "losses": 6,
    "conf_rank": 4,
-   "games_back": 3.0,
-   "last10": "5-5",
-   "streak": "L1",
-   "off_rating": 112.0,
-   "def_rating": 110.0,
-   "net_rating": 2.0,
-   "off_rank": 13,
-   "def_rank": 14,
-   "net_rank": 15
+   "games_back": 3.5,
+   "last10": "6-4",
+   "streak": "W1",
+   "off_rating": 110.7,
+   "def_rating": 109.0,
+   "net_rating": 1.6,
+   "off_rank": 17,
+   "def_rank": 9,
+   "net_rank": 14
   },
   "BKN": {
    "wins": 3,
-   "losses": 8,
+   "losses": 10,
    "conf_rank": 13,
-   "games_back": 6.5,
+   "games_back": 8.0,
    "last10": "3-7",
-   "streak": "W1",
-   "off_rating": 106.9,
-   "def_rating": 111.8,
-   "net_rating": -4.9,
+   "streak": "L2",
+   "off_rating": 108.2,
+   "def_rating": 114.7,
+   "net_rating": -6.5,
    "off_rank": 23,
-   "def_rank": 19,
-   "net_rank": 20
+   "def_rank": 24,
+   "net_rank": 23
   },
   "BOS": {
-   "wins": 10,
-   "losses": 2,
-   "conf_rank": 1,
-   "games_back": 0.0,
-   "last10": "9-1",
-   "streak": "W5",
-   "off_rating": 115.4,
-   "def_rating": 104.1,
-   "net_rating": 11.3,
-   "off_rank": 6,
-   "def_rank": 3,
+   "wins": 11,
+   "losses": 3,
+   "conf_rank": 2,
+   "games_back": 0.5,
+   "last10": "8-2",
+   "streak": "L1",
+   "off_rating": 116.1,
+   "def_rating": 104.4,
+   "net_rating": 11.6,
+   "off_rank": 4,
+   "def_rank": 2,
    "net_rank": 1
   },
   "CHA": {
    "wins": 4,
-   "losses": 7,
-   "conf_rank": 9,
-   "games_back": 5.5,
-   "last10": "3-7",
-   "streak": "W1",
-   "off_rating": 100.2,
-   "def_rating": 111.9,
-   "net_rating": -11.7,
+   "losses": 10,
+   "conf_rank": 11,
+   "games_back": 7.5,
+   "last10": "1-9",
+   "streak": "L3",
+   "off_rating": 101.1,
+   "def_rating": 111.5,
+   "net_rating": -10.4,
    "off_rank": 30,
-   "def_rank": 20,
+   "def_rank": 17,
    "net_rank": 27
   },
   "CHI": {
-   "wins": 1,
-   "losses": 9,
+   "wins": 3,
+   "losses": 10,
    "conf_rank": 14,
    "games_back": 8.0,
-   "last10": "1-9",
-   "streak": "L8",
-   "off_rating": 106.4,
-   "def_rating": 121.0,
-   "net_rating": -14.6,
-   "off_rank": 25,
-   "def_rank": 30,
-   "net_rank": 30
+   "last10": "2-8",
+   "streak": "L1",
+   "off_rating": 106.6,
+   "def_rating": 117.1,
+   "net_rating": -10.5,
+   "off_rank": 26,
+   "def_rank": 28,
+   "net_rank": 28
   },
   "CLE": {
-   "wins": 6,
-   "losses": 6,
-   "conf_rank": 6,
+   "wins": 8,
+   "losses": 7,
+   "conf_rank": 7,
    "games_back": 4.0,
    "last10": "5-5",
-   "streak": "W1",
-   "off_rating": 113.3,
-   "def_rating": 111.2,
-   "net_rating": 2.0,
-   "off_rank": 10,
-   "def_rank": 17,
-   "net_rank": 14
+   "streak": "W2",
+   "off_rating": 114.6,
+   "def_rating": 112.4,
+   "net_rating": 2.2,
+   "off_rank": 6,
+   "def_rank": 19,
+   "net_rank": 13
   },
   "DAL": {
    "wins": 7,
-   "losses": 4,
-   "conf_rank": 8,
-   "games_back": 3.0,
-   "last10": "7-3",
-   "streak": "W3",
-   "off_rating": 112.4,
-   "def_rating": 107.9,
-   "net_rating": 4.5,
-   "off_rank": 11,
-   "def_rank": 9,
-   "net_rank": 11
+   "losses": 7,
+   "conf_rank": 10,
+   "games_back": 5.5,
+   "last10": "5-5",
+   "streak": "L3",
+   "off_rating": 109.7,
+   "def_rating": 112.2,
+   "net_rating": -2.4,
+   "off_rank": 20,
+   "def_rank": 18,
+   "net_rank": 19
   },
   "DEN": {
-   "wins": 6,
-   "losses": 4,
-   "conf_rank": 10,
-   "games_back": 3.5,
+   "wins": 7,
+   "losses": 5,
+   "conf_rank": 8,
+   "games_back": 4.5,
    "last10": "6-4",
-   "streak": "W1",
-   "off_rating": 114.5,
-   "def_rating": 113.3,
-   "net_rating": 1.2,
-   "off_rank": 7,
-   "def_rank": 23,
-   "net_rank": 16
+   "streak": "L1",
+   "off_rating": 113.7,
+   "def_rating": 113.0,
+   "net_rating": 0.7,
+   "off_rank": 9,
+   "def_rank": 20,
+   "net_rank": 15
   },
   "DET": {
-   "wins": 7,
-   "losses": 3,
+   "wins": 9,
+   "losses": 4,
    "conf_rank": 3,
    "games_back": 2.0,
-   "last10": "7-3",
+   "last10": "6-4",
    "streak": "W1",
-   "off_rating": 111.3,
-   "def_rating": 103.3,
-   "net_rating": 8.0,
-   "off_rank": 14,
-   "def_rank": 2,
-   "net_rank": 5
+   "off_rating": 112.4,
+   "def_rating": 106.6,
+   "net_rating": 5.8,
+   "off_rank": 11,
+   "def_rank": 6,
+   "net_rank": 9
   },
   "GSW": {
    "wins": 8,
-   "losses": 4,
-   "conf_rank": 6,
-   "games_back": 2.5,
-   "last10": "8-2",
-   "streak": "L1",
-   "off_rating": 116.9,
-   "def_rating": 109.2,
-   "net_rating": 7.7,
-   "off_rank": 2,
+   "losses": 6,
+   "conf_rank": 9,
+   "games_back": 4.5,
+   "last10": "7-3",
+   "streak": "L3",
+   "off_rating": 113.0,
+   "def_rating": 110.5,
+   "net_rating": 2.5,
+   "off_rank": 10,
    "def_rank": 12,
-   "net_rank": 7
+   "net_rank": 12
   },
   "HOU": {
-   "wins": 9,
-   "losses": 3,
+   "wins": 11,
+   "losses": 4,
    "conf_rank": 3,
-   "games_back": 1.5,
-   "last10": "7-3",
-   "streak": "W2",
-   "off_rating": 115.7,
-   "def_rating": 106.8,
-   "net_rating": 8.9,
-   "off_rank": 5,
-   "def_rank": 7,
-   "net_rank": 4
+   "games_back": 2.0,
+   "last10": "6-4",
+   "streak": "L1",
+   "off_rating": 118.1,
+   "def_rating": 109.9,
+   "net_rating": 8.3,
+   "off_rank": 2,
+   "def_rank": 11,
+   "net_rank": 5
   },
   "IND": {
-   "wins": 4,
-   "losses": 8,
-   "conf_rank": 11,
-   "games_back": 6.0,
+   "wins": 5,
+   "losses": 9,
+   "conf_rank": 9,
+   "games_back": 6.5,
    "last10": "3-7",
-   "streak": "W1",
-   "off_rating": 108.6,
-   "def_rating": 110.9,
+   "streak": "L1",
+   "off_rating": 109.0,
+   "def_rating": 111.4,
    "net_rating": -2.4,
-   "off_rank": 20,
-   "def_rank": 15,
+   "off_rank": 22,
+   "def_rank": 16,
    "net_rank": 18
   },
   "LAC": {
-   "wins": 2,
-   "losses": 8,
+   "wins": 4,
+   "losses": 9,
    "conf_rank": 13,
-   "games_back": 7.5,
-   "last10": "2-8",
+   "games_back": 8.0,
+   "last10": "3-7",
    "streak": "L1",
-   "off_rating": 108.4,
-   "def_rating": 114.1,
-   "net_rating": -5.7,
+   "off_rating": 109.2,
+   "def_rating": 114.9,
+   "net_rating": -5.6,
    "off_rank": 21,
    "def_rank": 25,
-   "net_rank": 23
+   "net_rank": 22
   },
   "LAL": {
-   "wins": 11,
+   "wins": 13,
    "losses": 2,
    "conf_rank": 1,
    "games_back": 0.0,
-   "last10": "8-2",
-   "streak": "W7",
-   "off_rating": 119.0,
-   "def_rating": 111.2,
-   "net_rating": 7.7,
+   "last10": "9-1",
+   "streak": "W9",
+   "off_rating": 118.8,
+   "def_rating": 111.3,
+   "net_rating": 7.4,
    "off_rank": 1,
-   "def_rank": 16,
+   "def_rank": 15,
    "net_rank": 6
   },
   "MEM": {
-   "wins": 7,
+   "wins": 10,
    "losses": 4,
-   "conf_rank": 9,
-   "games_back": 3.0,
+   "conf_rank": 5,
+   "games_back": 2.5,
    "last10": "6-4",
-   "streak": "L1",
-   "off_rating": 114.4,
-   "def_rating": 108.6,
-   "net_rating": 5.8,
-   "off_rank": 8,
-   "def_rank": 10,
-   "net_rank": 10
+   "streak": "W3",
+   "off_rating": 117.9,
+   "def_rating": 108.7,
+   "net_rating": 9.1,
+   "off_rank": 3,
+   "def_rank": 8,
+   "net_rank": 4
   },
   "MIA": {
-   "wins": 5,
+   "wins": 8,
    "losses": 6,
-   "conf_rank": 7,
-   "games_back": 4.5,
-   "last10": "5-5",
-   "streak": "W2",
-   "off_rating": 109.1,
-   "def_rating": 113.2,
-   "net_rating": -4.0,
-   "off_rank": 19,
-   "def_rank": 22,
-   "net_rank": 19
+   "conf_rank": 5,
+   "games_back": 3.5,
+   "last10": "8-2",
+   "streak": "W5",
+   "off_rating": 113.7,
+   "def_rating": 113.5,
+   "net_rating": 0.2,
+   "off_rank": 8,
+   "def_rank": 21,
+   "net_rank": 17
   },
   "MIL": {
    "wins": 1,
-   "losses": 11,
+   "losses": 13,
    "conf_rank": 15,
-   "games_back": 9.0,
-   "last10": "1-9",
-   "streak": "L8",
-   "off_rating": 104.8,
-   "def_rating": 119.1,
-   "net_rating": -14.3,
-   "off_rank": 28,
+   "games_back": 10.5,
+   "last10": "0-10",
+   "streak": "L10",
+   "off_rating": 104.1,
+   "def_rating": 117.4,
+   "net_rating": -13.3,
+   "off_rank": 29,
    "def_rank": 29,
-   "net_rank": 29
+   "net_rank": 30
   },
   "MIN": {
-   "wins": 8,
-   "losses": 3,
+   "wins": 11,
+   "losses": 4,
    "conf_rank": 4,
    "games_back": 2.0,
-   "last10": "7-3",
-   "streak": "W4",
-   "off_rating": 113.9,
-   "def_rating": 103.2,
-   "net_rating": 10.7,
-   "off_rank": 9,
+   "last10": "8-2",
+   "streak": "W2",
+   "off_rating": 112.0,
+   "def_rating": 101.8,
+   "net_rating": 10.2,
+   "off_rank": 12,
    "def_rank": 1,
    "net_rank": 3
   },
   "NOP": {
-   "wins": 4,
-   "losses": 8,
+   "wins": 5,
+   "losses": 10,
    "conf_rank": 12,
-   "games_back": 6.5,
-   "last10": "4-6",
-   "streak": "L4",
-   "off_rating": 110.5,
-   "def_rating": 117.4,
-   "net_rating": -6.9,
-   "off_rank": 17,
-   "def_rank": 28,
-   "net_rank": 25
-  },
-  "NYK": {
-   "wins": 6,
-   "losses": 5,
-   "conf_rank": 5,
-   "games_back": 3.5,
-   "last10": "6-4",
-   "streak": "L1",
-   "off_rating": 112.3,
-   "def_rating": 105.4,
-   "net_rating": 6.9,
-   "off_rank": 12,
-   "def_rank": 5,
-   "net_rank": 9
-  },
-  "OKC": {
-   "wins": 8,
-   "losses": 4,
-   "conf_rank": 7,
-   "games_back": 2.5,
-   "last10": "6-4",
-   "streak": "L2",
-   "off_rating": 109.2,
-   "def_rating": 105.1,
-   "net_rating": 4.1,
-   "off_rank": 18,
-   "def_rank": 4,
-   "net_rank": 12
-  },
-  "ORL": {
-   "wins": 4,
-   "losses": 7,
-   "conf_rank": 10,
-   "games_back": 5.5,
-   "last10": "4-6",
-   "streak": "W2",
-   "off_rating": 106.6,
-   "def_rating": 112.0,
-   "net_rating": -5.4,
-   "off_rank": 24,
-   "def_rank": 21,
-   "net_rank": 22
-  },
-  "PHI": {
-   "wins": 9,
-   "losses": 3,
-   "conf_rank": 2,
-   "games_back": 1.0,
-   "last10": "7-3",
-   "streak": "L1",
-   "off_rating": 107.9,
-   "def_rating": 106.9,
-   "net_rating": 1.0,
-   "off_rank": 22,
-   "def_rank": 8,
-   "net_rank": 17
-  },
-  "PHX": {
-   "wins": 4,
-   "losses": 6,
-   "conf_rank": 11,
-   "games_back": 5.5,
+   "games_back": 8.0,
    "last10": "4-6",
    "streak": "W1",
-   "off_rating": 111.1,
-   "def_rating": 116.4,
-   "net_rating": -5.2,
-   "off_rank": 16,
-   "def_rank": 26,
+   "off_rating": 109.9,
+   "def_rating": 116.6,
+   "net_rating": -6.7,
+   "off_rank": 19,
+   "def_rank": 27,
+   "net_rank": 24
+  },
+  "NYK": {
+   "wins": 8,
+   "losses": 6,
+   "conf_rank": 6,
+   "games_back": 3.5,
+   "last10": "7-3",
+   "streak": "W2",
+   "off_rating": 111.9,
+   "def_rating": 105.7,
+   "net_rating": 6.3,
+   "off_rank": 13,
+   "def_rank": 5,
+   "net_rank": 7
+  },
+  "OKC": {
+   "wins": 9,
+   "losses": 5,
+   "conf_rank": 6,
+   "games_back": 3.5,
+   "last10": "5-5",
+   "streak": "W1",
+   "off_rating": 110.2,
+   "def_rating": 105.2,
+   "net_rating": 5.0,
+   "off_rank": 18,
+   "def_rank": 4,
+   "net_rank": 10
+  },
+  "ORL": {
+   "wins": 6,
+   "losses": 7,
+   "conf_rank": 8,
+   "games_back": 5.0,
+   "last10": "5-5",
+   "streak": "W4",
+   "off_rating": 107.4,
+   "def_rating": 110.6,
+   "net_rating": -3.3,
+   "off_rank": 25,
+   "def_rank": 13,
+   "net_rank": 20
+  },
+  "PHI": {
+   "wins": 12,
+   "losses": 3,
+   "conf_rank": 1,
+   "games_back": 0.0,
+   "last10": "8-2",
+   "streak": "W3",
+   "off_rating": 111.9,
+   "def_rating": 109.1,
+   "net_rating": 2.7,
+   "off_rank": 14,
+   "def_rank": 10,
+   "net_rank": 11
+  },
+  "PHX": {
+   "wins": 6,
+   "losses": 7,
+   "conf_rank": 11,
+   "games_back": 6.0,
+   "last10": "5-5",
+   "streak": "W1",
+   "off_rating": 111.3,
+   "def_rating": 114.6,
+   "net_rating": -3.3,
+   "off_rank": 15,
+   "def_rank": 23,
    "net_rank": 21
   },
   "POR": {
-   "wins": 8,
-   "losses": 3,
-   "conf_rank": 5,
-   "games_back": 2.0,
-   "last10": "7-3",
-   "streak": "W2",
-   "off_rating": 116.7,
-   "def_rating": 109.6,
-   "net_rating": 7.1,
-   "off_rank": 3,
-   "def_rank": 13,
+   "wins": 9,
+   "losses": 5,
+   "conf_rank": 7,
+   "games_back": 3.5,
+   "last10": "6-4",
+   "streak": "L2",
+   "off_rating": 113.9,
+   "def_rating": 108.0,
+   "net_rating": 5.8,
+   "off_rank": 7,
+   "def_rank": 7,
    "net_rank": 8
   },
   "SAC": {
    "wins": 1,
-   "losses": 10,
-   "conf_rank": 14,
-   "games_back": 9.0,
+   "losses": 12,
+   "conf_rank": 15,
+   "games_back": 11.0,
    "last10": "1-9",
-   "streak": "L4",
-   "off_rating": 104.9,
-   "def_rating": 117.3,
-   "net_rating": -12.3,
-   "off_rank": 27,
-   "def_rank": 27,
-   "net_rank": 28
+   "streak": "L6",
+   "off_rating": 104.6,
+   "def_rating": 117.7,
+   "net_rating": -13.1,
+   "off_rank": 28,
+   "def_rank": 30,
+   "net_rank": 29
   },
   "SAS": {
-   "wins": 10,
-   "losses": 2,
+   "wins": 12,
+   "losses": 3,
    "conf_rank": 2,
-   "games_back": 0.5,
-   "last10": "10-0",
-   "streak": "W10",
-   "off_rating": 116.6,
-   "def_rating": 105.6,
-   "net_rating": 10.9,
-   "off_rank": 4,
-   "def_rank": 6,
+   "games_back": 1.0,
+   "last10": "9-1",
+   "streak": "L1",
+   "off_rating": 115.6,
+   "def_rating": 104.5,
+   "net_rating": 11.1,
+   "off_rank": 5,
+   "def_rank": 3,
    "net_rank": 2
   },
   "TOR": {
    "wins": 5,
-   "losses": 6,
-   "conf_rank": 8,
-   "games_back": 4.5,
-   "last10": "4-6",
-   "streak": "L2",
-   "off_rating": 111.3,
-   "def_rating": 108.8,
-   "net_rating": 2.5,
-   "off_rank": 15,
-   "def_rank": 11,
-   "net_rank": 13
+   "losses": 9,
+   "conf_rank": 10,
+   "games_back": 6.5,
+   "last10": "2-8",
+   "streak": "L5",
+   "off_rating": 111.1,
+   "def_rating": 110.8,
+   "net_rating": 0.3,
+   "off_rank": 16,
+   "def_rank": 14,
+   "net_rank": 16
   },
   "UTA": {
-   "wins": 1,
-   "losses": 11,
-   "conf_rank": 15,
-   "games_back": 9.5,
-   "last10": "0-10",
-   "streak": "L10",
-   "off_rating": 102.3,
-   "def_rating": 113.3,
-   "net_rating": -11.0,
-   "off_rank": 29,
-   "def_rank": 24,
+   "wins": 2,
+   "losses": 13,
+   "conf_rank": 14,
+   "games_back": 11.0,
+   "last10": "1-9",
+   "streak": "W1",
+   "off_rating": 105.7,
+   "def_rating": 114.0,
+   "net_rating": -8.3,
+   "off_rank": 27,
+   "def_rank": 22,
    "net_rank": 26
   },
   "WAS": {
    "wins": 4,
-   "losses": 8,
+   "losses": 11,
    "conf_rank": 12,
-   "games_back": 6.0,
-   "last10": "3-7",
-   "streak": "L5",
-   "off_rating": 105.6,
-   "def_rating": 111.4,
-   "net_rating": -5.8,
-   "off_rank": 26,
-   "def_rank": 18,
-   "net_rank": 24
+   "games_back": 8.0,
+   "last10": "2-8",
+   "streak": "L8",
+   "off_rating": 108.0,
+   "def_rating": 115.7,
+   "net_rating": -7.7,
+   "off_rank": 24,
+   "def_rank": 26,
+   "net_rank": 25
+  }
+ },
+ "injury_report": {
+  "available": true,
+  "as_of": "2026-11-18T19:21:33Z",
+  "p_dtd": 0.5,
+  "unmatched": [
+   "Mouhamed Gueye (ATL)",
+   "Henri Veesaar (ATL)",
+   "Nae'Qwan Tomlin (CLE)",
+   "Dereck Lively II (DAL)",
+   "Tarik Biberovic (DAL)",
+   "Julian Strawther (DEN)",
+   "Kristaps Porzingis (GSW)",
+   "Moses Moody (GSW)",
+   "Jimmy Butler III (GSW)",
+   "Johnny Furphy (IND)",
+   "Yanic Konan Niederhauser (LAC)",
+   "Brandon Ingram (LAC)",
+   "Bradley Beal (LAC)",
+   "Jordan Miller (LAC)",
+   "Richie Saunders (MEM)",
+   "Donte DiVincenzo (MIN)",
+   "Thomas Sorber (OKC)",
+   "Izaiyah Nelson (ORL)",
+   "Jonathan Isaac (ORL)",
+   "Noah Penda (ORL)",
+   "Dominick Barlow (PHI)",
+   "Ariel Hukporti (PHI)",
+   "Mark Williams (PHX)",
+   "Shaedon Sharpe (POR)",
+   "Maxime Raynaud (SAC)",
+   "Ben Simmons (SAC)",
+   "Tobias Harris (SAS)",
+   "Jayden Quaintance (SAS)",
+   "Nate Bittle (TOR)",
+   "Kevin McCullar Jr. (TOR)",
+   "Jusuf Nurkic (UTA)",
+   "Tristan Vukcevic (WAS)",
+   "Jamir Watkins (WAS)"
+  ],
+  "teams": {
+   "BOS": [
+    {
+     "player_id": 1628369,
+     "name": "Jayson Tatum",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 33.7,
+     "game_value": 6.48,
+     "rotation": true
+    },
+    {
+     "player_id": 202331,
+     "name": "Paul George",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 29.7,
+     "game_value": 3.26,
+     "rotation": true
+    },
+    {
+     "player_id": 1628401,
+     "name": "Derrick White",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 29.3,
+     "game_value": 0.41,
+     "rotation": true
+    },
+    {
+     "player_id": 1630202,
+     "name": "Payton Pritchard",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 27.4,
+     "game_value": 1.54,
+     "rotation": true
+    },
+    {
+     "player_id": 1629674,
+     "name": "Neemias Queta",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 22.2,
+     "game_value": 1.95,
+     "rotation": true
+    },
+    {
+     "player_id": 1631248,
+     "name": "Baylor Scheierman",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 20.9,
+     "game_value": 0.0,
+     "rotation": true
+    },
+    {
+     "player_id": 1630573,
+     "name": "Sam Hauser",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 20.2,
+     "game_value": 0.0,
+     "rotation": true
+    },
+    {
+     "player_id": 1629011,
+     "name": "Mitchell Robinson",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 17.3,
+     "game_value": 0.97,
+     "rotation": true
+    },
+    {
+     "player_id": 1641775,
+     "name": "Jordan Walsh",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 15.6,
+     "game_value": 0.0,
+     "rotation": true
+    },
+    {
+     "player_id": 1642269,
+     "name": "Devin Carter",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 26.5,
+     "game_value": 0.26,
+     "rotation": false
+    },
+    {
+     "player_id": 201144,
+     "name": "Mike Conley",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 15.7,
+     "game_value": 0.0,
+     "rotation": false
+    },
+    {
+     "player_id": 1630568,
+     "name": "Luka Garza",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 14.4,
+     "game_value": 1.04,
+     "rotation": false
+    },
+    {
+     "player_id": 1642864,
+     "name": "Hugo Gonz\u00e1lez",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 13.3,
+     "game_value": 0.0,
+     "rotation": false
+    },
+    {
+     "player_id": 1631199,
+     "name": "Ron Harper Jr.",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 9.7,
+     "game_value": 0.0,
+     "rotation": false
+    },
+    {
+     "player_id": 1643416,
+     "name": "Chris Cenac Jr.",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 5.6,
+     "game_value": 0.22,
+     "rotation": false
+    },
+    {
+     "player_id": 1641759,
+     "name": "Dillon Mitchell",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 2.0,
+     "game_value": 0.06,
+     "rotation": false
+    },
+    {
+     "player_id": 1642873,
+     "name": "Amari Williams",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 0.0,
+     "game_value": 0.0,
+     "rotation": false
+    }
+   ],
+   "DEN": [
+    {
+     "player_id": 203999,
+     "name": "Nikola Joki\u0107",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 35.9,
+     "game_value": 11.8,
+     "rotation": true
+    },
+    {
+     "player_id": 1627750,
+     "name": "Jamal Murray",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 35.6,
+     "game_value": 7.42,
+     "rotation": true
+    },
+    {
+     "player_id": 1631128,
+     "name": "Christian Braun",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 33.1,
+     "game_value": 0.0,
+     "rotation": true
+    },
+    {
+     "player_id": 1629661,
+     "name": "Cameron Johnson",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 28.7,
+     "game_value": 0.0,
+     "rotation": true
+    },
+    {
+     "player_id": 203932,
+     "name": "Aaron Gordon",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 28.1,
+     "game_value": 0.44,
+     "rotation": true
+    },
+    {
+     "player_id": 201942,
+     "name": "DeMar DeRozan",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 22.2,
+     "game_value": 1.07,
+     "rotation": true
+    },
+    {
+     "player_id": 1642350,
+     "name": "Trevon Brazile",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 18.9,
+     "game_value": 0.0,
+     "rotation": true
+    },
+    {
+     "player_id": 1642461,
+     "name": "Spencer Jones",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 16.3,
+     "game_value": 0.0,
+     "rotation": true
+    },
+    {
+     "player_id": 1642948,
+     "name": "Ryan Nembhard",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 20.0,
+     "game_value": 0.0,
+     "rotation": false
+    },
+    {
+     "player_id": 1641715,
+     "name": "Cam Whitmore",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 14.9,
+     "game_value": 0.53,
+     "rotation": false
+    },
+    {
+     "player_id": 1643624,
+     "name": "Bryce Hopkins",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 13.0,
+     "game_value": 0.0,
+     "rotation": false
+    },
+    {
+     "player_id": 1628963,
+     "name": "Marvin Bagley III",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 12.6,
+     "game_value": 1.31,
+     "rotation": false
+    },
+    {
+     "player_id": 1626145,
+     "name": "Tyus Jones",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 10.6,
+     "game_value": 0.0,
+     "rotation": false
+    },
+    {
+     "player_id": 1630192,
+     "name": "Zeke Nnaji",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 8.3,
+     "game_value": 0.0,
+     "rotation": false
+    },
+    {
+     "player_id": 1643813,
+     "name": "Alpha Diallo",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 8.2,
+     "game_value": 0.0,
+     "rotation": false
+    },
+    {
+     "player_id": 1641747,
+     "name": "DaRon Holmes II",
+     "status": "Available",
+     "comment": "",
+     "return_date": null,
+     "p_out": 0.0,
+     "expected_minutes": 2.6,
+     "game_value": 0.06,
+     "rotation": false
+    },
+    {
+     "player_id": 1631124,
+     "name": "Julian Strawther",
+     "status": "Out",
+     "comment": "Strawther (knee) was diagnosed with a left knee sprain Friday and will be re-evaluated in six weeks, Vinny Benedetto of The Denver Gazette reports.",
+     "return_date": "2026-11-29",
+     "p_out": 1.0,
+     "expected_minutes": 0.0,
+     "game_value": 0.0,
+     "rotation": false
+    }
+   ]
   }
  }
 }

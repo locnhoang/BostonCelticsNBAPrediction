@@ -10,7 +10,7 @@ FIRST_SEASON = 2014  # warm-up season for Elo / ratings
 FIRST_TRAIN_SEASON = 2015
 BACKTEST_SEASONS = list(range(2018, 2026))
 
-MODEL_NAME = "ridge"  # switch to "gbm" only if it clearly wins the backtest
+MODEL_NAME = "ridge_avail"  # adopted: beat ridge by at least AVAIL_ADOPT_MARGIN log loss in the backtest
 RETRAIN_DAYS = 7
 GAMES_PER_TEAM = 82
 
